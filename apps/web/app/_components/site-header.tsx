@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { getViewer } from '../_lib/session';
 import { getSite } from '../_lib/site';
+import { GoogleSignIn } from './google-sign-in';
 export async function Brand() {
   const site = await getSite();
   if (site.logoUrl || site.name !== 'OpenRaise') {
@@ -38,7 +40,19 @@ export async function Brand() {
     </Link>
   );
 }
-export function SiteHeader({ preview = false }: { preview?: boolean }) {
+/**
+ * The site header. Signed-out visitors also get Google One Tap when the
+ * deployment has a Google client ID (pages with their own Google button turn
+ * it off).
+ */
+export async function SiteHeader({
+  preview = false,
+  oneTap = true,
+}: {
+  preview?: boolean;
+  oneTap?: boolean;
+}) {
+  const [site, viewer] = await Promise.all([getSite(), getViewer()]);
   return (
     <>
       <a className="skip-link" href="#main">
@@ -56,13 +70,34 @@ export function SiteHeader({ preview = false }: { preview?: boolean }) {
             <Link href="/">Explore campaigns</Link>
             <a href="#giving-details">How giving works</a>
           </nav>
-          <Link className="header-link" href="/#about">
-            Made for community <ArrowUpRight size={16} aria-hidden="true" />
-          </Link>
+          {viewer ? (
+            <form className="header-account" action="/api/auth/signout" method="post">
+              <span className="account-avatar" aria-hidden="true">
+                {initials(viewer.name)}
+              </span>
+              <span className="account-name" title={viewer.email}>
+                {viewer.name.split(' ')[0]}
+              </span>
+              <button type="submit" className="text-button">
+                Sign out
+              </button>
+            </form>
+          ) : (
+            <Link className="header-account header-sign-in" href="/signin">
+              Sign in
+            </Link>
+          )}
         </div>
       </header>
+      {!viewer && oneTap && site.googleClientId && (
+        <GoogleSignIn clientId={site.googleClientId} oneTap />
+      )}
     </>
   );
+}
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts.at(-1)![0] : '')).toUpperCase() || '·';
 }
 export function SiteFooter() {
   return (

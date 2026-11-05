@@ -39,6 +39,14 @@ export const envSchema = z
       .optional(),
     SITE_SUPPORT_EMAIL: z.email().optional(),
 
+    // Google sign-in: the OAuth client ID (Web application). Unset = disabled.
+    // Empty (a placeholder line in .env) counts as unset.
+    GOOGLE_CLIENT_ID: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => v || undefined),
+
     // Storage: any S3-compatible service. Defaults match docker-compose (SeaweedFS).
     /** Empty for AWS S3; the R2/SeaweedFS/MinIO endpoint otherwise */
     STORAGE_ENDPOINT: z.string().default('http://localhost:8333'),
