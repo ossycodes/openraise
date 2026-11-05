@@ -246,6 +246,8 @@ describe('Paystack adapter contracts', () => {
           id: 12,
           transfer_code: 'TRF_example',
           reference: 'payout_0001',
+          amount: 100000,
+          currency: 'NGN',
         },
       });
       return provider.parseWebhook(raw, headers)?.id;
@@ -630,7 +632,12 @@ describe('webhook and response edge cases', () => {
       const signed = signBachs({
         id: 'evt_example',
         type,
-        data: { [field!]: 'resource_example', reference: 'merchant_0001' },
+        data: {
+          [field!]: 'resource_example',
+          reference: 'merchant_0001',
+          amount: '1000.00',
+          currency: 'NGN',
+        },
       });
       expect(provider.parseWebhook(signed.raw, signed.headers)).toMatchObject({
         id: 'evt_example',

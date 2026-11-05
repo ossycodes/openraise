@@ -1,3 +1,4 @@
+import { WithdrawalsModule } from '../withdrawals/withdrawals.module.js';
 import { Module } from '@nestjs/common';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { LedgerModule } from '../ledger/ledger.module.js';
@@ -7,7 +8,12 @@ import { PaymentEventQueue } from './payment-event.queue.js';
 import { WebhooksController } from './webhooks.controller.js';
 import { WebhooksService } from './webhooks.service.js';
 @Module({
-  imports: [PaymentsModule, LedgerModule, NotificationsModule],
+  imports: [
+    PaymentsModule,
+    LedgerModule,
+    NotificationsModule,
+    WithdrawalsModule,
+  ],
   controllers: [WebhooksController],
   providers: [WebhooksService, PaymentEventProcessor, PaymentEventQueue],
 })
