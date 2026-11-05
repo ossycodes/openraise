@@ -1,5 +1,6 @@
 ---
-status: in-progress
+status: shipped
+shipped: 2026-11-05
 branch: feat/donation-checkout
 pr: 10
 type: feature
