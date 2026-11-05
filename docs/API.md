@@ -64,6 +64,29 @@ Passwords need at least 10 characters.
 "Admin" means a Bearer token for a user with `role: ADMIN` (401 without a
 token, 403 for other roles).
 
+## Campaigns
+
+Reads use the public **slug**; writes use the **id**. Someone else's
+campaign, or an unpublished one you can't see, is always 404 (never 403), so
+ids and slugs can't be probed. See [[Campaigns]].
+
+| Method | Path | Auth | Body / query | Returns |
+|---|---|---|---|---|
+| POST | `/campaigns` | Bearer | `{ title, categorySlug, goalAmount, currency?, summary?, story?, beneficiaryName?, location?, endsAt? }` | 201, a `DRAFT` |
+| GET | `/campaigns` | — | `?category=&featured=&page=&limit=` (limit ≤ 50) | `{ items, page, limit, total }`; `ACTIVE` only, newest first |
+| GET | `/campaigns/mine` | Bearer | — | Every campaign you own, any status |
+| GET | `/campaigns/:slug` | Optional | — | Public if `ACTIVE`, `PAUSED` or `ENDED`; otherwise owner and admins only |
+| PATCH | `/campaigns/:id` | Owner | Any create field; `null` clears optional ones | 200; 409 while in review or once ended, or when changing currency after submit |
+| DELETE | `/campaigns/:id` | Owner | — | 204; drafts only (409 otherwise) |
+| POST | `/campaigns/:id/submit` | Owner | — | `PENDING_REVIEW`; 403 if email unverified; 400 listing what's missing |
+| POST | `/campaigns/:id/pause` / `resume` / `end` | Owner | — | New status; 409 if not allowed from the current one |
+| POST | `/campaigns/:id/approve` | Admin | — | `ACTIVE`, sets `publishedAt` |
+| POST | `/campaigns/:id/reject` | Admin | `{ reason }` | `REJECTED`; the reason is shown to the owner |
+
+`goalAmount` and `raisedAmount` are minor units as strings (`"50000000"` =
+₦500,000). `raisedAmount` and `donorCount` are `"0"` / `0` until donations ship.
+`rejectionReason` is only included for the owner and admins.
+
 ## Config
 
 | Method | Path | Auth | Returns |

@@ -61,9 +61,10 @@ proven on 6 (tidepool runs it). Revisit when Nest documents TS 7 support.
 
 ## Branch per feature, recorded in the vault
 Each feature is built on `feat/<name>` and merged into `main` with a merge
-commit once lint, typecheck, tests and build all exit 0. Until the repo has a
-GitHub remote there are no PR numbers, so feature notes record `branch`
-instead of `pr`.
+commit once lint, typecheck, tests and build all exit 0. The repo is
+[ossycodes/openraise](https://github.com/ossycodes/openraise) (private); every
+feature is a PR against `main` (never against another PR's branch), and its
+note records both `branch` and `pr`.
 
 ## Fee rounding
 Percentage fees round half up to the nearest minor unit (₦1.505 → ₦1.51),
@@ -116,3 +117,21 @@ takes effect on their next request instead of when their token expires.
 `GET /config/fees` publishes every fee, including the withdrawal fee, with no
 auth. Hidden withdrawal fees were a gap in the competitors we studied; being
 open about money is the product.
+
+## Campaign slugs: title plus a random suffix
+`help-ada-finish-nursing-school-k7m2q`: readable enough to say out loud, and
+the 5-character suffix (no 0/o, 1/l/i) makes slugs unguessable and lets two
+campaigns share a title. The slug is fixed at creation so shared links never
+break when a creator edits the title.
+
+## 404, not 403, for campaigns you can't see
+Another user's campaign, or an unpublished one, answers 404 to reads and
+writes alike. A 403 would confirm the campaign exists, and drafts can hold
+sensitive stories (medical, family) the creator hasn't chosen to publish yet.
+
+## Review locks editing; live edits don't need re-review
+A campaign can't be edited while an admin is reviewing it, so the version
+approved is the version published. Once live, the creator can update the
+story and goal without a second review: updates are how creators show
+progress, and the public money trail and reports cover abuse. The currency is
+fixed at submission because donations will be held in it.

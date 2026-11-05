@@ -6,6 +6,7 @@ milestone: 1
 priority: 1
 effort: M
 branch: feat/email-password-auth
+pr: 3
 shipped: 2026-11-05
 tags:
   - feature
