@@ -2413,14 +2413,14 @@ h3 {
   color: #2457b1;
   font-weight: 700;
   font-size: 1.8rem;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-body);
 }
 .social-share-actions .linkedin-share {
   background: #e7f1f7;
   color: #12618c;
   font-weight: 700;
   font-size: 1.2rem;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-body);
 }
 .campaign-share-dialog > label {
   display: block;
