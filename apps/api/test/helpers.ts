@@ -110,12 +110,17 @@ export async function createTestApp(
   options: {
     paymentProvider?: PaymentProvider | null;
     backgroundJobs?: boolean;
+    /** Any other provider to replace, e.g. Google's signing keys. */
+    overrides?: { provide: unknown; useValue: unknown }[];
   } = {},
 ): Promise<TestApp> {
   const mail = new FakeMailService();
   const builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(MailService)
     .useValue(mail);
+  for (const o of options.overrides ?? []) {
+    builder.overrideProvider(o.provide as never).useValue(o.useValue);
+  }
   if (Object.hasOwn(options, 'paymentProvider'))
     builder
       .overrideProvider(PAYMENT_PROVIDER)

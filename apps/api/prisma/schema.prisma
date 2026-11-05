@@ -27,6 +27,8 @@ model User {
   tokenVersion       Int                 @default(0)
   createdAt          DateTime            @default(now()) @db.Timestamptz
   updatedAt          DateTime            @updatedAt @db.Timestamptz
+  /// Google's stable account id ("sub"), set on first Google sign-in
+  googleSubject      String?             @unique
   refreshTokens      RefreshToken[]
   emailTokens        EmailToken[]
   donations          Donation[]
