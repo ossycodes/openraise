@@ -378,8 +378,6 @@ describe('payment webhooks', () => {
     } finally {
       queue.enqueue = original;
     }
-    const priorPrefix = processEnvPrefix();
-    process.env.PAYMENT_QUEUE_PREFIX = `test-${randomUUID()}`;
     const real = await createTestApp({
       paymentProvider: bachs,
       backgroundJobs: true,
@@ -410,8 +408,6 @@ describe('payment webhooks', () => {
       ).toBe('SUCCEEDED');
     } finally {
       await real.app.close();
-      if (priorPrefix === undefined) delete process.env.PAYMENT_QUEUE_PREFIX;
-      else process.env.PAYMENT_QUEUE_PREFIX = priorPrefix;
     }
   }, 20000);
   it('accepts Paystack signatures and deduplicates its synthesized event key', async () => {
@@ -476,6 +472,3 @@ describe('payment webhooks', () => {
     }
   });
 });
-function processEnvPrefix() {
-  return globalThis.process.env.PAYMENT_QUEUE_PREFIX;
-}

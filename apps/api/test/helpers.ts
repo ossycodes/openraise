@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
@@ -58,6 +59,10 @@ export async function createTestApp(
       .overrideProvider(PaymentEventQueue)
       .useValue({ enqueue: async () => {} });
   const moduleRef = await builder.compile();
+  if (options.backgroundJobs)
+    moduleRef
+      .get(ConfigService)
+      .set('PAYMENT_QUEUE_PREFIX', `e2e-${randomUUID()}`);
   const app = moduleRef.createNestApplication({ rawBody: true });
   await app.init();
   return {
