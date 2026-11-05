@@ -64,3 +64,17 @@ Each feature is built on `feat/<name>` and merged into `main` with a merge
 commit once lint, typecheck, tests and build all exit 0. Until the repo has a
 GitHub remote there are no PR numbers, so feature notes record `branch`
 instead of `pr`.
+
+## Fee rounding
+Percentage fees round half up to the nearest minor unit (₦1.505 → ₦1.51),
+always on BigInts. The platform fee comes out of the donation; if the donor
+ticks "cover the fee" it's added to their charge instead and the campaign gets
+the full amount. The donor processing fee is then charged on everything sent
+to the processor before it (donation + covered platform fee), because that's
+what the processor charges on. Invariant, tested:
+`totalCharged = netToCampaign + platformFee + donorFee`.
+
+## All fees are public
+`GET /config/fees` publishes every fee, including the withdrawal fee, with no
+auth. Hidden withdrawal fees were a gap in the competitors we studied; being
+open about money is the product.
