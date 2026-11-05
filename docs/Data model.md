@@ -151,3 +151,23 @@ Single-use links sent by email.
 
 Claimed with a conditional update (`WHERE usedAt IS NULL`) so a link can't be
 used twice, even concurrently.
+
+## Donations
+
+`Donation` belongs to a campaign (restrict delete) and optionally a signed-in
+user (set null on user deletion). It stores a normalized private donor email,
+a unique SHA-256 idempotency-key hash, a unique random merchant reference,
+provider name and nullable provider checkout/payment IDs. Each provider + ID
+pair is unique. Indexes cover campaign + status and donor user.
+
+`amount`, `platformFee`, `donorFee`, `totalCharged` and `netToCampaign` are
+BigInt minor units with `currency` and `donorCoversPlatformFee` saved as an
+immutable fee snapshot. A database check requires nonnegative allocations and
+`totalCharged = netToCampaign + platformFee + donorFee`.
+
+`status` is `PENDING`, `SUCCEEDED`, `FAILED` or `EXPIRED`. The separate
+`checkoutState` is `INITIALIZING`, `READY`, `FAILED` or `UNCERTAIN`, describing
+whether hosted checkout creation completed, not whether the donor paid.
+`checkoutUrl` is private to the caller holding the donation status capability.
+`succeededAt` and `stateEventAt` are reserved for verified webhook processing.
+`createdAt` and `updatedAt` are timestamptz. No mutable balance is stored.

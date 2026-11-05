@@ -189,3 +189,17 @@ Nigerian bank payouts only. Unknown payment states require reconciliation;
 Bachs checkout completion and accepted/overpaid amounts cannot confirm an exact
 payment. Adapters do not retry writes automatically: transport failures and
 malformed success responses can hide a successful write.
+
+## Reserve checkout before external I/O, never blindly retry uncertain writes
+
+A random UUID v4 idempotency key reserves one donation and its immutable fees
+before contacting the provider. A duplicate key returns the saved checkout or
+conflicts while initialization is in flight. No database transaction is held
+across provider I/O. A timeout, malformed response, or interrupted initialization
+requires reconciliation rather than another hosted checkout creation. The key
+is hashed in the database and is not included in provider metadata.
+
+Guest status reads use a separate HMAC capability returned to the checkout
+caller; donation IDs alone cannot reveal payment progress or checkout URLs.
+Signed-in donors are associated with their account email. Provider redirects
+never change donation status.
