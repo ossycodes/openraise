@@ -17,6 +17,8 @@ describe('GET /config/site', () => {
       logoUrl: null,
       primaryColor: null,
       supportEmail: null,
+      // Set for every e2e run in vitest.config.e2e.ts
+      googleClientId: 'test-client.apps.googleusercontent.com',
     });
   });
 });

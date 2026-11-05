@@ -250,3 +250,14 @@ temporary non-acceptance; unknown/interrupted sends require reconciliation. In
 particular, Nodemailer can report ECONNECTION/CONN after DATA, so those labels
 alone do not establish that retrying is safe. SMTP acceptance is distinct from
 final delivery to the recipient's inbox.
+
+## Google sign-in: ID tokens only, linked by verified email
+The browser gets a Google ID token (One Tap or the button) and the API verifies
+it against Google's published keys, the issuer and our `GOOGLE_CLIENT_ID`. No
+OAuth code exchange, so no client secret is stored anywhere. An existing
+account with the same email is linked only when Google says the email is
+verified; a second Google account for an already linked email is refused
+rather than silently swapped. The web app keeps the refresh token in an
+httpOnly cookie and talks to the API from route handlers, so browser code never
+holds a token. The client ID reaches the web app through `GET /config/site`, so
+it's configured once, in the API's env.
