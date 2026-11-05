@@ -2644,3 +2644,128 @@ h3 {
     display: block;
   }
 }
+
+/* Homepage: the "start your own campaign" band */
+.creator-band {
+  margin-top: 28px;
+  padding: 45px 40px 48px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.creator-band-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 30px;
+  margin-bottom: 44px;
+}
+.creator-band-heading h2 {
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  margin-top: 14px;
+}
+.creator-band-heading p {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.creator-band-heading .primary-button {
+  flex-shrink: 0;
+  gap: 16px;
+}
+.creator-band ol {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+/* A thread joining the three steps */
+.creator-band ol::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  inset-inline: 24px calc(33.333% - 8px);
+  border-top: 1px dashed var(--control-border);
+}
+.creator-band li {
+  position: relative;
+}
+.creator-step-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--accent);
+  box-shadow: 0 0 0 6px var(--surface);
+}
+.creator-step-number {
+  display: block;
+  margin-block: 20px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--warm-text);
+}
+.creator-band h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+.creator-band li p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.75;
+  max-width: 34ch;
+}
+@media (max-width: 850px) {
+  .creator-band-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+@media (max-width: 540px) {
+  .creator-band {
+    padding: 30px 22px;
+  }
+  .creator-band-heading {
+    margin-bottom: 30px;
+  }
+  .creator-band-heading h2 {
+    font-size: 2.1rem;
+  }
+  .creator-band ol {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  /* The thread runs down from each icon to the next one instead */
+  .creator-band ol::before {
+    display: none;
+  }
+  .creator-band li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 24px;
+    top: 54px;
+    bottom: -20px;
+    border-left: 1px dashed var(--control-border);
+  }
+  .creator-band li {
+    padding-left: 66px;
+  }
+  .creator-step-icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  .creator-step-number {
+    margin-top: 2px;
+  }
+}
