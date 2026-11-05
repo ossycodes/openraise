@@ -2929,6 +2929,8 @@ h3 {
   }
   .signin-card h1 {
     font-size: 1.85rem;
+  }
+}
 
 /* Homepage: the "start your own campaign" band */
 .creator-band {
@@ -3052,5 +3054,55 @@ h3 {
   }
   .creator-step-number {
     margin-top: 2px;
+  }
+}
+
+/* Discovery controls: wrap complete category choices on desktop. */
+.campaign-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px auto;
+  align-items: center;
+}
+.campaign-search input[type='search'],
+.campaign-search select {
+  min-width: 0;
+  width: 100%;
+}
+.category-browser {
+  flex-wrap: wrap;
+  overflow: visible;
+  padding: 0;
+  gap: 8px;
+  background: transparent;
+  border-radius: 0;
+}
+.category-browser a {
+  flex: 0 0 auto;
+  background: #eeeee8;
+}
+.category-browser a[aria-current='page'] {
+  background: var(--accent);
+}
+@media (max-width: 640px) {
+  .campaign-search {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .campaign-search input[type='search'] {
+    grid-column: 1 / -1;
+  }
+  .category-browser {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 6px;
+    background: #eeeee8;
+    border-radius: 28px;
+    scrollbar-width: none;
+    margin-inline-end: 0;
+  }
+  .category-browser::-webkit-scrollbar {
+    display: none;
+  }
+  .category-browser a:focus-visible {
+    outline-offset: -3px;
   }
 }
