@@ -17,6 +17,7 @@ import {
 import { formatMoney } from '@openraise/shared';
 import { SiteFooter, SiteHeader } from './_components/site-header';
 import { apiOrigin, previewEnabled } from './_lib/campaign-server';
+import { getSite } from './_lib/site';
 import { progressPercent, type Campaign } from './_lib/campaign';
 
 interface Category {
@@ -34,17 +35,39 @@ async function read<T>(path: string): Promise<T | null> {
     return null;
   }
 }
+const SORTS = [
+  { value: '', label: 'Best match / newest' },
+  { value: 'trending', label: 'Trending' },
+  { value: 'close-to-goal', label: 'Close to goal' },
+  { value: 'newest', label: 'Newest' },
+] as const;
+
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; q?: string; sort?: string }>;
 }) {
-  const requested = (await searchParams).category ?? '';
+  const site = await getSite();
+  const params = await searchParams;
+  const requested = params.category ?? '';
   const category = /^[a-z0-9-]{1,50}$/.test(requested) ? requested : '';
+  const q = (params.q ?? '').trim().slice(0, 100);
+  const sort = SORTS.some((s) => s.value === params.sort) ? (params.sort ?? '') : '';
+  const listQuery = new URLSearchParams({ limit: '12' });
+  if (category) listQuery.set('category', category);
+  if (q) listQuery.set('q', q);
+  if (sort) listQuery.set('sort', sort);
+  /** Category links keep the current search and sort. */
+  const browseHref = (slug: string) => {
+    const next = new URLSearchParams();
+    if (slug) next.set('category', slug);
+    if (q) next.set('q', q);
+    if (sort) next.set('sort', sort);
+    const qs = next.toString();
+    return `/${qs ? `?${qs}` : ''}#campaigns`;
+  };
   const [listing, categories, fees] = await Promise.all([
-    read<{ items: Campaign[]; total: number }>(
-      `/campaigns?limit=12${category ? `&category=${encodeURIComponent(category)}` : ''}`,
-    ),
+    read<{ items: Campaign[]; total: number }>(`/campaigns?${listQuery}`),
     read<Category[]>('/categories'),
     read<{ platformFeeBps: number }>('/config/fees'),
   ]);
@@ -164,9 +187,41 @@ export default async function HomePage({
               Browse by category and find a story you can help move forward.
             </p>
           </div>
+          <form
+            className="campaign-search"
+            role="search"
+            method="get"
+            action="/#campaigns"
+          >
+            {category && <input type="hidden" name="category" value={category} />}
+            <label className="visually-hidden" htmlFor="campaign-search-q">
+              Search campaigns
+            </label>
+            <input
+              id="campaign-search-q"
+              type="search"
+              name="q"
+              defaultValue={q}
+              maxLength={100}
+              placeholder="Search by name, place or cause"
+            />
+            <label className="visually-hidden" htmlFor="campaign-search-sort">
+              Sort campaigns
+            </label>
+            <select id="campaign-search-sort" name="sort" defaultValue={sort}>
+              {SORTS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="primary-button">
+              Search
+            </button>
+          </form>
           <nav className="category-browser" aria-label="Campaign categories">
             <Link
-              href="/#campaigns"
+              href={browseHref('')}
               aria-current={!category ? 'page' : undefined}
             >
               All causes
@@ -174,7 +229,7 @@ export default async function HomePage({
             {(categories ?? []).map((item) => (
               <Link
                 key={item.slug}
-                href={`/?category=${encodeURIComponent(item.slug)}#campaigns`}
+                href={browseHref(item.slug)}
                 aria-current={category === item.slug ? 'page' : undefined}
               >
                 {item.name}
@@ -189,10 +244,12 @@ export default async function HomePage({
           )}
           <div className="browse-result-label">
             <h3>
-              {category
-                ? (categories?.find((c) => c.slug === category)?.name ??
-                  'Selected category')
-                : 'Stories worth showing up for'}
+              {q
+                ? `Results for “${q}”`
+                : category
+                  ? (categories?.find((c) => c.slug === category)?.name ??
+                    'Selected category')
+                  : 'Stories worth showing up for'}
             </h3>
             <span>
               {listing
@@ -286,11 +343,13 @@ export default async function HomePage({
               <Sprout size={32} aria-hidden="true" />
               <h3>A new story is on its way.</h3>
               <p>
-                {category
-                  ? 'There are no active campaigns in this category yet.'
-                  : 'There are no active campaigns yet. Check back for new stories.'}
+                {q
+                  ? `No campaigns match “${q}”. Try other words or another category.`
+                  : category
+                    ? 'There are no active campaigns in this category yet.'
+                    : 'There are no active campaigns yet. Check back for new stories.'}
               </p>
-              {category && (
+              {(category || q) && (
                 <Link href="/#campaigns" className="secondary-button">
                   Explore all causes <ArrowRight size={16} aria-hidden="true" />
                 </Link>
@@ -418,17 +477,17 @@ export default async function HomePage({
           <div
             className="feature-table-wrap"
             role="region"
-            aria-label="OpenRaise features"
+            aria-label={`${site.name} features`}
             tabIndex={0}
           >
             <table className="feature-table">
               <caption className="sr-only">
-                OpenRaise features and what they mean for donors
+                {site.name} features and what they mean for donors
               </caption>
               <thead>
                 <tr>
                   <th scope="col">Made for your community</th>
-                  <th scope="col">OpenRaise</th>
+                  <th scope="col">{site.name}</th>
                   <th scope="col">What it means for you</th>
                 </tr>
               </thead>

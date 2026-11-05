@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { formatMoney } from '@openraise/shared';
 import { getCampaign, previewEnabled } from '../../_lib/campaign-server';
-export const alt = 'Support a community campaign on OpenRaise';
+export const alt = 'Support a community campaign';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 async function coverData(url: string | null): Promise<string | null> {

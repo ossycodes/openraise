@@ -13,6 +13,7 @@ import { LedgerModule } from './ledger/ledger.module.js';
 import { MailModule } from './mail/mail.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { SiteController } from './site/site.controller.js';
 import { StorageModule } from './storage/storage.module.js';
 import { WebhooksModule } from './webhooks/webhooks.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -35,6 +36,6 @@ import { UsersModule } from './users/users.module.js';
     BankAccountsModule,
     WithdrawalsModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, SiteController],
 })
 export class AppModule {}

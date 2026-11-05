@@ -31,7 +31,8 @@ export async function generateMetadata({
   try {
     const campaign = await getCampaign((await params).slug);
     return {
-      title: `${campaign.title} | OpenRaise`,
+      // The root layout's title template adds the deployment's name.
+      title: campaign.title,
       description: campaign.summary,
       alternates: { canonical: `${webOrigin()}/campaigns/${campaign.slug}` },
       robots: previewEnabled() ? { index: false, follow: false } : undefined,
@@ -45,7 +46,7 @@ export async function generateMetadata({
     };
   } catch {
     return {
-      title: 'Campaign unavailable | OpenRaise',
+      title: 'Campaign unavailable',
       robots: { index: false },
     };
   }
