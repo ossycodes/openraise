@@ -53,6 +53,19 @@ enum EmailTokenPurpose {
   RESET_PASSWORD
 }
 
+/// What a campaign raises for. Seeded by migration; admins can add and edit.
+model Category {
+  id          String   @id @default(cuid())
+  /// URL segment, e.g. "medical"
+  slug        String   @unique
+  name        String
+  description String
+  /// Lower comes first in lists
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
+}
+
 /// Single-use links sent by email (verify email, reset password)
 model EmailToken {
   id        String            @id @default(cuid())
