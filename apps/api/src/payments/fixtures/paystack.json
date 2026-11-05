@@ -1,10 +1,55 @@
 {
-  "checkout": { "status": true, "data": { "authorization_url": "https://checkout.paystack.com/example", "access_code": "access_example", "reference": "donation_0001" } },
-  "payment": { "status": true, "data": { "id": 4099260516, "status": "success", "reference": "donation_0001", "amount": 250000, "currency": "NGN" } },
-  "banks": { "status": true, "data": [{ "name": "Example Bank", "code": "058" }], "meta": { "next": null } },
-  "account": { "status": true, "data": { "account_number": "0123456789", "account_name": "EXAMPLE HOLDER" } },
-  "recipient": { "status": true, "data": { "recipient_code": "RCP_example", "active": true } },
-  "payout": { "status": true, "data": { "transfer_code": "TRF_example", "reference": "payout_0001", "status": "pending" } },
-  "refund": { "status": true, "data": { "id": 1, "reference": "refund_0001", "status": "pending" } },
-  "webhook": { "event": "charge.success", "data": { "id": 4099260516, "status": "success", "reference": "donation_0001", "amount": 250000, "currency": "NGN" } }
+  "checkout": {
+    "status": true,
+    "data": {
+      "authorization_url": "https://checkout.paystack.com/example",
+      "access_code": "access_example",
+      "reference": "donation_0001"
+    }
+  },
+  "payment": {
+    "status": true,
+    "data": {
+      "id": 4099260516,
+      "status": "success",
+      "reference": "donation_0001",
+      "amount": 250000,
+      "currency": "NGN"
+    }
+  },
+  "banks": {
+    "status": true,
+    "data": [{ "name": "Example Bank", "code": "058" }],
+    "meta": { "next": null }
+  },
+  "account": {
+    "status": true,
+    "data": { "account_number": "0123456789", "account_name": "EXAMPLE HOLDER" }
+  },
+  "recipient": {
+    "status": true,
+    "data": { "recipient_code": "RCP_example", "active": true }
+  },
+  "payout": {
+    "status": true,
+    "data": {
+      "transfer_code": "TRF_example",
+      "reference": "payout_0001",
+      "status": "pending"
+    }
+  },
+  "refund": {
+    "status": true,
+    "data": { "id": 1, "reference": "refund_0001", "status": "pending" }
+  },
+  "webhook": {
+    "event": "charge.success",
+    "data": {
+      "id": 4099260516,
+      "status": "success",
+      "reference": "donation_0001",
+      "amount": 250000,
+      "currency": "NGN"
+    }
+  }
 }
