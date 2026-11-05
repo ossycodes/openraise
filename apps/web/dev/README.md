@@ -25,3 +25,11 @@ Fixture slugs: `empty-campaign`, `partial-campaign`, `paused-campaign`,
 Email `uncertain@example.com` simulates an uncertain checkout;
 `changed@example.com` simulates a changed fee total requiring a second review.
 The fixture checkout host is intentionally a non-payment `.test` address.
+
+
+YouTube preview variants: `video-campaign` includes the sample cover and a video;
+`video-only-campaign` has a video without photos. Both use the official YouTube
+player documentation's demo video, not a video from the fictional organiser.
+Set `CAMPAIGN_PREVIEW_PORT` to use an alternative fixture port. The player makes
+no YouTube requests until loaded. A deployment with a Content Security Policy
+must allow `https://www.youtube-nocookie.com` in `frame-src`.
