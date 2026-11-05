@@ -1797,6 +1797,37 @@ h3 {
   font-size: 0.875rem;
   margin-bottom: 3px;
 }
+.campaign-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 30px;
+}
+.campaign-search input[type='search'] {
+  flex: 1 1 260px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--control-border);
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.campaign-search select {
+  flex: 0 1 200px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--control-border);
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.campaign-search input:focus-visible,
+.campaign-search select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
 .category-browser {
   display: flex;
   gap: 5px;

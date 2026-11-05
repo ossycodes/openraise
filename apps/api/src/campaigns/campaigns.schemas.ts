@@ -52,9 +52,21 @@ export const rejectCampaignSchema = z.object({
   reason: z.string().trim().min(5, 'Tell the creator what to fix').max(500),
 });
 
+export const CAMPAIGN_SORTS = ['newest', 'trending', 'close-to-goal', 'relevance'] as const;
+export type CampaignSort = (typeof CAMPAIGN_SORTS)[number];
+
 export const listCampaignsSchema = z.object({
   category: z.string().trim().max(50).optional(),
   featured: z.enum(['true', 'false']).optional(),
+  /** Free text, searched over title, summary, location and story. Empty is ignored. */
+  q: z
+    .string()
+    .trim()
+    .max(100)
+    .optional()
+    .transform((v) => v || undefined),
+  /** Defaults to relevance when searching, newest otherwise. */
+  sort: z.enum(CAMPAIGN_SORTS).optional(),
   page: z.coerce.number().int().min(1).max(1_000).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
