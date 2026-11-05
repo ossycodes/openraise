@@ -4,6 +4,10 @@ import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { MailService, type MailMessage } from '../src/mail/mail.service.js';
+import {
+  PAYMENT_PROVIDER,
+  type PaymentProvider,
+} from '../src/payments/payment-provider.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 export class FakeMailService {
@@ -34,13 +38,19 @@ export interface TestApp {
   http: () => ReturnType<typeof request>;
 }
 
-export async function createTestApp(): Promise<TestApp> {
+export async function createTestApp(
+  options: { paymentProvider?: PaymentProvider | null } = {},
+): Promise<TestApp> {
   const mail = new FakeMailService();
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+  const builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(MailService)
-    .useValue(mail)
-    .compile();
-  const app = moduleRef.createNestApplication();
+    .useValue(mail);
+  if (Object.hasOwn(options, 'paymentProvider'))
+    builder
+      .overrideProvider(PAYMENT_PROVIDER)
+      .useValue(options.paymentProvider);
+  const moduleRef = await builder.compile();
+  const app = moduleRef.createNestApplication({ rawBody: true });
   await app.init();
   return {
     app,
