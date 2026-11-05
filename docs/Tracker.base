@@ -1,0 +1,82 @@
+filters:
+  and:
+    - file.inFolder("Features")
+    - 'file.ext == "md"'
+
+formulas:
+  priority_label: 'if(priority == 1, "1 · Next", if(priority == 2, "2 · Soon", if(priority == 3, "3 · Later", "")))'
+  milestone_label: 'if(milestone == 1, "M1 · Foundation", if(milestone == 2, "M2 · Donations", if(milestone == 3, "M3 · Payouts", if(milestone == 4, "M4 · Trust & safety", if(milestone == 5, "M5 · Web app", if(milestone == 6, "M6 · Growth", if(milestone == 7, "M7 · Parity extras", if(milestone == 8, "M8 · Ops", ""))))))))'
+
+properties:
+  status:
+    displayName: Status
+  type:
+    displayName: Type
+  area:
+    displayName: Area
+  effort:
+    displayName: Effort
+  pr:
+    displayName: PR
+  shipped:
+    displayName: Shipped
+  formula.priority_label:
+    displayName: Priority
+  formula.milestone_label:
+    displayName: Milestone
+
+views:
+  - type: table
+    name: Roadmap
+    filters:
+      and:
+        - 'status != "shipped"'
+        - 'type != "tech-debt"'
+    order:
+      - file.name
+      - status
+      - formula.priority_label
+      - area
+      - effort
+    groupBy:
+      property: formula.milestone_label
+      direction: ASC
+
+  - type: table
+    name: In progress
+    filters: 'status == "in-progress"'
+    order:
+      - file.name
+      - formula.milestone_label
+      - area
+      - effort
+
+  - type: table
+    name: Shipped
+    filters: 'status == "shipped"'
+    order:
+      - file.name
+      - area
+      - pr
+      - shipped
+
+  - type: table
+    name: Tech debt
+    filters: 'type == "tech-debt"'
+    order:
+      - file.name
+      - status
+      - formula.priority_label
+      - area
+      - effort
+
+  - type: table
+    name: All
+    order:
+      - file.name
+      - formula.milestone_label
+      - type
+      - status
+      - formula.priority_label
+      - area
+      - pr

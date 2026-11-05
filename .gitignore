@@ -1,0 +1,21 @@
+node_modules
+dist
+.next
+out
+coverage
+.turbo
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+
+# Keep environment variables out of version control
+.env
+.env.local
+
+# Generated Prisma client
+apps/api/src/generated/
+
+# Obsidian: share vault settings, not personal workspace state
+docs/.obsidian/workspace*.json
+docs/.obsidian/cache
+docs/.trash/
