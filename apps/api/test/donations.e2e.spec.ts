@@ -270,7 +270,7 @@ describe('donation checkout', () => {
     expect(
       await t.prisma.donation.count({
         where: {
-          idempotencyKeyHash: { not: '' },
+          campaignId,
           checkoutUrl: 'https://checkout.paystack.com/concurrent',
         },
       }),
