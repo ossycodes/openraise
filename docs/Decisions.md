@@ -152,3 +152,20 @@ and S3-compatible stores (SeaweedFS here, others in the wild) answer
 `BadDigest`. The client is set to `requestChecksumCalculation` /
 `responseChecksumValidation: 'WHEN_REQUIRED'` so self-hosters can use any
 S3-compatible store.
+
+## Ledger signs and idempotency
+Entries are signed (positive = debit, negative = credit) rather than having
+debit and credit columns, so "sums to zero" is one `SUM()`. Balances are
+shown in each account's normal direction: clearing (an asset) reads positive
+as debits, wallets and revenue (liabilities and income) read positive as
+credits, so a wallet's balance is simply what the campaign is owed.
+
+Every posting carries an idempotency key for the business event
+(`donation:<id>`). Providers deliver webhooks at least once and sometimes
+concurrently; the unique key means the second delivery returns the first
+transaction instead of crediting the campaign twice. Accounts are created on
+first use, inside the same database transaction as the posting.
+
+Validation (balanced, non-zero, one currency) runs before anything is
+written; `integrity()` re-checks the invariants from the database so a bug or
+a manual SQL edit can't hide.

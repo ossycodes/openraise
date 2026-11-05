@@ -65,6 +65,46 @@ and `ownerId`.
 
 At most 10 per campaign. Indexed on `(campaignId, position)`.
 
+## Ledger
+
+Double-entry bookkeeping; see [[Ledger]]. Entries are never updated or
+deleted, and no table stores a balance.
+
+### LedgerAccount
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | cuid | |
+| `key` | text, unique | `CAMPAIGN_WALLET:NGN:<campaignId>` or `PLATFORM_REVENUE:NGN` |
+| `type` | `PROVIDER_CLEARING` \| `CAMPAIGN_WALLET` \| `PENDING_PAYOUTS` \| `PLATFORM_REVENUE` \| `DONOR_FEES` | |
+| `currency` | text | One currency per account |
+| `campaignId` | → Campaign? | Campaign wallets only; restrict delete |
+| `createdAt` | timestamptz | Accounts are created on first posting |
+
+### LedgerTransaction
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | cuid | |
+| `kind` | `DONATION` \| `WITHDRAWAL_HOLD` \| `WITHDRAWAL_SETTLE` \| `WITHDRAWAL_REVERSE` \| `REFUND` \| `ADJUSTMENT` | |
+| `idempotencyKey` | text, unique | One per business event, e.g. `donation:<id>` |
+| `currency` | text | Every entry is in this currency |
+| `description` | text | Human-readable |
+| `createdAt` | timestamptz | |
+
+### LedgerEntry
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | cuid | |
+| `transactionId` | → LedgerTransaction | Restrict delete |
+| `accountId` | → LedgerAccount | Restrict delete |
+| `amount` | bigint | Signed minor units: positive = debit, negative = credit |
+| `createdAt` | timestamptz | |
+
+A transaction's entries sum to zero. Indexed on `accountId` and
+`transactionId`.
+
 ## Auth
 
 ### User
