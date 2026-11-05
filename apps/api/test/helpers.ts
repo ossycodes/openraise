@@ -53,3 +53,39 @@ export async function createTestApp(): Promise<TestApp> {
 export function uniqueEmail(): string {
   return `user-${randomUUID()}@example.com`;
 }
+
+export interface TestUser {
+  id: string;
+  email: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
+/** Sign up a fresh user over HTTP; `admin` promotes them in the database. */
+export async function signUpUser(
+  t: TestApp,
+  options: { admin?: boolean; verified?: boolean } = {},
+): Promise<TestUser> {
+  const email = uniqueEmail();
+  const res = await t
+    .http()
+    .post('/auth/signup')
+    .send({ name: 'Test User', email, password: 'a long enough password' })
+    .expect(201);
+  const user: TestUser = {
+    id: res.body.user.id as string,
+    email,
+    accessToken: res.body.accessToken as string,
+    refreshToken: res.body.refreshToken as string,
+  };
+  if (options.admin || options.verified) {
+    await t.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...(options.admin ? { role: 'ADMIN' as const } : {}),
+        ...(options.verified ? { emailVerifiedAt: new Date() } : {}),
+      },
+    });
+  }
+  return user;
+}
