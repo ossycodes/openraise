@@ -54,7 +54,7 @@ const eventTypes: Record<string, PaymentEventType> = {
   'charge.success': 'payment.succeeded',
   'transfer.success': 'payout.succeeded',
   'transfer.failed': 'payout.failed',
-  'transfer.reversed': 'payout.failed',
+  'transfer.reversed': 'payout.reversed',
   'refund.processed': 'refund.succeeded',
   'refund.failed': 'refund.failed',
   'refund.pending': 'refund.pending',
@@ -159,6 +159,26 @@ export class PaystackProvider implements PaymentProvider {
         resourceId: data.id,
         reference: data.reference,
         money: { amount: data.amount, currency: data.currency },
+      };
+    }
+    if (type.startsWith('payout.')) {
+      const data = read(
+        z.object({
+          id: providerId,
+          transfer_code: text,
+          reference: text,
+          amount: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+          currency: currency,
+        }),
+        event.data,
+      );
+      return {
+        provider: this.name,
+        id: `${event.event}:${data.id}`,
+        type,
+        resourceId: data.transfer_code,
+        reference: data.reference,
+        money: { amount: BigInt(data.amount), currency: data.currency },
       };
     }
     // Paystack has no top-level event id. Event type + resource id is stable across retries

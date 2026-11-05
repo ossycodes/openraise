@@ -233,6 +233,40 @@ export class BachsProvider implements PaymentProvider {
         },
       };
     }
+    if (type.startsWith('payout.') && type !== 'payout.pending') {
+      const data = read(
+        z.object({
+          withdrawal_id: text,
+          reference: text.nullable(),
+          amount: text,
+          currency,
+          from_currency: currency.nullish(),
+          to_currency: currency.nullish(),
+          to_amount: text.nullish(),
+        }),
+        event.data,
+      );
+      if (
+        (data.from_currency && data.from_currency !== data.currency) ||
+        (data.to_currency && data.to_currency !== data.currency)
+      )
+        throw new PaymentProviderError('unsupported');
+      if (
+        data.to_amount &&
+        decimalAmount(data.to_amount, data.currency) !==
+          decimalAmount(data.amount, data.currency)
+      )
+        throw new PaymentProviderError('invalid-response');
+      return {
+        ...base,
+        resourceId: data.withdrawal_id,
+        reference: data.reference,
+        money: {
+          amount: decimalAmount(data.amount, data.currency),
+          currency: data.currency,
+        },
+      };
+    }
     const data = read(
       z.object({
         reference: text.nullish(),

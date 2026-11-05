@@ -250,3 +250,27 @@ temporary non-acceptance; unknown/interrupted sends require reconciliation. In
 particular, Nodemailer can report ECONNECTION/CONN after DATA, so those labels
 alone do not establish that retrying is safe. SMTP acceptance is distinct from
 final delivery to the recipient's inbox.
+
+
+## Withdrawals reserve gross funds before one claimed dispatch
+
+The campaign row serializes wallet debit checks, reservation postings and admin
+freezes. Holds move the entire requested amount from the campaign wallet into
+pending payouts; the provider receives the net amount after the configured flat
+fee. On confirmed success the fee becomes platform revenue. A failed hold or
+explicitly reversed payout returns the full request, including that fee.
+Provider transfer expenses remain separate from the configured platform fee.
+
+The destination, fees and owner-scoped UUID key are immutable snapshots. Dispatch
+is claimed once outside the reservation transaction; no transaction stays open
+across the provider call. Interrupted initialization and ambiguous writes retain
+the hold and are never automatically resent. Matching signed webhooks can bind
+a provider ID even if the create response was lost. A successful create response
+alone does not mark the payout delivered. Conflicting terminal events need
+operator review instead of another automatic ledger movement.
+
+A freeze blocks new reservations, not payouts already accepted and held.
+Initial support is NGN-to-Nigerian-bank only, with the existing verified-email,
+provider-approval and 24-hour bank hold gates. Profile name matching remains
+advisory until the identity-verification feature supplies a verified-name gate.
+The money trail exposes financial snapshots without bank or account identities.

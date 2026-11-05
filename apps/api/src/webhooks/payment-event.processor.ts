@@ -1,3 +1,4 @@
+import { WithdrawalEvents } from '../withdrawals/withdrawal-events.js';
 import { Injectable } from '@nestjs/common';
 import { isCurrency } from '@openraise/shared';
 import { donationEntries } from '../ledger/ledger.entries.js';
@@ -11,6 +12,7 @@ export class PaymentEventProcessor {
     private readonly prisma: PrismaService,
     private readonly ledger: LedgerService,
     private readonly notifications: NotificationScheduler,
+    private readonly withdrawals: WithdrawalEvents,
   ) {}
 
   async process(id: string): Promise<void> {
@@ -23,6 +25,18 @@ export class PaymentEventProcessor {
           where: { id },
           data: { outcome, reason, processedAt: new Date() },
         });
+      if (
+        [
+          'payout.succeeded',
+          'payout.failed',
+          'payout.pending',
+          'payout.reversed',
+        ].includes(event.type ?? '')
+      ) {
+        const result = await this.withdrawals.process(tx, event);
+        await finish(result.outcome, result.reason);
+        return;
+      }
       if (
         !['payment.succeeded', 'payment.failed', 'checkout.expired'].includes(
           event.type ?? '',
