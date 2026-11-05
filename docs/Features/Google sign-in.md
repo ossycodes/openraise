@@ -1,11 +1,13 @@
 ---
-status: in-progress
+status: shipped
 type: feature
 area: auth
 milestone: 1
 priority: 2
 effort: M
 branch: feat/google-sign-in
+pr: 20
+shipped: 2026-11-05
 tags:
   - feature
 ---

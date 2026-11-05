@@ -1,5 +1,8 @@
 ---
-status: planned
+status: shipped
+branch: feat/deployment-branding
+pr: 17
+shipped: 2026-11-05
 type: feature
 area: web
 milestone: 5
