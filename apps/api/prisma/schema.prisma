@@ -105,10 +105,28 @@ model Campaign {
   endedAt         DateTime?      @db.Timestamptz
   createdAt       DateTime       @default(now()) @db.Timestamptz
   updatedAt       DateTime       @updatedAt @db.Timestamptz
+  images          CampaignImage[]
 
   @@index([status, publishedAt])
   @@index([categoryId, status])
   @@index([ownerId])
+}
+
+/// A picture on a campaign. The one at position 0 is the cover.
+model CampaignImage {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  /// Object key in storage: campaigns/{campaignId}/{random}.{ext}
+  key         String   @unique
+  /// Sniffed from the file's bytes, not taken from the upload
+  contentType String
+  /// Bytes
+  size        Int
+  position    Int
+  createdAt   DateTime @default(now()) @db.Timestamptz
+
+  @@index([campaignId, position])
 }
 
 /// Single-use links sent by email (verify email, reset password)

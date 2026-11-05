@@ -29,6 +29,19 @@ export const envSchema = z.object({
   SMTP_URL: z.string().default('smtp://localhost:1025'),
   MAIL_FROM: z.string().default('OpenRaise <no-reply@openraise.local>'),
 
+  // Storage: any S3-compatible service. Defaults match docker-compose (SeaweedFS).
+  /** Empty for AWS S3; the R2/SeaweedFS/MinIO endpoint otherwise */
+  STORAGE_ENDPOINT: z.string().default('http://localhost:8333'),
+  STORAGE_REGION: z.string().min(1).default('us-east-1'),
+  STORAGE_BUCKET: z.string().min(1).default('openraise'),
+  STORAGE_ACCESS_KEY_ID: z.string().default('openraise'),
+  STORAGE_SECRET_ACCESS_KEY: z.string().default('openraise-secret'),
+  STORAGE_FORCE_PATH_STYLE: z.stringbool().default(true),
+  /** Where browsers fetch stored files: a CDN or the bucket's public URL */
+  STORAGE_PUBLIC_URL: z.url().default('http://localhost:8333/openraise'),
+  /** Create the bucket at boot if missing (handy locally; off in production) */
+  STORAGE_CREATE_BUCKET: z.stringbool().default(true),
+
   // Fees (see docs/Features/Fee engine.md). Amounts are minor units.
   DEFAULT_CURRENCY: z.enum(SUPPORTED_CURRENCIES).default('NGN'),
   PLATFORM_FEE_BPS: bps.default(DEFAULT_FEE_CONFIG.platformFeeBps),
