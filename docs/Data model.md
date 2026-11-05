@@ -11,6 +11,22 @@ migrations in `apps/api/prisma/migrations/`. Every timestamp is `timestamptz`.
 IDs are cuids. Money columns (from M2) are `BigInt` minor units with a
 currency code beside them; see [[Decisions#Money as BigInt minor units]].
 
+## Campaigns
+
+### Category
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | text | Seeded rows use fixed ids (`cat_medical`); new ones are cuids |
+| `slug` | text, unique | Used in URLs; can't change after creation |
+| `name` | text | |
+| `description` | text | One line, shown on category pages |
+| `sortOrder` | int | Lower first; "Other" is 999 |
+| `createdAt`, `updatedAt` | timestamptz | |
+
+Sixteen categories are inserted by the `categories` migration; see
+[[Decisions#Seed data lives in migrations]].
+
 ## Auth
 
 ### User

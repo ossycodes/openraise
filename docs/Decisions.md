@@ -101,6 +101,17 @@ both failures and verifies against a dummy hash for unknown emails, and
 forgot-password always returns 202 without awaiting the email send. Rate
 limiting ([[Rate limiting]]) covers enumeration by brute force.
 
+## Seed data lives in migrations
+The starting categories are inserted by the migration that creates the table,
+with fixed ids and `ON CONFLICT DO NOTHING`. Every deployment, including the
+e2e database, gets them from `prisma migrate deploy` alone; there's no
+separate seed script to forget. Admins can rename and reorder them later.
+
+## Roles come from the database, not the token
+`RolesGuard` reads the role that `JwtAuthGuard` loaded from the database on
+this request, not the `role` claim in the JWT. Promoting or demoting an admin
+takes effect on their next request instead of when their token expires.
+
 ## All fees are public
 `GET /config/fees` publishes every fee, including the withdrawal fee, with no
 auth. Hidden withdrawal fees were a gap in the competitors we studied; being

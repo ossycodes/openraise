@@ -52,6 +52,18 @@ Passwords need at least 10 characters.
 |---|---|---|---|
 | GET | `/users/me` | Bearer | The signed-in user (same shape as `AuthResult.user`) |
 
+## Categories
+
+| Method | Path | Auth | Body | Returns |
+|---|---|---|---|---|
+| GET | `/categories` | — | — | `[{ id, slug, name, description, sortOrder }]`, ordered by `sortOrder` |
+| GET | `/categories/:slug` | — | — | One category; 404 if unknown |
+| POST | `/categories` | Admin | `{ slug, name, description?, sortOrder? }` | 201; 409 if the slug exists |
+| PATCH | `/categories/:slug` | Admin | `{ name?, description?, sortOrder? }` | 200; the slug can't change |
+
+"Admin" means a Bearer token for a user with `role: ADMIN` (401 without a
+token, 403 for other roles).
+
 ## Config
 
 | Method | Path | Auth | Returns |
