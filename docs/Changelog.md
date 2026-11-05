@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #9 | Double-entry ledger: accounts for provider clearing, campaign wallets, pending payouts, platform revenue and donor fees; balanced, atomic, idempotent postings; balances summed from entries; database integrity check; `donationEntries()` ([[Ledger]]) |
 | #8 | Paystack and Bachs payment adapters, validated opt-in configuration, exact amount conversion, signed event parsing and provider contract tests; live sandbox validation remains before enabling payments ([[Payment providers]]) |
 | #7 | Campaign images: presigned uploads straight to S3-compatible storage, checked by real size and file signature (JPEG, PNG, WebP, ≤ 5 MB) before attaching; up to 10 per campaign, reorder, delete, first is the cover; `StorageService`; CI runs SeaweedFS ([[Campaign images]]) |
 | #6 | Campaigns: drafts, submit for review, admin approve/reject with a reason, pause/resume/end, public list and detail by slug; one transition table with conditional updates; 404 for campaigns you can't see ([[Campaigns]]) |

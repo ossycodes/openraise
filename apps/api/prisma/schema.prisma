@@ -106,6 +106,7 @@ model Campaign {
   createdAt       DateTime       @default(now()) @db.Timestamptz
   updatedAt       DateTime       @updatedAt @db.Timestamptz
   images          CampaignImage[]
+  ledgerAccounts  LedgerAccount[]
 
   @@index([status, publishedAt])
   @@index([categoryId, status])
@@ -143,4 +144,73 @@ model EmailToken {
   createdAt DateTime          @default(now()) @db.Timestamptz
 
   @@index([userId, purpose])
+}
+
+// ---------------------------------------------------------------------------
+// Ledger: double-entry bookkeeping. Balances are always sums of entries;
+// nothing stores a balance. See docs/Features/Ledger.md.
+// ---------------------------------------------------------------------------
+
+enum LedgerAccountType {
+  /// Asset: money a payment provider has collected for us and not yet paid out
+  PROVIDER_CLEARING
+  /// Liability: what we owe a campaign (its wallet)
+  CAMPAIGN_WALLET
+  /// Liability: withdrawals requested but not yet confirmed by the provider
+  PENDING_PAYOUTS
+  /// Revenue: platform fees
+  PLATFORM_REVENUE
+  /// Revenue: processing fees paid by donors (offsets what providers charge us)
+  DONOR_FEES
+}
+
+model LedgerAccount {
+  id         String            @id @default(cuid())
+  /// "CAMPAIGN_WALLET:NGN:<campaignId>" or "PLATFORM_REVENUE:NGN"
+  key        String            @unique
+  type       LedgerAccountType
+  /// ISO code; an account holds one currency only
+  currency   String
+  /// Set for campaign wallets only
+  campaignId String?
+  campaign   Campaign?         @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  createdAt  DateTime          @default(now()) @db.Timestamptz
+  entries    LedgerEntry[]
+
+  @@index([campaignId])
+}
+
+enum LedgerTransactionKind {
+  DONATION
+  WITHDRAWAL_HOLD
+  WITHDRAWAL_SETTLE
+  WITHDRAWAL_REVERSE
+  REFUND
+  ADJUSTMENT
+}
+
+/// One business event (a donation, a withdrawal step). Never updated or deleted.
+model LedgerTransaction {
+  id             String                @id @default(cuid())
+  kind           LedgerTransactionKind
+  /// One posting per event, e.g. "donation:<id>"; posting it again returns the original
+  idempotencyKey String                @unique
+  currency       String
+  description    String
+  createdAt      DateTime              @default(now()) @db.Timestamptz
+  entries        LedgerEntry[]
+}
+
+model LedgerEntry {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  accountId     String
+  account       LedgerAccount     @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  /// Signed minor units: positive = debit, negative = credit. A transaction's entries sum to zero.
+  amount        BigInt
+  createdAt     DateTime          @default(now()) @db.Timestamptz
+
+  @@index([accountId])
+  @@index([transactionId])
 }
