@@ -1,26 +1,17 @@
-import { Test } from '@nestjs/testing';
-import type { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { AppModule } from '../src/app.module.js';
+import { createTestApp, type TestApp } from './helpers.js';
 
 describe('GET /health', () => {
-  let app: INestApplication;
+  let t: TestApp;
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-    app = moduleRef.createNestApplication();
-    await app.init();
+    t = await createTestApp();
   });
 
   afterAll(async () => {
-    await app.close();
+    await t.app.close();
   });
 
   it('reports ok', async () => {
-    await request(app.getHttpServer())
-      .get('/health')
-      .expect(200, { status: 'ok' });
+    await t.http().get('/health').expect(200, { status: 'ok' });
   });
 });
