@@ -53,3 +53,14 @@ idempotently, because providers deliver at least once and out of order.
 Platform fee, donor processing fee, flat fee and its threshold, and withdrawal
 fee are deployment config. A church running its own instance might charge 0%;
 a startup might charge 3.5%.
+
+## TypeScript pinned to 6
+`pnpm add typescript` now installs TypeScript 7 (the native Go port). The Nest
+CLI compiles through the TypeScript JS API, and the Nest 12 + Prisma 7 stack is
+proven on 6 (tidepool runs it). Revisit when Nest documents TS 7 support.
+
+## Branch per feature, recorded in the vault
+Each feature is built on `feat/<name>` and merged into `main` with a merge
+commit once lint, typecheck, tests and build all exit 0. Until the repo has a
+GitHub remote there are no PR numbers, so feature notes record `branch`
+instead of `pr`.
