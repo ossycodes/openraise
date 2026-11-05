@@ -29,6 +29,7 @@ model User {
   updatedAt       DateTime       @updatedAt @db.Timestamptz
   refreshTokens   RefreshToken[]
   emailTokens     EmailToken[]
+  campaigns       Campaign[]
 }
 
 model RefreshToken {
@@ -64,6 +65,50 @@ model Category {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now()) @db.Timestamptz
   updatedAt   DateTime @updatedAt @db.Timestamptz
+  campaigns   Campaign[]
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  ENDED
+  REJECTED
+}
+
+model Campaign {
+  id              String         @id @default(cuid())
+  /// Public URL segment: slugified title + random suffix, fixed at creation
+  slug            String         @unique
+  ownerId         String
+  owner           User           @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  categoryId      String
+  category        Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  title           String
+  /// One or two sentences for cards and link previews
+  summary         String         @default("")
+  story           String         @default("")
+  /// Minor units of `currency`
+  goalAmount      BigInt
+  /// ISO code, one of SUPPORTED_CURRENCIES; fixed once submitted
+  currency        String
+  beneficiaryName String?
+  location        String?
+  endsAt          DateTime?      @db.Timestamptz
+  status          CampaignStatus @default(DRAFT)
+  /// Why an admin rejected it; cleared on resubmit
+  rejectionReason String?
+  featured        Boolean        @default(false)
+  submittedAt     DateTime?      @db.Timestamptz
+  publishedAt     DateTime?      @db.Timestamptz
+  endedAt         DateTime?      @db.Timestamptz
+  createdAt       DateTime       @default(now()) @db.Timestamptz
+  updatedAt       DateTime       @updatedAt @db.Timestamptz
+
+  @@index([status, publishedAt])
+  @@index([categoryId, status])
+  @@index([ownerId])
 }
 
 /// Single-use links sent by email (verify email, reset password)

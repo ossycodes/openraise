@@ -27,6 +27,30 @@ currency code beside them; see [[Decisions#Money as BigInt minor units]].
 Sixteen categories are inserted by the `categories` migration; see
 [[Decisions#Seed data lives in migrations]].
 
+### Campaign
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | cuid | Used in write endpoints |
+| `slug` | text, unique | `slugified-title-k7m2q`; fixed at creation, used in public URLs |
+| `ownerId` | → User | Restrict delete |
+| `categoryId` | → Category | Restrict delete |
+| `title` | text | 5–100 characters |
+| `summary` | text | Up to 200; at least 10 to submit |
+| `story` | text | Up to 20,000; at least 100 to submit |
+| `goalAmount` | bigint | Minor units of `currency` |
+| `currency` | text | `NGN`, `USD`, `GHS` or `KES`; fixed once submitted |
+| `beneficiaryName`, `location` | text? | |
+| `endsAt` | timestamptz? | Must be in the future when set or submitted |
+| `status` | `DRAFT` \| `PENDING_REVIEW` \| `ACTIVE` \| `PAUSED` \| `ENDED` \| `REJECTED` | See [[Campaigns#Lifecycle]] |
+| `rejectionReason` | text? | Set on reject, cleared on resubmit |
+| `featured` | boolean | Set by admins (console comes later) |
+| `submittedAt`, `publishedAt`, `endedAt` | timestamptz? | |
+| `createdAt`, `updatedAt` | timestamptz | |
+
+Indexed on `(status, publishedAt)` for the public list, `(categoryId, status)`
+and `ownerId`.
+
 ## Auth
 
 ### User
