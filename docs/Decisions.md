@@ -169,3 +169,23 @@ first use, inside the same database transaction as the posting.
 Validation (balanced, non-zero, one currency) runs before anything is
 written; `integrity()` re-checks the invariants from the database so a bug or
 a manual SQL edit can't hide.
+
+## Payment adapters are opt-in, and provider wire amounts stay inside adapters
+
+`PAYMENT_PROVIDER=disabled` keeps existing deployments and CI independent of
+payment accounts. `PaymentsModule` exports null in that mode; consumers must
+reject payment operations rather than simulate success. Only credentials for
+the selected provider are required.
+
+The domain uses BigInt minor units. Paystack uses minor-unit JSON numbers
+(checked for safe integer precision); Bachs uses decimal strings, converted
+without floating point inside its adapter. Bachs refund amounts are in the
+original settlement currency, so callers must use the reconciled settlement
+record. Its API does not accept a refund currency field.
+
+Recipient creation is separate from payouts so an unapproved Bachs destination
+cannot silently become a payout target. The first adapter surface supports
+Nigerian bank payouts only. Unknown payment states require reconciliation;
+Bachs checkout completion and accepted/overpaid amounts cannot confirm an exact
+payment. Adapters do not retry writes automatically: transport failures and
+malformed success responses can hide a successful write.

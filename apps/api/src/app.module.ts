@@ -8,6 +8,7 @@ import { FeesModule } from './fees/fees.module.js';
 import { HealthController } from './health/health.controller.js';
 import { LedgerModule } from './ledger/ledger.module.js';
 import { MailModule } from './mail/mail.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { StorageModule } from './storage/storage.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module.js';
     StorageModule,
     LedgerModule,
     FeesModule,
+    PaymentsModule,
     AuthModule,
     UsersModule,
     CategoriesModule,

@@ -7,12 +7,12 @@ tags:
 
 # Writing an adapter
 
-Payments and identity verification are planned features. Their interfaces and
-modules do not exist yet; the provider names in [[Architecture]] describe the
-target design. This guide defines the contribution expectations, not an API
-you can import today. Coordinate the first adapter with [[Payment providers]]
-or [[Identity verification]] so the interface and its first implementation
-arrive together.
+The payment boundary lives in `apps/api/src/payments/payment-provider.ts`.
+Import its `PAYMENT_PROVIDER` token and `PaymentProvider` type; `PaymentsModule`
+exports the configured adapter (or `null` when disabled). See
+[[Payment providers]] for configuration and current limits. Identity verification
+and its provider interface are still planned; coordinate the first KYC adapter
+with [[Identity verification]].
 
 ## Define the boundary
 
