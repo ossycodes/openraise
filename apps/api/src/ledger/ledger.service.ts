@@ -81,7 +81,12 @@ export class LedgerService {
     });
     if (existing) return { transactionId: existing.id, created: false };
     const accountIds: string[] = [];
-    for (const entry of input.entries) {
+    // All posting types acquire shared account locks in the same order.
+    for (const { entry, index } of input.entries
+      .map((entry, index) => ({ entry, index }))
+      .sort((a, b) =>
+        accountKey(a.entry.account).localeCompare(accountKey(b.entry.account)),
+      )) {
       const account = await tx.ledgerAccount.upsert({
         where: { key: accountKey(entry.account) },
         create: {
@@ -93,7 +98,7 @@ export class LedgerService {
         update: {},
         select: { id: true },
       });
-      accountIds.push(account.id);
+      accountIds[index] = account.id;
     }
     const created = await tx.ledgerTransaction.create({
       data: {

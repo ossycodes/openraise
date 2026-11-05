@@ -15,25 +15,27 @@ enum Role {
 }
 
 model User {
-  id              String         @id @default(cuid())
+  id                 String              @id @default(cuid())
   /// Always stored lower-cased and trimmed
-  email           String         @unique
-  name            String
+  email              String              @unique
+  name               String
   /// "scrypt$N$r$p$salt$hash" (base64 salt and hash)
-  passwordHash    String
-  role            Role           @default(USER)
-  emailVerifiedAt DateTime?      @db.Timestamptz
+  passwordHash       String
+  role               Role                @default(USER)
+  emailVerifiedAt    DateTime?           @db.Timestamptz
   /// Stamped into every access token; bumping it signs out every device
-  tokenVersion    Int            @default(0)
-  createdAt       DateTime       @default(now()) @db.Timestamptz
-  updatedAt       DateTime       @updatedAt @db.Timestamptz
+  tokenVersion       Int                 @default(0)
+  createdAt          DateTime            @default(now()) @db.Timestamptz
+  updatedAt          DateTime            @updatedAt @db.Timestamptz
   /// Google's stable account id ("sub"), set on first Google sign-in
-  googleSubject   String?        @unique
-  refreshTokens   RefreshToken[]
-  emailTokens     EmailToken[]
-  donations       Donation[]
-  campaigns       Campaign[]
-  bankAccounts    BankAccount[]
+  googleSubject      String?             @unique
+  refreshTokens      RefreshToken[]
+  emailTokens        EmailToken[]
+  donations          Donation[]
+  campaigns          Campaign[]
+  bankAccounts       BankAccount[]
+  withdrawals        Withdrawal[]
+  payoutFreezeEvents PayoutFreezeEvent[]
 }
 
 /// Where a user's withdrawals are paid. Removed accounts are kept for history.
@@ -62,6 +64,8 @@ model BankAccount {
   payoutsAvailableAt DateTime  @db.Timestamptz
   removedAt          DateTime? @db.Timestamptz
   createdAt          DateTime  @default(now()) @db.Timestamptz
+
+  withdrawals Withdrawal[]
 
   @@index([userId, removedAt])
 }
@@ -112,41 +116,45 @@ enum CampaignStatus {
 }
 
 model Campaign {
-  id              String          @id @default(cuid())
+  id                 String                   @id @default(cuid())
   /// Public URL segment: slugified title + random suffix, fixed at creation
-  slug            String          @unique
-  ownerId         String
-  owner           User            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  categoryId      String
-  category        Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  title           String
+  slug               String                   @unique
+  ownerId            String
+  owner              User                     @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  categoryId         String
+  category           Category                 @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  title              String
   /// One or two sentences for cards and link previews
-  summary         String          @default("")
-  story           String          @default("")
+  summary            String                   @default("")
+  story              String                   @default("")
   /// Minor units of `currency`
-  goalAmount      BigInt
+  goalAmount         BigInt
   /// ISO code, one of SUPPORTED_CURRENCIES; fixed once submitted
-  currency        String
-  beneficiaryName String?
-  location        String?
-  endsAt          DateTime?       @db.Timestamptz
-  status          CampaignStatus  @default(DRAFT)
+  currency           String
+  beneficiaryName    String?
+  location           String?
+  endsAt             DateTime?                @db.Timestamptz
+  status             CampaignStatus           @default(DRAFT)
   /// Why an admin rejected it; cleared on resubmit
-  rejectionReason String?
-  featured        Boolean         @default(false)
-  submittedAt     DateTime?       @db.Timestamptz
-  publishedAt     DateTime?       @db.Timestamptz
-  endedAt         DateTime?       @db.Timestamptz
-  createdAt       DateTime        @default(now()) @db.Timestamptz
-  updatedAt       DateTime        @updatedAt @db.Timestamptz
-  donations       Donation[]
-  images          CampaignImage[]
-  ledgerAccounts  LedgerAccount[]
+  rejectionReason    String?
+  featured           Boolean                  @default(false)
+  submittedAt        DateTime?                @db.Timestamptz
+  publishedAt        DateTime?                @db.Timestamptz
+  endedAt            DateTime?                @db.Timestamptz
+  createdAt          DateTime                 @default(now()) @db.Timestamptz
+  updatedAt          DateTime                 @updatedAt @db.Timestamptz
+  donations          Donation[]
+  images             CampaignImage[]
+  ledgerAccounts     LedgerAccount[]
+  withdrawals        Withdrawal[]
+  payoutFreezeEvents PayoutFreezeEvent[]
+  payoutsFrozen      Boolean                  @default(false)
+  payoutFreezeReason String?
   /// Generated by Postgres from title, summary, location and story (see the
   /// campaign_search migration); never written by the app. The dbgenerated
   /// text is the expression exactly as Postgres stores it, so Prisma sees no
   /// drift; change both together.
-  searchVector    Unsupported("tsvector")? @default(dbgenerated("((((setweight(to_tsvector('english'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(summary, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(location, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(story, ''::text)), 'C'::\"char\"))"))
+  searchVector       Unsupported("tsvector")? @default(dbgenerated("((((setweight(to_tsvector('english'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(summary, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(location, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(story, ''::text)), 'C'::\"char\"))"))
 
   @@index([status, publishedAt])
   @@index([categoryId, status])
@@ -232,15 +240,18 @@ enum LedgerTransactionKind {
 
 /// One business event (a donation, a withdrawal step). Never updated or deleted.
 model LedgerTransaction {
-  donation       Donation?
-  id             String                @id @default(cuid())
-  kind           LedgerTransactionKind
+  donation             Donation?
+  withdrawalHold       Withdrawal?           @relation("WithdrawalHold")
+  withdrawalSettlement Withdrawal?           @relation("WithdrawalSettlement")
+  withdrawalReversal   Withdrawal?           @relation("WithdrawalReversal")
+  id                   String                @id @default(cuid())
+  kind                 LedgerTransactionKind
   /// One posting per event, e.g. "donation:<id>"; posting it again returns the original
-  idempotencyKey String                @unique
-  currency       String
-  description    String
-  createdAt      DateTime              @default(now()) @db.Timestamptz
-  entries        LedgerEntry[]
+  idempotencyKey       String                @unique
+  currency             String
+  description          String
+  createdAt            DateTime              @default(now()) @db.Timestamptz
+  entries              LedgerEntry[]
 }
 
 model LedgerEntry {
@@ -376,4 +387,66 @@ model DonationNotification {
 
   @@unique([donationId, kind])
   @@index([deliveryId])
+}
+
+enum WithdrawalStatus {
+  INITIALIZING
+  PENDING
+  UNCERTAIN
+  SUCCEEDED
+  FAILED
+  REVERSED
+}
+
+model Withdrawal {
+  id                      String             @id @default(cuid())
+  campaignId              String
+  campaign                Campaign           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  userId                  String
+  user                    User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  bankAccountId           String
+  bankAccount             BankAccount        @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  // Immutable destination and fee snapshots; never returned with recipient identifiers.
+  bankName                String
+  accountName             String
+  accountLast4            String
+  recipientId             String
+  provider                String
+  providerPayoutId        String?
+  reference               String             @unique
+  idempotencyKeyHash      String             @unique
+  currency                String
+  amount                  BigInt
+  fee                     BigInt
+  netPaidOut              BigInt
+  status                  WithdrawalStatus   @default(INITIALIZING)
+  reconciliationRequired  Boolean            @default(false)
+  reason                  String?
+  holdTransactionId       String             @unique
+  holdTransaction         LedgerTransaction  @relation("WithdrawalHold", fields: [holdTransactionId], references: [id], onDelete: Restrict)
+  settlementTransactionId String?            @unique
+  settlementTransaction   LedgerTransaction? @relation("WithdrawalSettlement", fields: [settlementTransactionId], references: [id], onDelete: Restrict)
+  reversalTransactionId   String?            @unique
+  reversalTransaction     LedgerTransaction? @relation("WithdrawalReversal", fields: [reversalTransactionId], references: [id], onDelete: Restrict)
+  stateEventAt            DateTime?          @db.Timestamptz
+  createdAt               DateTime           @default(now()) @db.Timestamptz
+  updatedAt               DateTime           @updatedAt @db.Timestamptz
+
+  @@unique([provider, providerPayoutId])
+  @@index([campaignId, createdAt])
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model PayoutFreezeEvent {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  frozen     Boolean
+  reason     String
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([campaignId, createdAt])
 }

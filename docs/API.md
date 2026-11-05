@@ -204,8 +204,8 @@ return 5xx; queue failure returns 503 while keeping the durable event for retry.
 Redis jobs and a database recovery scan apply payment state later. Workers check
 reference, currency, exact charged amount and event ordering before settling a
 donation and its balanced ledger posting in one transaction. Redirects and
-client calls cannot settle a donation. Payout/refund business processing is not
-yet enabled; those events are retained as ignored for now.
+client calls cannot settle a donation. Payout events are applied by the withdrawal processor (see below). Refund
+business processing is not yet enabled; refund events remain ignored.
 
 ## Donation notifications
 
@@ -215,3 +215,52 @@ fees use the saved checkout snapshot. Creator summaries batch by campaign/minute
 and omit donor identities. Email failure does not undo a settled payment. Known
 non-acceptance retries asynchronously; ambiguous SMTP outcomes are held for
 operator reconciliation. See [[Donor receipts]] and [[Receipt delivery]].
+
+## Withdrawals
+
+Amounts are decimal strings of minor units. Withdrawals debit the campaign wallet
+by `amount`; the configured flat `fee` is included, so `netPaidOut = amount - fee`.
+The provider receives only `netPaidOut`. The first payout route supports NGN
+campaigns and Nigerian bank accounts; there is no currency conversion.
+
+| Method | Path | Auth | Body / result |
+|---|---|---|---|
+| POST | `/campaigns/:id/withdrawals/quote` | Owner Bearer | `{ amount }` → fee breakdown, available balance, freeze and support flags; creates nothing |
+| POST | `/campaigns/:id/withdrawals` | Verified owner Bearer | `{ amount, bankAccountId, expectedFee }` + random UUID v4 `Idempotency-Key` → saved withdrawal and status, 201 |
+| GET | `/campaigns/:id/withdrawals?page=1` | Owner Bearer | Private `{ items, page, hasMore }`, 20 per page |
+| GET | `/withdrawals/:id` | Requesting owner Bearer | Private status, immutable fees and masked bank snapshot; 404 for others |
+| PUT | `/admin/campaigns/:id/payout-freeze` | Admin Bearer | `{ frozen, reason }` → current freeze; every change is audited |
+| GET | `/admin/withdrawals/review?page=1` | Admin Bearer | Uncertain, flagged, initialization older than one minute and pending older than 24 hours; includes merchant/provider identifiers for reconciliation |
+| GET | `/campaigns/:slug/money-trail/withdrawals?page=1` | Public | Money, status and timestamps only; no bank/donor/creator identifiers; 404 for unpublished campaigns |
+
+The fee quote must be reviewed: `expectedFee` must match the current configured
+fee. Reusing a key for the same campaign, amount, account and fee returns the
+original withdrawal even after settings or destination state change. A different
+payload returns 409. The key is scoped to the authenticated owner and stored as
+a hash. Missing/invalid keys or invalid money return 400. Insufficient balance,
+ineligible recipients, a bank's 24-hour hold and changed fees return 409. A freeze
+or unverified email returns 403. Disabled payouts return 503 for new requests.
+Another owner's campaign/account/withdrawal returns 404.
+
+Before any provider call, one database transaction locks the campaign, verifies
+the destination, snapshots its masked details and fees, and posts a balanced
+wallet-to-pending hold. Concurrent reservations cannot overspend the wallet.
+No database transaction spans provider I/O. Dispatch is claimed once; replaying
+or refreshing a request never sends another payout. Pending and ambiguous
+outcomes retain the hold. An explicit provider rejection returns the hold;
+unknown or interrupted initialization requires reconciliation. See
+[[Withdrawal reconciliation]].
+
+Signature-verified payout events must match provider, merchant reference,
+provider payout ID (when already known), exact net amount and currency. Success
+settles the pending liability; failure returns it. Paystack's explicit reversal
+can also return a previously settled payout and its configured fee once.
+Contradictory terminal events are flagged for review without moving money again.
+A positive create response alone remains pending until the signed payout event.
+A freeze blocks new reservations; payouts already reserved may still complete.
+
+Private responses omit full account numbers, recipient IDs and idempotency
+hashes. Public history additionally omits bank/account names, account IDs,
+merchant/provider references and internal reconciliation reasons. All reads
+are no-store. Provider transfer expenses are separate from OpenRaise's
+configured withdrawal fee; live provider reconciliation is still required.

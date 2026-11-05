@@ -8,7 +8,7 @@ tags:
 
 PostgreSQL via Prisma 7. The schema lives in `apps/api/prisma/schema.prisma`;
 migrations in `apps/api/prisma/migrations/`. Every timestamp is `timestamptz`.
-IDs are cuids. Money columns (from M2) are `BigInt` minor units with a
+IDs are cuids except withdrawal IDs (UUID v4). Money columns (from M2) are `BigInt` minor units with a
 currency code beside them; see [[Decisions#Money as BigInt minor units]].
 
 ## Campaigns
@@ -226,3 +226,31 @@ Indexes cover `(state, nextAttemptAt)` and `(state, startedAt)`.
 Multiple creator items can share a delivery, but every donor receipt has its own
 row. Foreign keys restrict deletion of related donations/deliveries. These rows
 and the financial settlement commit together; SMTP happens afterward.
+
+
+## Withdrawals
+
+`Campaign.payoutsFrozen` and `payoutFreezeReason` control new withdrawal
+reservations. `PayoutFreezeEvent` records campaign, acting admin, frozen flag,
+reason and timestamp for every freeze/unfreeze operation.
+
+`Withdrawal` retains the immutable campaign/owner/account relations, a masked
+bank snapshot (name, account holder and last four digits), private recipient and
+provider identifiers, unique merchant reference, owner-scoped idempotency-key
+hash, currency, gross wallet debit, flat fee and net bank amount. Foreign keys
+link the required hold and optional settlement/reversal ledger transactions;
+each posting can belong to only one withdrawal step. Amounts are positive,
+fees non-negative and `amount = fee + netPaidOut`, enforced in PostgreSQL.
+Succeeded/failed/reversed statuses require their matching posting IDs.
+
+States: `INITIALIZING`, `PENDING`, `UNCERTAIN`, `SUCCEEDED`, `FAILED`, `REVERSED`.
+`reconciliationRequired`, a fixed reason code and `stateEventAt` retain review
+and event-ordering context. Rows and account snapshots survive soft removal of
+a bank account. History is indexed by campaign/owner and creation time;
+provider payout IDs are unique per provider.
+
+Every debit reservation locks its campaign before reading the ledger-derived
+wallet balance. Payout settlement uses the same campaign lock, then the
+withdrawal lock. Ledger accounts are resolved in canonical key order to avoid
+opposite lock orders between different posting types. Future wallet-debit
+features must use this campaign locking convention too.

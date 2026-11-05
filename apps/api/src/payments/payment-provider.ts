@@ -73,6 +73,7 @@ export type PaymentEventType =
   | 'payout.succeeded'
   | 'payout.failed'
   | 'payout.pending'
+  | 'payout.reversed'
   | 'refund.succeeded'
   | 'refund.failed'
   | 'refund.pending';
