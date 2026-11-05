@@ -35,6 +35,8 @@ startup.
 - [[Local development]]: setup, scripts, and this repo's gotchas
 - [[Changelog]]: every merged branch, newest first
 - [[Decisions]]: why things are the way they are
+- [Contributing](../CONTRIBUTING.md): choosing work, checks and pull requests
+- [[Writing an adapter]]: payment and KYC provider contribution expectations
 
 ## Research
 
