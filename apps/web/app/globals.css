@@ -2806,3 +2806,128 @@ h3 {
   min-width: 0;
   width: 100%;
 }
+
+/* Account: header sign-in and the /signin page */
+.header-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.header-sign-in {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  text-decoration: none;
+}
+.account-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.account-name {
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.signin-page {
+  min-height: 65vh;
+  display: grid;
+  place-items: center;
+  padding: 80px 20px;
+}
+.signin-card {
+  width: min(100%, 460px);
+  padding: 44px 40px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.signin-card > svg {
+  color: var(--accent);
+  margin-block-end: 14px;
+}
+.signin-card .section-eyebrow {
+  justify-content: center;
+}
+.signin-card h1 {
+  font-size: 2.25rem;
+  text-wrap: balance;
+}
+.signin-card > p {
+  margin-block: 14px 28px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.google-sign-in {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+.google-button {
+  width: 100%;
+  max-width: 320px;
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+.google-status,
+.google-error {
+  font-size: 0.8125rem;
+  margin-block-start: 12px;
+}
+.google-status {
+  color: var(--muted);
+}
+.google-error {
+  color: var(--error);
+}
+.google-toast {
+  position: fixed;
+  inset-inline: 16px;
+  bottom: 20px;
+  z-index: 50;
+  max-width: 420px;
+  margin-inline: auto;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 0.875rem;
+  text-align: center;
+}
+.signin-note {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 26px !important;
+  font-size: 0.75rem;
+}
+@media (max-width: 540px) {
+  .account-name {
+    display: none;
+  }
+  .header-sign-in {
+    min-height: 36px;
+    padding: 0 14px;
+  }
+  .signin-card {
+    padding: 34px 22px;
+  }
+  .signin-card h1 {
+    font-size: 1.85rem;
+  }
+}

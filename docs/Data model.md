@@ -138,7 +138,8 @@ Indexed on `(userId, removedAt)`. At most 5 active per user.
 | `name` | text | Display name, 1–100 characters |
 | `passwordHash` | text | `scrypt$N$r$p$salt$hash`; see [[Decisions#scrypt, not argon2]] |
 | `role` | `USER` \| `ADMIN` | |
-| `emailVerifiedAt` | timestamptz? | Set by the verify link, or by a password reset |
+| `emailVerifiedAt` | timestamptz? | Set by the verify link, a password reset, or Google sign-in |
+| `googleSubject` | text?, unique | Google's account id (`sub`), set on first Google sign-in. Google-only accounts get an unusable random `passwordHash` |
 | `tokenVersion` | int | In every access token; incremented to sign out every device |
 | `createdAt`, `updatedAt` | timestamptz | |
 

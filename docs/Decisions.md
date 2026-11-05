@@ -289,3 +289,14 @@ support. Autoplay is not enabled. Switching to photos unmounts the iframe and
 stops playback. A direct YouTube link remains visible because URL syntax cannot
 guarantee a video exists or allows embedding. New campaign/video keys reset the
 loaded state when navigating between campaigns.
+
+## Google sign-in: ID tokens only, linked by verified email
+The browser gets a Google ID token (One Tap or the button) and the API verifies
+it against Google's published keys, the issuer and our `GOOGLE_CLIENT_ID`. No
+OAuth code exchange, so no client secret is stored anywhere. An existing
+account with the same email is linked only when Google says the email is
+verified; a second Google account for an already linked email is refused
+rather than silently swapped. The web app keeps the refresh token in an
+httpOnly cookie and talks to the API from route handlers, so browser code never
+holds a token. The client ID reaches the web app through `GET /config/site`, so
+it's configured once, in the API's env.

@@ -20,11 +20,27 @@ import {
 import { AuthService } from './auth.service.js';
 import type { AuthResult, AuthUser } from './auth.types.js';
 import { CurrentUser } from './current-user.decorator.js';
+import { GoogleSignInService } from './google-sign-in.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
+import { z } from 'zod';
+
+const googleSchema = z.object({ credential: z.string().min(20).max(4096) });
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly google: GoogleSignInService,
+  ) {}
+
+  /** Exchange a Google ID token (from One Tap or the Google button) for our tokens. */
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  googleSignIn(
+    @Body(new ZodValidationPipe(googleSchema)) body: { credential: string },
+  ): Promise<AuthResult> {
+    return this.google.signIn(body.credential);
+  }
 
   @Post('signup')
   signUp(

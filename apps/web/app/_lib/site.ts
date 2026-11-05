@@ -8,6 +8,8 @@ export interface Site {
   logoUrl: string | null;
   primaryColor: string | null;
   supportEmail: string | null;
+  /** Set when the deployment enables "Sign in with Google" */
+  googleClientId: string | null;
 }
 
 export const DEFAULT_SITE: Site = {
@@ -15,6 +17,7 @@ export const DEFAULT_SITE: Site = {
   logoUrl: null,
   primaryColor: null,
   supportEmail: null,
+  googleClientId: null,
 };
 
 /** One fetch per request; falls back to OpenRaise if the API is unreachable. */
@@ -31,6 +34,7 @@ export const getSite = cache(async (): Promise<Site> => {
       ...site,
       name: site.name?.trim() || DEFAULT_SITE.name,
       primaryColor: /^#[0-9a-fA-F]{6}$/.test(site.primaryColor ?? '') ? site.primaryColor! : null,
+      googleClientId: site.googleClientId?.trim() || null,
     };
   } catch {
     return DEFAULT_SITE;
