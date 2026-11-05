@@ -29,6 +29,8 @@ const VERIFY_EMAIL_TTL_MS = 24 * 60 * 60 * 1000;
 const RESET_PASSWORD_TTL_MS = 60 * 60 * 1000;
 const INVALID_LINK = 'This link is invalid or has expired';
 const BAD_CREDENTIALS = 'Email or password is incorrect';
+/** How long a just-rotated refresh token counts as a concurrent refresh, not theft */
+const REFRESH_RACE_GRACE_MS = 30_000;
 
 @Injectable()
 export class AuthService {
@@ -92,8 +94,7 @@ export class AuthService {
       throw new UnauthorizedException('Sign in again');
     }
     if (existing.revokedAt) {
-      await this.revokeFamily(existing.familyId);
-      throw new UnauthorizedException('Sign in again');
+      await this.rejectReuse(existing.familyId, existing.revokedAt, now);
     }
     // Claim it atomically so two concurrent refreshes can't both succeed.
     const claimed = await this.prisma.refreshToken.updateMany({
@@ -101,10 +102,36 @@ export class AuthService {
       data: { revokedAt: now },
     });
     if (claimed.count === 0) {
-      await this.revokeFamily(existing.familyId);
-      throw new UnauthorizedException('Sign in again');
+      await this.rejectReuse(existing.familyId, now, now);
     }
     return this.issueTokens(existing.user, existing.familyId);
+  }
+
+  /**
+   * A spent token was presented. Seconds after its own rotation, while the
+   * sign-in is still live, that's two requests refreshing at once (two tabs, a
+   * page and a background fetch): refuse without punishing the sign-in, and no
+   * tokens are issued either way. Any other reuse revokes the whole sign-in.
+   */
+  private async rejectReuse(
+    familyId: string,
+    revokedAt: Date,
+    now: Date,
+  ): Promise<never> {
+    const recent = now.getTime() - revokedAt.getTime() <= REFRESH_RACE_GRACE_MS;
+    const live =
+      recent &&
+      (await this.prisma.refreshToken.count({
+        where: { familyId, revokedAt: null, expiresAt: { gt: now } },
+      })) > 0;
+    if (live) {
+      throw new UnauthorizedException({
+        message: 'This session was just refreshed. Retry the request.',
+        code: 'REFRESH_RACE',
+      });
+    }
+    await this.revokeFamily(familyId);
+    throw new UnauthorizedException('Sign in again');
   }
 
   /** Revoke every token from the sign-in this refresh token belongs to. */

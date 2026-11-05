@@ -300,3 +300,22 @@ rather than silently swapped. The web app keeps the refresh token in an
 httpOnly cookie and talks to the API from route handlers, so browser code never
 holds a token. The client ID reaches the web app through `GET /config/site`, so
 it's configured once, in the API's env.
+
+## Web sessions: two httpOnly cookies, refreshed in proxy.ts
+The web app never hands tokens to browser code. `openraise_session` holds the
+refresh token (plus name and email for the header); `openraise_access` holds
+the access token and expires a minute early. Before a dashboard page or
+dashboard API route runs, `proxy.ts` swaps an expired access token for a new
+pair and passes the new cookies to both the browser and that render, since
+pages can't set cookies while rendering. Mutations are server actions that
+call the API with the access token; photo uploads go through a route handler
+that uploads to storage itself, so storage needs no CORS setup.
+
+## Concurrent refreshes are not theft
+Refresh tokens are single use, and reusing a spent one revokes the whole
+sign-in. With server-side refresh, two requests can legitimately refresh at
+once (two tabs, a page and a background fetch). A token spent within the last
+30 seconds while its sign-in still has a live token gets a `REFRESH_RACE` 401
+instead: no tokens are issued, nothing is revoked, and the web app retries
+with the cookies the winning request set. Reuse after that window still signs
+every device out.

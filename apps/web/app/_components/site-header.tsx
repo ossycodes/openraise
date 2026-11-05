@@ -68,16 +68,21 @@ export async function SiteHeader({
           <Brand />
           <nav aria-label="Main navigation">
             <Link href="/">Explore campaigns</Link>
-            <a href="#giving-details">How giving works</a>
+            <a href="/#giving-details">How giving works</a>
           </nav>
           {viewer ? (
             <form className="header-account" action="/api/auth/signout" method="post">
-              <span className="account-avatar" aria-hidden="true">
-                {initials(viewer.name)}
-              </span>
-              <span className="account-name" title={viewer.email}>
-                {viewer.name.split(' ')[0]}
-              </span>
+              <Link
+                href="/dashboard"
+                className="account-link"
+                title={viewer.email}
+                aria-label={`Your dashboard (${viewer.name})`}
+              >
+                <span className="account-avatar" aria-hidden="true">
+                  {initials(viewer.name)}
+                </span>
+                <span className="account-name">Dashboard</span>
+              </Link>
               <button type="submit" className="text-button">
                 Sign out
               </button>
