@@ -203,3 +203,12 @@ reference, currency, exact charged amount and event ordering before settling a
 donation and its balanced ledger posting in one transaction. Redirects and
 client calls cannot settle a donation. Payout/refund business processing is not
 yet enabled; those events are retained as ignored for now.
+
+## Donation notifications
+
+Verified successful donations queue an email receipt and a creator notification;
+there is no client endpoint that can trigger or resend them. Receipt amounts and
+fees use the saved checkout snapshot. Creator summaries batch by campaign/minute
+and omit donor identities. Email failure does not undo a settled payment. Known
+non-acceptance retries asynchronously; ambiguous SMTP outcomes are held for
+operator reconciliation. See [[Donor receipts]] and [[Receipt delivery]].

@@ -264,22 +264,23 @@ enum CheckoutState {
 }
 
 model Donation {
-  ledgerTransactionId    String?            @unique
-  ledgerTransaction      LedgerTransaction? @relation(fields: [ledgerTransactionId], references: [id], onDelete: Restrict)
-  id                     String             @id @default(cuid())
+  notifications          DonationNotification[]
+  ledgerTransactionId    String?                @unique
+  ledgerTransaction      LedgerTransaction?     @relation(fields: [ledgerTransactionId], references: [id], onDelete: Restrict)
+  id                     String                 @id @default(cuid())
   campaignId             String
-  campaign               Campaign           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  campaign               Campaign               @relation(fields: [campaignId], references: [id], onDelete: Restrict)
   donorUserId            String?
-  donor                  User?              @relation(fields: [donorUserId], references: [id], onDelete: SetNull)
+  donor                  User?                  @relation(fields: [donorUserId], references: [id], onDelete: SetNull)
   donorEmail             String
-  idempotencyKeyHash     String             @unique
-  reference              String             @unique
+  idempotencyKeyHash     String                 @unique
+  reference              String                 @unique
   provider               String
   providerCheckoutId     String?
   providerPaymentId      String?
   checkoutUrl            String?
-  checkoutState          CheckoutState      @default(INITIALIZING)
-  status                 DonationStatus     @default(PENDING)
+  checkoutState          CheckoutState          @default(INITIALIZING)
+  status                 DonationStatus         @default(PENDING)
   amount                 BigInt
   currency               String
   platformFee            BigInt
@@ -287,10 +288,10 @@ model Donation {
   totalCharged           BigInt
   netToCampaign          BigInt
   donorCoversPlatformFee Boolean
-  succeededAt            DateTime?          @db.Timestamptz
-  stateEventAt           DateTime?          @db.Timestamptz
-  createdAt              DateTime           @default(now()) @db.Timestamptz
-  updatedAt              DateTime           @updatedAt @db.Timestamptz
+  succeededAt            DateTime?              @db.Timestamptz
+  stateEventAt           DateTime?              @db.Timestamptz
+  createdAt              DateTime               @default(now()) @db.Timestamptz
+  updatedAt              DateTime               @updatedAt @db.Timestamptz
 
   @@unique([provider, providerCheckoutId])
   @@unique([provider, providerPaymentId])
@@ -317,4 +318,54 @@ model PaymentEvent {
 
   @@unique([provider, eventId])
   @@index([processedAt, lastDispatchAt])
+}
+
+enum NotificationKind {
+  DONOR_RECEIPT
+  CREATOR_DONATIONS
+}
+
+enum NotificationState {
+  PENDING
+  SENDING
+  SENT
+  UNCERTAIN
+  FAILED
+}
+
+model NotificationDelivery {
+  id            String                 @id @default(cuid())
+  dedupeKey     String                 @unique
+  kind          NotificationKind
+  recipient     String
+  campaignTitle String
+  campaignUrl   String
+  currency      String
+  subject       String?
+  text          String?
+  html          String?
+  state         NotificationState      @default(PENDING)
+  attempts      Int                    @default(0)
+  nextAttemptAt DateTime               @default(now()) @db.Timestamptz
+  startedAt     DateTime?              @db.Timestamptz
+  sentAt        DateTime?              @db.Timestamptz
+  lastError     String?
+  createdAt     DateTime               @default(now()) @db.Timestamptz
+  updatedAt     DateTime               @updatedAt @db.Timestamptz
+  items         DonationNotification[]
+
+  @@index([state, nextAttemptAt])
+  @@index([state, startedAt])
+}
+
+model DonationNotification {
+  id         String               @id @default(cuid())
+  donationId String
+  donation   Donation             @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  kind       NotificationKind
+  deliveryId String
+  delivery   NotificationDelivery @relation(fields: [deliveryId], references: [id], onDelete: Restrict)
+
+  @@unique([donationId, kind])
+  @@index([deliveryId])
 }

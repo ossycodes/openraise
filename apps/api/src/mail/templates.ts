@@ -9,7 +9,11 @@ export function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function layout(heading: string, paragraphs: string[], button: { label: string; href: string }): string {
+export function layout(
+  heading: string,
+  paragraphs: string[],
+  button: { label: string; href: string },
+): string {
   const body = paragraphs
     .map((p) => `<p style="margin:0 0 16px;line-height:1.5">${p}</p>`)
     .join('');
@@ -23,7 +27,11 @@ ${body}
 </div></body></html>`;
 }
 
-export function verifyEmailEmail(name: string, to: string, link: string): MailMessage {
+export function verifyEmailEmail(
+  name: string,
+  to: string,
+  link: string,
+): MailMessage {
   return {
     to,
     subject: 'Confirm your email',
@@ -40,7 +48,11 @@ export function verifyEmailEmail(name: string, to: string, link: string): MailMe
   };
 }
 
-export function resetPasswordEmail(name: string, to: string, link: string): MailMessage {
+export function resetPasswordEmail(
+  name: string,
+  to: string,
+  link: string,
+): MailMessage {
   return {
     to,
     subject: 'Reset your password',

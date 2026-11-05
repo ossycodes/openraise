@@ -16,6 +16,7 @@ import {
 } from '../src/payments/payment-provider.js';
 import { PaymentProviderError } from '../src/payments/provider-http.js';
 import { PaymentEventQueue } from '../src/webhooks/payment-event.queue.js';
+import { NotificationWorker } from '../src/notifications/notification.worker.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 /**
@@ -123,6 +124,8 @@ export async function createTestApp(
     builder
       .overrideProvider(PaymentEventQueue)
       .useValue({ enqueue: async () => {} });
+  if (!options.backgroundJobs)
+    builder.overrideProvider(NotificationWorker).useValue({});
   const moduleRef = await builder.compile();
   if (options.backgroundJobs)
     moduleRef

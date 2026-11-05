@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { isCurrency } from '@openraise/shared';
 import { donationEntries } from '../ledger/ledger.entries.js';
 import { LedgerService } from '../ledger/ledger.service.js';
+import { NotificationScheduler } from '../notifications/notification-scheduler.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -9,6 +10,7 @@ export class PaymentEventProcessor {
   constructor(
     private readonly prisma: PrismaService,
     private readonly ledger: LedgerService,
+    private readonly notifications: NotificationScheduler,
   ) {}
 
   async process(id: string): Promise<void> {
@@ -104,7 +106,7 @@ export class PaymentEventProcessor {
             donation,
           ).filter((entry) => entry.amount !== 0n),
         });
-        await tx.donation.update({
+        const settled = await tx.donation.update({
           where: { id: donation.id },
           data: {
             status: 'SUCCEEDED',
@@ -114,6 +116,7 @@ export class PaymentEventProcessor {
             stateEventAt: event.occurredAt,
           },
         });
+        await this.notifications.schedule(tx, settled);
       }
       await finish('PROCESSED', 'donation-state-updated');
     });
