@@ -23,8 +23,8 @@ labels, and a guide to writing a new payment or KYC adapter.
   expectations and an explicit distinction between planned and existing code.
 - Linked the guides from the README and [[Home]].
 - Documented label criteria and repeatable GitHub CLI commands in the
-  contribution guide. There is no GitHub remote yet, so repository labels
-  cannot be applied until a maintainer connects one.
+  contribution guide. Confirmed that `good first issue` and `help wanted`
+  already exist on `ossycodes/openraise`.
 
 Keep this note `in-progress` until the branch merges; record the shipped date
 and changelog entry after merging.
