@@ -24,6 +24,9 @@ describe('validateEnv', () => {
       STORAGE_FORCE_PATH_STYLE: true,
       STORAGE_PUBLIC_URL: 'http://localhost:8333/openraise',
       STORAGE_CREATE_BUCKET: true,
+
+      PAYMENT_PROVIDER: 'disabled',
+      BACHS_BASE_URL: 'https://sandbox-api.bachs.io',
       DEFAULT_CURRENCY: 'NGN',
       PLATFORM_FEE_BPS: 350,
       DONOR_FEE_BPS: 150,
@@ -47,9 +50,9 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...required, DATABASE_URL: undefined })).toThrow(
       /DATABASE_URL/,
     );
-    expect(() => validateEnv({ ...required, DATABASE_URL: 'mysql://x' })).toThrow(
-      /DATABASE_URL/,
-    );
+    expect(() =>
+      validateEnv({ ...required, DATABASE_URL: 'mysql://x' }),
+    ).toThrow(/DATABASE_URL/);
     expect(() => validateEnv({ ...required, JWT_SECRET: 'short' })).toThrow(
       /JWT_SECRET/,
     );
@@ -72,8 +75,63 @@ describe('validateEnv', () => {
     expect(() => validateEnv({ ...required, WITHDRAWAL_FEE: '-1' })).toThrow(
       /WITHDRAWAL_FEE/,
     );
+    expect(() => validateEnv({ ...required, DEFAULT_CURRENCY: 'EUR' })).toThrow(
+      /DEFAULT_CURRENCY/,
+    );
+  });
+});
+
+describe('payment provider configuration', () => {
+  it('only requires credentials for the selected provider', () => {
+    expect(validateEnv(required).PAYMENT_PROVIDER).toBe('disabled');
     expect(() =>
-      validateEnv({ ...required, DEFAULT_CURRENCY: 'EUR' }),
-    ).toThrow(/DEFAULT_CURRENCY/);
+      validateEnv({ ...required, PAYMENT_PROVIDER: 'paystack' }),
+    ).toThrow(/PAYSTACK_SECRET_KEY/);
+    expect(
+      validateEnv({
+        ...required,
+        PAYMENT_PROVIDER: 'paystack',
+        PAYSTACK_SECRET_KEY: 'sk_test_example',
+      }).PAYMENT_PROVIDER,
+    ).toBe('paystack');
+    expect(() =>
+      validateEnv({
+        ...required,
+        PAYMENT_PROVIDER: 'bachs',
+        BACHS_SECRET_KEY: 'sk_sandbox_example',
+      }),
+    ).toThrow(/BACHS_WEBHOOK_SECRET/);
+    expect(() =>
+      validateEnv({
+        ...required,
+        PAYMENT_PROVIDER: 'paystack',
+        PAYSTACK_SECRET_KEY: '  ',
+      }),
+    ).toThrow(/PAYSTACK_SECRET_KEY/);
+  });
+  it('rejects unknown providers, untrusted Bachs origins and key/environment mismatches', () => {
+    expect(() =>
+      validateEnv({ ...required, PAYMENT_PROVIDER: 'other' }),
+    ).toThrow(/PAYMENT_PROVIDER/);
+    expect(() =>
+      validateEnv({ ...required, BACHS_BASE_URL: 'https://example.com' }),
+    ).toThrow(/BACHS_BASE_URL/);
+    expect(() =>
+      validateEnv({
+        ...required,
+        PAYMENT_PROVIDER: 'bachs',
+        BACHS_SECRET_KEY: 'sk_live_example',
+        BACHS_WEBHOOK_SECRET: 'whsec_example',
+      }),
+    ).toThrow(/BACHS_BASE_URL/);
+    expect(
+      validateEnv({
+        ...required,
+        PAYMENT_PROVIDER: 'bachs',
+        BACHS_SECRET_KEY: 'sk_live_example',
+        BACHS_WEBHOOK_SECRET: 'whsec_example',
+        BACHS_BASE_URL: 'https://api.bachs.io',
+      }).PAYMENT_PROVIDER,
+    ).toBe('bachs');
   });
 });

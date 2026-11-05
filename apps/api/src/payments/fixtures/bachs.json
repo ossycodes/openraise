@@ -1,0 +1,11 @@
+{
+  "checkout": { "checkout_id": "chk_example", "checkout_url": "https://checkout.bachs.io/c/example", "status": "open", "reference": "donation_0001" },
+  "session": { "checkout_id": "chk_example", "reference": "donation_0001", "status": "completed", "amount": "2500.00", "currency": "NGN", "charge": { "payment_id": "ch_example" } },
+  "payment": { "payment_id": "ch_example", "reference": "donation_0001", "amount": "2500.00", "amount_paid": "2500.00", "currency": "NGN", "status": "succeeded" },
+  "banks": { "country": "NG", "banks": [{ "name": "Example Bank", "code": "058" }] },
+  "account": { "resolved": true, "account_number": "0123456789", "account_name": "EXAMPLE HOLDER", "message": null },
+  "recipient": { "id": "pd_example", "currency": "NGN", "is_usable": true },
+  "payout": { "id": "pay_example", "reference": "payout_0001", "currency": "NGN", "status": "pending" },
+  "refund": { "refund_id": "ref_example", "reference": "refund_0001", "status": "processing", "requested_amount": "10.00" },
+  "webhook": { "id": "evt_example", "type": "collection.succeeded", "data": { "charge_id": "ch_example", "checkout_id": "chk_example", "reference": "donation_0001", "status": "SUCCEEDED", "amount": "2500.00", "currency": "NGN" } }
+}
