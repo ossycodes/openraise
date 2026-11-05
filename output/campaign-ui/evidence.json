@@ -1,0 +1,77 @@
+{
+  "contract": "Public campaign story and progress lead to a guest donation with exact server fees, hosted checkout and server-confirmed status. Warm editorial direction. See docs/Research/Public campaign UI 2026-11.md.",
+  "targetViewports": [
+    "1440x1000",
+    "768x1024",
+    "390x844"
+  ],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "axe-core WCAG 2 A/AA, 2.1 AA and 2.2 AA: zero violations on desktop/mobile page and native donation dialog. Escape closes and restores focus. Reduced-motion rendering checked. Automated scans do not establish full conformance."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "Rendered at all target sizes. No horizontal overflow; long content also fits at 320px. Mobile has a fixed donation action and scrollable dialog."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "pass",
+      "evidence": "Streaming loading main observed while campaign data resolved."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "empty-campaign renders missing-photo and zero-supporter states."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "unavailable-campaign shows load failure and retry; payments-unavailable shows recoverable fee error."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "partial-campaign retains campaign and raised total while showing recent donations unavailable."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Preview server confirmation renders amount and thank-you; redirect alone does not."
+    },
+    "permission": {
+      "status": "pass",
+      "evidence": "missing-campaign renders unavailable page; API test rejects private campaign supporter queries."
+    }
+  },
+  "renderedEvidence": [
+    {
+      "viewport": "1440x1000",
+      "artifact": "desktop.png",
+      "observation": "Loaded original preview photograph, progress and donation sidebar."
+    },
+    {
+      "viewport": "768x1024",
+      "artifact": "tablet.png",
+      "observation": "Responsive content with mobile donation action."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "mobile.png",
+      "observation": "Story heading and photograph fit with fixed donation action."
+    }
+  ],
+  "paymentChecks": [
+    "Uncertain checkout remains pending after reload; no second checkout action.",
+    "Server status change to SUCCEEDED renders thank-you state.",
+    "Changed checkout fees require an additional review.",
+    "Status capability stored in HttpOnly SameSite=Lax cookie and removed from response JSON.",
+    "Open Graph route returns 200 image/png."
+  ],
+  "validation": [
+    "107 API unit tests passed",
+    "22 shared unit tests passed",
+    "Monorepo lint and typecheck passed",
+    "Next.js production build passed"
+  ],
+  "limits": [
+    "Provider handoff and settlement were exercised with local fixtures, not live payment credentials.",
+    "No new database integration run for the supporter feed; privacy/filter contract covered by unit tests.",
+    "200% browser zoom and RTL were planned stress cases but not completed in this review."
+  ]
+}

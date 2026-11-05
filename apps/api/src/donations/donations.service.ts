@@ -40,6 +40,33 @@ export class DonationsService {
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider | null,
   ) {}
 
+  async publicSupporters(slug: string) {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { slug, status: { in: ['ACTIVE', 'PAUSED', 'ENDED'] } },
+      select: { id: true },
+    });
+    if (!campaign) throw new NotFoundException('Campaign not found');
+    const donations = await this.prisma.donation.findMany({
+      where: {
+        campaignId: campaign.id,
+        status: 'SUCCEEDED',
+        ledgerTransactionId: { not: null },
+        succeededAt: { not: null },
+      },
+      select: { id: true, amount: true, currency: true, succeededAt: true },
+      orderBy: [{ succeededAt: 'desc' }, { id: 'desc' }],
+      take: 6,
+    });
+    return {
+      items: donations.map(({ id, amount, currency, succeededAt }) => ({
+        id,
+        amount: amount.toString(),
+        currency,
+        confirmedAt: succeededAt!.toISOString(),
+      })),
+    };
+  }
+
   private breakdown(body: DonationInput, code: string) {
     if (!this.provider)
       throw new ServiceUnavailableException('Payments are disabled');

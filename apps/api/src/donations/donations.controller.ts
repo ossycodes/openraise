@@ -22,6 +22,11 @@ import { DonationsService } from './donations.service.js';
 @Controller()
 export class DonationsController {
   constructor(private readonly donations: DonationsService) {}
+  @Get('campaigns/:slug/donations')
+  @Header('Cache-Control', 'no-store')
+  publicSupporters(@Param('slug') slug: string) {
+    return this.donations.publicSupporters(slug);
+  }
   @Post('campaigns/:slug/donations/quote')
   quote(
     @Param('slug') slug: string,
