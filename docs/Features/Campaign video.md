@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 22
+shipped: 2026-11-05
 branch: feat/campaign-youtube-video
 type: feature
 area: campaigns

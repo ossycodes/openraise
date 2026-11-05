@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #22 | Optional YouTube campaign videos: validated canonical links, click-to-load player, photo/video controls, responsive playback, screenshots and browser verification ([[Campaign video]]) |
 | #19 | NGN campaign withdrawals: fee quotes and confirmation, atomic wallet holds, one claimed provider dispatch, signed payout settlement and reversal, private history, public withdrawal trail, audited admin freezes and reconciliation review queue ([[Withdrawals]], [[Withdrawal reconciliation]]) |
 | #14 | Public campaign and discovery UI: responsive guest donation and exact fee review, payment recovery, category filters, progress cards, anonymous recent/top contributors, gallery, social sharing and downloadable campaign cards; Open Graph images and documented browser/accessibility evidence ([[Campaign page]], partial [[Landing page]], [[Explore and search]] and [[Share kit]]) |
 | #13 | Donor receipts and batched creator notifications, atomic notification outbox, retryable SMTP delivery and reconciliation for uncertain sends ([[Donor receipts]]) |
