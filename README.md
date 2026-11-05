@@ -29,22 +29,22 @@ cp .env.example apps/api/.env
 pnpm dev                        # API on :4000, web on :3000
 ```
 
-| Service | URL |
-|---|---|
-| Web app | http://localhost:3000 |
-| API | http://localhost:4000 (health: `/health`) |
-| Mailpit (dev inbox) | http://localhost:8025 |
-| S3 storage (SeaweedFS) | http://localhost:8333 |
+| Service                | URL                                       |
+| ---------------------- | ----------------------------------------- |
+| Web app                | http://localhost:3000                     |
+| API                    | http://localhost:4000 (health: `/health`) |
+| Mailpit (dev inbox)    | http://localhost:8025                     |
+| S3 storage (SeaweedFS) | http://localhost:8333                     |
 
 ## Scripts
 
-| Command | What it does |
-|---|---|
-| `pnpm dev` | Build the shared package, then run API and web in watch mode |
-| `pnpm test` | Run every workspace's tests |
-| `pnpm lint` | Lint with oxlint |
-| `pnpm typecheck` | Type-check every workspace |
-| `pnpm build` | Production build of everything |
+| Command          | What it does                                                 |
+| ---------------- | ------------------------------------------------------------ |
+| `pnpm dev`       | Build the shared package, then run API and web in watch mode |
+| `pnpm test`      | Run every workspace's tests                                  |
+| `pnpm lint`      | Lint with oxlint                                             |
+| `pnpm typecheck` | Type-check every workspace                                   |
+| `pnpm build`     | Production build of everything                               |
 
 ## Layout
 
@@ -60,6 +60,13 @@ docs/            Project docs (an Obsidian vault): roadmap, architecture, decisi
 The docs are an [Obsidian](https://obsidian.md) vault. Open `docs/` as a vault
 and start at [Home](docs/Home.md). The roadmap tracker, architecture and design
 decisions all live there.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, choosing work, checks and
+pull requests, and the [code of conduct](CODE_OF_CONDUCT.md) for participation
+expectations. Provider contributions start with the
+[adapter guide](docs/Runbooks/Writing%20an%20adapter.md).
 
 ## License
 
