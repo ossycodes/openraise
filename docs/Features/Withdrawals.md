@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 19
+shipped: 2026-11-05
 branch: feat/withdrawals
 type: feature
 area: payouts
