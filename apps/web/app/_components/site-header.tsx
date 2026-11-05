@@ -1,6 +1,19 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
-export function Brand() {
+import { getSite } from '../_lib/site';
+export async function Brand() {
+  const site = await getSite();
+  if (site.logoUrl || site.name !== 'OpenRaise') {
+    return (
+      <Link href="/" className="brand" aria-label={`${site.name} home`}>
+        {site.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- any deployment-hosted logo URL
+          <img src={site.logoUrl} alt="" height={34} style={{ height: 34, width: 'auto' }} />
+        ) : null}
+        <span>{site.name}</span>
+      </Link>
+    );
+  }
   return (
     <Link href="/" className="brand" aria-label="OpenRaise home">
       <svg

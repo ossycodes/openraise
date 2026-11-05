@@ -1,3 +1,4 @@
+import { siteName } from '../site/site-name.js';
 import type { MailMessage } from './mail.service.js';
 
 export function escapeHtml(value: string): string {
@@ -35,12 +36,12 @@ export function verifyEmailEmail(
   return {
     to,
     subject: 'Confirm your email',
-    text: `Hi ${name},\n\nConfirm your email address to finish setting up your OpenRaise account:\n\n${link}\n\nThe link works for 24 hours. If you didn't sign up, ignore this email.`,
+    text: `Hi ${name},\n\nConfirm your email address to finish setting up your ${siteName()} account:\n\n${link}\n\nThe link works for 24 hours. If you didn't sign up, ignore this email.`,
     html: layout(
       'Confirm your email',
       [
         `Hi ${escapeHtml(name)},`,
-        'Confirm your email address to finish setting up your OpenRaise account. The link works for 24 hours.',
+        `Confirm your email address to finish setting up your ${escapeHtml(siteName())} account. The link works for 24 hours.`,
         "If you didn't sign up, ignore this email.",
       ],
       { label: 'Confirm email', href: link },
@@ -79,12 +80,12 @@ export function payoutAccountAddedEmail(
   return {
     to,
     subject: 'A payout account was added',
-    text: `Hi ${name},\n\n${account} was added as a payout account on your OpenRaise profile. Withdrawals to it start in 24 hours.\n\nIf this wasn't you, change your password now and remove the account:\n\n${link}`,
+    text: `Hi ${name},\n\n${account} was added as a payout account on your ${siteName()} profile. Withdrawals to it start in 24 hours.\n\nIf this wasn't you, change your password now and remove the account:\n\n${link}`,
     html: layout(
       'A payout account was added',
       [
         `Hi ${escapeHtml(name)},`,
-        `<strong>${escapeHtml(account)}</strong> was added as a payout account on your OpenRaise profile. Withdrawals to it start in 24 hours.`,
+        `<strong>${escapeHtml(account)}</strong> was added as a payout account on your ${escapeHtml(siteName())} profile. Withdrawals to it start in 24 hours.`,
         "If this wasn't you, change your password now and remove the account.",
       ],
       { label: 'Review payout accounts', href: link },
