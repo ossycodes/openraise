@@ -13,6 +13,9 @@ import {
   HandHeart,
   GraduationCap,
   Sparkles,
+  PenLine,
+  Users,
+  Wallet,
 } from 'lucide-react';
 import { formatMoney } from '@openraise/shared';
 import { SiteFooter, SiteHeader } from './_components/site-header';
@@ -389,6 +392,51 @@ export default async function HomePage({
               <li key={step.title}>
                 <span className="step-number">0{i + 1}</span>
                 <step.icon size={24} strokeWidth={1.5} aria-hidden="true" />
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+        <section className="creator-band" aria-labelledby="creator-band-title">
+          <div className="creator-band-heading">
+            <div>
+              <div className="section-eyebrow">Raising for something?</div>
+              <h2 id="creator-band-title">
+                Your cause, <em>your community.</em>
+              </h2>
+              <p>
+                Anyone can start a campaign on {site.name} and share it in
+                minutes.
+              </p>
+            </div>
+            <Link className="primary-button" href="/signin">
+              Start a campaign <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+          <ol>
+            {[
+              {
+                icon: PenLine,
+                title: 'Tell your story',
+                text: 'Set a goal, add a cover photo and explain, in your own words, why it matters.',
+              },
+              {
+                icon: Users,
+                title: 'Bring your people in',
+                text: 'Share your page with family, friends, groups and anyone who believes in you.',
+              },
+              {
+                icon: Wallet,
+                title: 'Put support to work',
+                text: 'Watch each gift arrive, then withdraw to your verified bank account when you need it.',
+              },
+            ].map((step, i) => (
+              <li key={step.title}>
+                <span className="creator-step-icon">
+                  <step.icon size={22} strokeWidth={1.6} aria-hidden="true" />
+                </span>
+                <span className="creator-step-number">Step {i + 1}</span>
                 <h3>{step.title}</h3>
                 <p>{step.text}</p>
               </li>
