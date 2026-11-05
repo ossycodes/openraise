@@ -1,0 +1,70 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id              String         @id @default(cuid())
+  /// Always stored lower-cased and trimmed
+  email           String         @unique
+  name            String
+  /// "scrypt$N$r$p$salt$hash" (base64 salt and hash)
+  passwordHash    String
+  role            Role           @default(USER)
+  emailVerifiedAt DateTime?      @db.Timestamptz
+  /// Stamped into every access token; bumping it signs out every device
+  tokenVersion    Int            @default(0)
+  createdAt       DateTime       @default(now()) @db.Timestamptz
+  updatedAt       DateTime       @updatedAt @db.Timestamptz
+  refreshTokens   RefreshToken[]
+  emailTokens     EmailToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// SHA-256 (hex) of the token; the token itself is never stored
+  tokenHash String    @unique
+  /// Tokens rotated from one sign-in share a family; reusing a spent token revokes the family
+  familyId  String
+  expiresAt DateTime  @db.Timestamptz
+  /// Set when the token is rotated, signed out, or its family is revoked
+  revokedAt DateTime? @db.Timestamptz
+  createdAt DateTime  @default(now()) @db.Timestamptz
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+enum EmailTokenPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+/// Single-use links sent by email (verify email, reset password)
+model EmailToken {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   EmailTokenPurpose
+  /// SHA-256 (hex) of the token in the link
+  tokenHash String            @unique
+  expiresAt DateTime          @db.Timestamptz
+  /// Set when the link is used, or when a newer link for the same purpose replaces it
+  usedAt    DateTime?         @db.Timestamptz
+  createdAt DateTime          @default(now()) @db.Timestamptz
+
+  @@index([userId, purpose])
+}

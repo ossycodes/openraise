@@ -15,6 +15,20 @@ export const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   WEB_URL: z.url().default('http://localhost:3000'),
 
+  DATABASE_URL: z
+    .string()
+    .regex(/^postgres(ql)?:\/\//, 'Must be a postgres:// connection URL'),
+
+  // Auth
+  JWT_SECRET: z.string().min(32, 'Use at least 32 random characters'),
+  /** Access token lifetime in seconds */
+  JWT_ACCESS_TTL: z.coerce.number().int().positive().default(900),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
+
+  // Email
+  SMTP_URL: z.string().default('smtp://localhost:1025'),
+  MAIL_FROM: z.string().default('OpenRaise <no-reply@openraise.local>'),
+
   // Fees (see docs/Features/Fee engine.md). Amounts are minor units.
   DEFAULT_CURRENCY: z.enum(SUPPORTED_CURRENCIES).default('NGN'),
   PLATFORM_FEE_BPS: bps.default(DEFAULT_FEE_CONFIG.platformFeeBps),
