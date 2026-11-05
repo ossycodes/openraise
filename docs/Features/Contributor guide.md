@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 5
+shipped: 2026-11-05
 branch: feat/contributor-guide
 type: feature
 area: ops
@@ -26,5 +28,4 @@ labels, and a guide to writing a new payment or KYC adapter.
   contribution guide. Confirmed that `good first issue` and `help wanted`
   already exist on `ossycodes/openraise`.
 
-Keep this note `in-progress` until the branch merges; record the shipped date
-and changelog entry after merging.
+Merged in [PR #5](https://github.com/ossycodes/openraise/pull/5).
