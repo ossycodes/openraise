@@ -203,3 +203,19 @@ Guest status reads use a separate HMAC capability returned to the checkout
 caller; donation IDs alone cannot reveal payment progress or checkout URLs.
 Signed-in donors are associated with their account email. Provider redirects
 never change donation status.
+
+## PostgreSQL is the payment event outbox; Redis is the delivery mechanism
+
+Persist a verified event before enqueueing it. A crash between those writes or
+Redis data loss must not lose a successful payment, so a recovery scan requeues
+unprocessed database rows. Queue payloads carry only the event row ID. Workers
+use row locks and the ledger's transaction-aware posting method to commit the
+payment state, balanced entries and event outcome together. Redelivery cannot
+credit a campaign twice. Provider signature freshness is checked at intake;
+queue delay does not invalidate an event already verified and stored.
+
+Campaign progress reports gross donation amounts only when a committed donation
+ledger posting backs them; wallet balances remain net amounts. Distinct donor
+emails determine donor count. Donor processing fees use the ledger's DONOR_FEES
+revenue account; actual provider expenses and settlement reconciliation remain
+separate from the checkout's configured surcharge.
