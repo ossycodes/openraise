@@ -16,10 +16,16 @@ describe('categories', () => {
 
   it('lists the seeded categories in order', async () => {
     const res = await t.http().get('/categories').expect(200);
-    const slugs = (res.body as { slug: string }[]).map((c) => c.slug);
+    // The e2e database outlives a run, so other tests' categories may be
+    // listed too; check the seeded ones keep their order among themselves.
+    const seeded = (res.body as { id: string; slug: string }[]).filter((c) =>
+      c.id.startsWith('cat_'),
+    );
+    const slugs = seeded.map((c) => c.slug);
+    expect(slugs).toHaveLength(16);
     expect(slugs.slice(0, 3)).toEqual(['medical', 'education', 'emergencies']);
-    expect(slugs).toContain('other');
-    expect(res.body[0]).toEqual({
+    expect(slugs.at(-1)).toBe('other');
+    expect(seeded[0]).toEqual({
       id: 'cat_medical',
       slug: 'medical',
       name: 'Medical',
