@@ -275,6 +275,21 @@ provider-approval and 24-hour bank hold gates. Profile name matching remains
 advisory until the identity-verification feature supplies a verified-name gate.
 The money trail exposes financial snapshots without bank or account identities.
 
+
+## Campaign YouTube links, loaded on request
+
+Store a canonical single-video watch URL instead of user-supplied embed HTML.
+Only supported YouTube hosts and an 11-character ID are accepted. The public app
+constructs the fixed youtube-nocookie.com embed URL itself, without arbitrary
+parameters or a server-side URL fetch. It uses the campaign's own cover as the
+poster, so no YouTube thumbnail, script or iframe loads before the visitor clicks.
+
+The native YouTube player retains controls, captions, fullscreen and keyboard
+support. Autoplay is not enabled. Switching to photos unmounts the iframe and
+stops playback. A direct YouTube link remains visible because URL syntax cannot
+guarantee a video exists or allows embedding. New campaign/video keys reset the
+loaded state when navigating between campaigns.
+
 ## Google sign-in: ID tokens only, linked by verified email
 The browser gets a Google ID token (One Tap or the button) and the API verifies
 it against Google's published keys, the issuer and our `GOOGLE_CLIENT_ID`. No

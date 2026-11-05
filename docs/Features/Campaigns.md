@@ -16,7 +16,7 @@ tags:
 
 Create, edit and publish a campaign: title, slug, category, goal amount and
 currency, optional end date, beneficiary name, location, story. Images are
-[[Campaign images]].
+[[Campaign images]]. Optional YouTube video support is tracked in [[Campaign video]].
 
 Only the owner (or an organisation member, see [[Organisations]]) can edit.
 Publishing requires a verified email now, and a verified identity once

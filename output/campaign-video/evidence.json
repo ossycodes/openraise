@@ -1,0 +1,75 @@
+{
+  "contract": "Optional single YouTube video on a public fundraising campaign, selected first alongside photos; load only after interaction, retain a direct watch link, and preserve the existing gallery without video. Source contracts and states in docs/Features/Campaign video.md.",
+  "targetViewports": [
+    "1440x1000",
+    "768x1024",
+    "390x844"
+  ],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "axe-core reported zero tested WCAG A/AA violations on the host UI at 1440, 768, 390 and 320px. Labelled media controls use aria-pressed. Loading transfers focus to the titled iframe. YouTube third-party controls are outside this host audit."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "No horizontal document overflow at target widths and 320px; iframe area remains at least 200x200px. Desktop 782x440, tablet 697x392, mobile 335x285, 320px viewport 265x285."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "pass",
+      "evidence": "The player has a reserved responsive area; explicit load mounts the iframe without resizing the media panel."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "Video-only campaign uses the branded introduction without a photo; photo-only campaign keeps existing gallery."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "A direct Watch on YouTube link stays visible independently of iframe load or playback state. The app does not claim to detect every third-party embed error."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Photos and video remain independently selectable; lack of a cover does not hide the video."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "The official demo player loaded and playback advanced after pressing its Play video button."
+    },
+    "permission": {
+      "status": "pass",
+      "evidence": "API integration tests verify 401 without auth, 404 for another owner and 409 during review."
+    }
+  },
+  "renderedEvidence": [
+    {
+      "viewport": "1440x1000",
+      "artifact": "desktop.png",
+      "observation": "Campaign cover used as local poster with explicit load control and photo switch."
+    },
+    {
+      "viewport": "768x1024",
+      "artifact": "tablet.png",
+      "observation": "Media panel and controls reflow on tablet."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "mobile.png",
+      "observation": "Mobile video panel fits without overflow and keeps donation action visible."
+    }
+  ],
+  "verification": [
+    "162 unit tests passed",
+    "126 database-backed tests passed",
+    "Monorepo lint, typecheck and builds passed",
+    "No YouTube requests or iframe before load click",
+    "Embed uses youtube-nocookie.com and no autoplay parameter",
+    "Loaded iframe received focus",
+    "Official YouTube demo played: paused=false, readyState=4, currentTime>0",
+    "Switching to photos removes iframe",
+    "Photo-only and video-only campaigns render correct controls"
+  ],
+  "limits": [
+    "No creator dashboard editor exists yet; video is supplied via the campaign create/update API.",
+    "Video availability and embedding permissions remain controlled by YouTube.",
+    "Automated host-page accessibility tests do not certify third-party player conformance."
+  ]
+}

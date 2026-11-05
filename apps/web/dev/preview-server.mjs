@@ -2,6 +2,7 @@
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { computeDonationFees, DEFAULT_FEE_CONFIG } from '@openraise/shared';
+const previewPort = Number(process.env.CAMPAIGN_PREVIEW_PORT ?? 4401);
 const slug = 'help-ada-finish-nursing-school';
 const campaign = {
   id: 'preview-campaign',
@@ -110,6 +111,12 @@ createServer(async (req, res) => {
   if (resource === 'missing-campaign') return send(404, {});
   if (resource === 'unavailable-campaign') return send(503, {});
   const data = { ...campaign, slug: resource };
+  if (resource === 'video-campaign' || resource === 'video-only-campaign')
+    data.videoUrl = 'https://www.youtube.com/watch?v=M7lc1UVf-VE';
+  if (resource === 'video-only-campaign') {
+    data.coverImageUrl = null;
+    data.images = [];
+  }
   if (resource === 'paused-campaign') data.status = 'PAUSED';
   if (resource === 'empty-campaign') {
     data.raisedAmount = '0';
@@ -191,6 +198,8 @@ createServer(async (req, res) => {
         'Checkout outcome is uncertain; check payment status before starting another donation.',
     });
   return send(201, session);
-}).listen(4401, '127.0.0.1', () =>
-  console.log(`Fictional preview API on http://127.0.0.1:4401 · ${slug}`),
+}).listen(previewPort, '127.0.0.1', () =>
+  console.log(
+    `Fictional preview API on http://127.0.0.1:${previewPort} · ${slug}`,
+  ),
 );

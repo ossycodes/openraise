@@ -49,6 +49,7 @@ export interface PublicCampaign {
   title: string;
   summary: string;
   story: string;
+  videoUrl: string | null;
   category: { slug: string; name: string };
   owner: { name: string };
   /** Minor units as strings */
@@ -106,6 +107,7 @@ function toPublic(
     title: c.title,
     summary: c.summary,
     story: c.story,
+    videoUrl: c.videoUrl,
     category: c.category,
     owner: { name: c.owner.name },
     goalAmount: c.goalAmount.toString(),
@@ -149,6 +151,7 @@ export class CampaignsService {
       title: input.title,
       summary: input.summary ?? '',
       story: input.story ?? '',
+      videoUrl: input.videoUrl ?? null,
       goalAmount: input.goalAmount,
       currency: input.currency ?? this.fees.currency,
       beneficiaryName: input.beneficiaryName ?? null,
@@ -214,13 +217,17 @@ export class CampaignsService {
       ? Prisma.sql`(websearch_to_tsquery('english', ${query.q}) || websearch_to_tsquery('simple', ${query.q}))`
       : null;
     const conditions = [Prisma.sql`c."status" = 'ACTIVE'`];
-    if (query.category) conditions.push(Prisma.sql`cat."slug" = ${query.category}`);
-    if (query.featured) conditions.push(Prisma.sql`c."featured" = ${query.featured === 'true'}`);
+    if (query.category)
+      conditions.push(Prisma.sql`cat."slug" = ${query.category}`);
+    if (query.featured)
+      conditions.push(Prisma.sql`c."featured" = ${query.featured === 'true'}`);
     if (tsQuery) conditions.push(Prisma.sql`c."searchVector" @@ ${tsQuery}`);
     const where = Prisma.join(conditions, ' AND ');
 
     const order = {
-      relevance: tsQuery ? Prisma.sql`ts_rank(c."searchVector", ${tsQuery}) DESC,` : Prisma.empty,
+      relevance: tsQuery
+        ? Prisma.sql`ts_rank(c."searchVector", ${tsQuery}) DESC,`
+        : Prisma.empty,
       trending: Prisma.sql`COALESCE(t."score", 0) DESC,`,
       'close-to-goal': Prisma.sql`(COALESCE(r."raised", 0) >= c."goalAmount") ASC,
         COALESCE(r."raised", 0)::numeric / c."goalAmount" DESC,`,

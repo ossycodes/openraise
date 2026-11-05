@@ -10,6 +10,8 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #24 | Homepage layout fix: restores section styles broken by an unclosed CSS rule from the #20/#21 merge; search controls as a responsive grid and wrapping category pills |
+| #22 | Optional YouTube campaign videos: validated canonical links, click-to-load player, photo/video controls, responsive playback, screenshots and browser verification ([[Campaign video]]) |
 | #21 | Homepage band for people raising money: three steps (tell your story, bring your people in, put support to work) and a Start a campaign button ([[Landing page]]) |
 | #20 | Google sign-in: One Tap and a Continue with Google button; the API verifies Google ID tokens and creates or links accounts by verified email; httpOnly session cookie and header account menu in the web app ([[Google sign-in]]) |
 | #18 | Share buttons use the site font |
