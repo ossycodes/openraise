@@ -1,5 +1,6 @@
 ---
-status: in-progress
+status: shipped
+shipped: 2026-11-05
 branch: feat/payment-webhooks
 pr: 11
 type: feature
