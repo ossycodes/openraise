@@ -30,6 +30,15 @@ export const envSchema = z
     SMTP_URL: z.string().default('smtp://localhost:1025'),
     MAIL_FROM: z.string().default('OpenRaise <no-reply@openraise.local>'),
 
+    // Branding: each deployment's own name and look (published at GET /config/site)
+    SITE_NAME: z.string().trim().min(1).max(60).default('OpenRaise'),
+    SITE_LOGO_URL: z.url().optional(),
+    SITE_PRIMARY_COLOR: z
+      .string()
+      .regex(/^#[0-9a-fA-F]{6}$/, 'Use a hex colour like #1e5b43')
+      .optional(),
+    SITE_SUPPORT_EMAIL: z.email().optional(),
+
     // Storage: any S3-compatible service. Defaults match docker-compose (SeaweedFS).
     /** Empty for AWS S3; the R2/SeaweedFS/MinIO endpoint otherwise */
     STORAGE_ENDPOINT: z.string().default('http://localhost:8333'),

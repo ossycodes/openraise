@@ -17,6 +17,7 @@ import {
 import { formatMoney } from '@openraise/shared';
 import { SiteFooter, SiteHeader } from './_components/site-header';
 import { apiOrigin, previewEnabled } from './_lib/campaign-server';
+import { getSite } from './_lib/site';
 import { progressPercent, type Campaign } from './_lib/campaign';
 
 interface Category {
@@ -39,6 +40,7 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
+  const site = await getSite();
   const requested = (await searchParams).category ?? '';
   const category = /^[a-z0-9-]{1,50}$/.test(requested) ? requested : '';
   const [listing, categories, fees] = await Promise.all([
@@ -418,17 +420,17 @@ export default async function HomePage({
           <div
             className="feature-table-wrap"
             role="region"
-            aria-label="OpenRaise features"
+            aria-label={`${site.name} features`}
             tabIndex={0}
           >
             <table className="feature-table">
               <caption className="sr-only">
-                OpenRaise features and what they mean for donors
+                {site.name} features and what they mean for donors
               </caption>
               <thead>
                 <tr>
                   <th scope="col">Made for your community</th>
-                  <th scope="col">OpenRaise</th>
+                  <th scope="col">{site.name}</th>
                   <th scope="col">What it means for you</th>
                 </tr>
               </thead>

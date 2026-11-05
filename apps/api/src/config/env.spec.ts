@@ -16,6 +16,7 @@ describe('validateEnv', () => {
       REFRESH_TOKEN_TTL_DAYS: 30,
       SMTP_URL: 'smtp://localhost:1025',
       MAIL_FROM: 'OpenRaise <no-reply@openraise.local>',
+      SITE_NAME: 'OpenRaise',
       STORAGE_ENDPOINT: 'http://localhost:8333',
       STORAGE_REGION: 'us-east-1',
       STORAGE_BUCKET: 'openraise',

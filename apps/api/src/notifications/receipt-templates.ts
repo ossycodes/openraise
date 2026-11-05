@@ -1,6 +1,7 @@
 import { formatMoney, type Currency } from '@openraise/shared';
 import { escapeHtml, layout } from '../mail/templates.js';
 import type { MailMessage } from '../mail/mail.service.js';
+import { siteName } from '../site/site-name.js';
 
 interface CampaignMail {
   to: string;
@@ -33,7 +34,7 @@ export function donationReceiptEmail(data: ReceiptMail): MailMessage {
   ];
   return {
     to: data.to,
-    subject: 'Your OpenRaise donation receipt',
+    subject: `Your ${siteName()} donation receipt`,
     text: `Thank you for your donation. Your payment has been confirmed.\n\n${lines.join('\n')}\n\nView the campaign: ${data.campaignUrl}`,
     html: layout(
       'Thank you for your donation',
