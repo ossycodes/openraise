@@ -20,6 +20,7 @@ import {
 import {
   SUBMIT_REQUIREMENTS,
   type CreateCampaignInput,
+  type CampaignSort,
   type ListCampaignsQuery,
   type UpdateCampaignInput,
 } from './campaigns.schemas.js';
@@ -169,6 +170,13 @@ export class CampaignsService {
   }
 
   async listPublic(query: ListCampaignsQuery): Promise<CampaignPage> {
+    const sort = query.q
+      ? (query.sort ?? 'relevance')
+      : query.sort === 'relevance'
+        ? 'newest'
+        : (query.sort ?? 'newest');
+    if (query.q || sort !== 'newest') return this.searchPublic(query, sort);
+
     const where: Prisma.CampaignWhereInput = {
       status: 'ACTIVE',
       ...(query.category ? { category: { slug: query.category } } : {}),
@@ -189,6 +197,78 @@ export class CampaignsService {
       page: query.page,
       limit: query.limit,
       total,
+    };
+  }
+
+  /**
+   * Search and the computed sorts. Raised totals follow the same rule as
+   * `present()`: only succeeded donations backed by a committed ledger
+   * posting count. Trending is a recency-weighted count of the last 14 days'
+   * donations (3-day decay), so mixed currencies can't skew it.
+   */
+  private async searchPublic(
+    query: ListCampaignsQuery,
+    sort: CampaignSort,
+  ): Promise<CampaignPage> {
+    const tsQuery = query.q
+      ? Prisma.sql`(websearch_to_tsquery('english', ${query.q}) || websearch_to_tsquery('simple', ${query.q}))`
+      : null;
+    const conditions = [Prisma.sql`c."status" = 'ACTIVE'`];
+    if (query.category) conditions.push(Prisma.sql`cat."slug" = ${query.category}`);
+    if (query.featured) conditions.push(Prisma.sql`c."featured" = ${query.featured === 'true'}`);
+    if (tsQuery) conditions.push(Prisma.sql`c."searchVector" @@ ${tsQuery}`);
+    const where = Prisma.join(conditions, ' AND ');
+
+    const order = {
+      relevance: tsQuery ? Prisma.sql`ts_rank(c."searchVector", ${tsQuery}) DESC,` : Prisma.empty,
+      trending: Prisma.sql`COALESCE(t."score", 0) DESC,`,
+      'close-to-goal': Prisma.sql`(COALESCE(r."raised", 0) >= c."goalAmount") ASC,
+        COALESCE(r."raised", 0)::numeric / c."goalAmount" DESC,`,
+      newest: Prisma.empty,
+    }[sort];
+
+    const [ids, counted] = await Promise.all([
+      this.prisma.$queryRaw<{ id: string }[]>`
+        WITH confirmed AS (
+          SELECT d."campaignId", d."amount", d."succeededAt"
+          FROM "Donation" d JOIN "LedgerTransaction" l ON l."id" = d."ledgerTransactionId"
+          WHERE d."status" = 'SUCCEEDED' AND l."kind" = 'DONATION' AND l."currency" = d."currency"
+        ),
+        raised AS (
+          SELECT "campaignId", SUM("amount") AS "raised" FROM confirmed GROUP BY "campaignId"
+        ),
+        trend AS (
+          SELECT "campaignId",
+            SUM(EXP(-EXTRACT(EPOCH FROM (now() - "succeededAt")) / 259200.0)) AS "score"
+          FROM confirmed
+          WHERE "succeededAt" > now() - interval '14 days'
+          GROUP BY "campaignId"
+        )
+        SELECT c."id"
+        FROM "Campaign" c
+        JOIN "Category" cat ON cat."id" = c."categoryId"
+        LEFT JOIN raised r ON r."campaignId" = c."id"
+        LEFT JOIN trend t ON t."campaignId" = c."id"
+        WHERE ${where}
+        ORDER BY ${order} c."publishedAt" DESC NULLS LAST, c."id" DESC
+        LIMIT ${query.limit} OFFSET ${(query.page - 1) * query.limit}`,
+      this.prisma.$queryRaw<{ count: bigint }[]>`
+        SELECT COUNT(*) AS "count"
+        FROM "Campaign" c JOIN "Category" cat ON cat."id" = c."categoryId"
+        WHERE ${where}`,
+    ]);
+
+    const rows = await this.prisma.campaign.findMany({
+      where: { id: { in: ids.map((r) => r.id) } },
+      include,
+    });
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    const ordered = ids.flatMap((r) => byId.get(r.id) ?? []);
+    return {
+      items: await this.present(ordered, false),
+      page: query.page,
+      limit: query.limit,
+      total: Number(counted[0]?.count ?? 0),
     };
   }
 
