@@ -1,6 +1,8 @@
 ---
-status: in-progress
+status: shipped
 branch: feat/public-campaign-page
+pr: 14
+shipped: 2026-11-05
 type: feature
 area: web
 milestone: 5
@@ -17,6 +19,13 @@ featured and recently funded campaigns, categories, the full fee table, trust
 features, FAQ. Content (name, logo, colours, fees) comes from deployment config
 so every self-hoster gets their own brand.
 
-## Current progress
+## Shipped in #14
 
-The public homepage now includes a featured story, category browsing, progress cards, giving steps, campaign currencies and a capability table. The platform fee comes from the API. Deployment branding, recently funded campaigns and the remaining landing-page requirements are still pending.
+The public homepage: a featured story, category browsing, progress cards,
+giving steps, campaign currencies and a capability table. The platform fee
+comes from the API.
+
+## Follow-ups
+
+- [[Deployment branding]]: name, logo and colours from deployment config.
+- [[Recently funded campaigns]]: a section of campaigns that reached their goal.
