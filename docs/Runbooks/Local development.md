@@ -62,3 +62,8 @@ for s in lint typecheck test test:e2e build; do pnpm $s; echo "$s exit: $?"; don
   `pnpm install` regenerates it via the API's `postinstall`.
 - **The API reads the raw request body** (`rawBody: true` in `main.ts`) so
   payment webhooks can be signature-checked. Don't remove it.
+- **Storage is SeaweedFS on :8333.** The API creates the `openraise` bucket at
+  boot. SeaweedFS's anonymous `ListBuckets` returns nothing even when the
+  bucket exists; check with `curl http://localhost:8333/openraise/` instead.
+  `BadDigest` on upload means checksums are being sent; see
+  [[Decisions#S3 checksums only when required]].

@@ -135,3 +135,20 @@ approved is the version published. Once live, the creator can update the
 story and goal without a second review: updates are how creators show
 progress, and the public money trail and reports cover abuse. The currency is
 fixed at submission because donations will be held in it.
+
+## Images upload straight to storage, then get checked
+The browser `PUT`s each image to a presigned URL, so file bytes never pass
+through the API (cheap to host, no upload limits to tune). Because the client
+controls what it uploads, attaching an image re-reads what was actually
+stored: the size from `HEAD`, and the type from the first bytes (JPEG, PNG or
+WebP signatures). The claimed Content-Type is ignored. A fake (say, an SVG
+with a script, labelled `image/png`) is deleted and refused. Uploads never
+attached are orphans; a cleanup job comes with the job queue.
+
+## S3 checksums only when required
+AWS SDK v3 now adds CRC checksums to requests and presigned URLs by default.
+A browser upload can't match a checksum computed before the file is chosen,
+and S3-compatible stores (SeaweedFS here, others in the wild) answer
+`BadDigest`. The client is set to `requestChecksumCalculation` /
+`responseChecksumValidation: 'WHEN_REQUIRED'` so self-hosters can use any
+S3-compatible store.

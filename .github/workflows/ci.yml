@@ -30,6 +30,13 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      # S3-compatible storage for the image tests. (Service containers can't take
+      # a command, so start it here.)
+      - name: Start SeaweedFS
+        run: |
+          docker run -d -p 8333:8333 chrislusf/seaweedfs server -s3 -ip.bind=0.0.0.0
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8333/ && exit 0; sleep 2; done
+          echo "SeaweedFS did not start" && exit 1
       - run: pnpm install --frozen-lockfile
       # Don't rely on install scripts having run: generate the Prisma client explicitly.
       - run: pnpm --filter @openraise/api db:generate

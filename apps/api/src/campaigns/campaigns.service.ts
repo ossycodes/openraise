@@ -9,6 +9,7 @@ import type { AuthUser } from '../auth/auth.types.js';
 import { FeesService } from '../fees/fees.service.js';
 import type { Prisma } from '../generated/prisma/client.js';
 import { isUniqueViolation, PrismaService } from '../prisma/prisma.service.js';
+import { StorageService } from '../storage/storage.service.js';
 import {
   CURRENCY_EDITABLE_STATUSES,
   EDITABLE_STATUSES,
@@ -27,6 +28,10 @@ import { campaignSlug } from './slug.js';
 const include = {
   category: { select: { slug: true, name: true } },
   owner: { select: { id: true, name: true } },
+  images: {
+    orderBy: { position: 'asc' },
+    select: { id: true, key: true, position: true, contentType: true, size: true },
+  },
 } satisfies Prisma.CampaignInclude;
 
 type CampaignRow = Prisma.CampaignGetPayload<{ include: typeof include }>;
@@ -48,6 +53,9 @@ export interface PublicCampaign {
   beneficiaryName: string | null;
   location: string | null;
   endsAt: Date | null;
+  /** In display order; the first is the cover */
+  images: { id: string; url: string; position: number; contentType: string; size: number }[];
+  coverImageUrl: string | null;
   status: CampaignRow['status'];
   /** Only shown to the owner and admins */
   rejectionReason?: string | null;
@@ -66,7 +74,18 @@ export interface CampaignPage {
   total: number;
 }
 
-function toPublic(c: CampaignRow, privileged: boolean): PublicCampaign {
+function toPublic(
+  c: CampaignRow,
+  privileged: boolean,
+  storage: Pick<StorageService, 'publicUrl'>,
+): PublicCampaign {
+  const images = c.images.map((i) => ({
+    id: i.id,
+    url: storage.publicUrl(i.key),
+    position: i.position,
+    contentType: i.contentType,
+    size: i.size,
+  }));
   return {
     id: c.id,
     slug: c.slug,
@@ -82,6 +101,8 @@ function toPublic(c: CampaignRow, privileged: boolean): PublicCampaign {
     beneficiaryName: c.beneficiaryName,
     location: c.location,
     endsAt: c.endsAt,
+    images,
+    coverImageUrl: images[0]?.url ?? null,
     status: c.status,
     ...(privileged ? { rejectionReason: c.rejectionReason } : {}),
     featured: c.featured,
@@ -100,6 +121,7 @@ export class CampaignsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fees: FeesService,
+    private readonly storage: StorageService,
   ) {}
 
   async create(user: AuthUser, input: CreateCampaignInput): Promise<PublicCampaign> {
@@ -123,7 +145,7 @@ export class CampaignsService {
           data: { ...data, slug: campaignSlug(input.title) },
           include,
         });
-        return toPublic(row, true);
+        return toPublic(row, true, this.storage);
       } catch (error) {
         if (!isUniqueViolation(error) || attempt >= 4) throw error;
       }
@@ -147,7 +169,7 @@ export class CampaignsService {
       this.prisma.campaign.count({ where }),
     ]);
     return {
-      items: rows.map((r) => toPublic(r, false)),
+      items: rows.map((r) => toPublic(r, false, this.storage)),
       page: query.page,
       limit: query.limit,
       total,
@@ -160,7 +182,7 @@ export class CampaignsService {
       include,
       orderBy: { createdAt: 'desc' },
     });
-    return rows.map((r) => toPublic(r, true));
+    return rows.map((r) => toPublic(r, true, this.storage));
   }
 
   /**
@@ -175,7 +197,7 @@ export class CampaignsService {
     if (!PUBLIC_STATUSES.includes(row.status) && !privileged) {
       throw new NotFoundException(NOT_FOUND);
     }
-    return toPublic(row, privileged);
+    return toPublic(row, privileged, this.storage);
   }
 
   async update(
@@ -208,7 +230,7 @@ export class CampaignsService {
       data,
       include,
     });
-    return toPublic(updated, true);
+    return toPublic(updated, true, this.storage);
   }
 
   /** Owner actions: submit, pause, resume, end. */
@@ -248,6 +270,8 @@ export class CampaignsService {
     if (deleted.count === 0) {
       throw new ConflictException('Only drafts can be deleted');
     }
+    // Image rows cascade; their files would otherwise be orphaned in storage.
+    await Promise.all(row.images.map((i) => this.storage.deleteQuietly(i.key)));
   }
 
   /**
@@ -275,7 +299,7 @@ export class CampaignsService {
       );
     }
     const row = await this.prisma.campaign.findUniqueOrThrow({ where: { id }, include });
-    return toPublic(row, true);
+    return toPublic(row, true, this.storage);
   }
 
   private assertReadyToSubmit(user: AuthUser, row: CampaignRow): void {
