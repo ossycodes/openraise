@@ -319,3 +319,10 @@ once (two tabs, a page and a background fetch). A token spent within the last
 instead: no tokens are issued, nothing is revoked, and the web app retries
 with the cookies the winning request set. Reuse after that window still signs
 every device out.
+
+## Creators see amounts, not donors
+The creator dashboard lists each confirmed donation's amount, fees and date,
+and exports the same as CSV, but never the donor's email. Donors give an email
+for their receipt, not to be contacted by the campaign, and checkout never asked
+whether to share it. Donor names, and the choice to give anonymously, arrive
+with the donor messages feature, where the donor decides what the creator sees.

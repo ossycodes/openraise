@@ -3249,6 +3249,11 @@ h3 {
   display: grid;
   gap: 24px;
 }
+/* Wide tables scroll inside their panel instead of widening the page. */
+.dashboard-columns > *,
+.dashboard-main > * {
+  min-width: 0;
+}
 .dashboard-side {
   position: sticky;
   top: 24px;
@@ -3520,5 +3525,303 @@ h3 {
   }
   .my-campaign-arrow {
     display: none;
+  }
+}
+
+/* Creator dashboard: navigation and money */
+.dashboard-nav,
+.campaign-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dashboard-nav {
+  margin-bottom: 30px;
+}
+.campaign-tabs {
+  margin: -8px 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+.dashboard-nav a {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.dashboard-nav a[aria-current='page'] {
+  background: var(--soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.campaign-tabs a {
+  padding: 10px 4px;
+  margin-right: 20px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--muted);
+}
+.campaign-tabs a[aria-current='page'] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+.dashboard-notice.error {
+  background: #f6e1df;
+  color: var(--error);
+}
+.money-stats {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.money-stat {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.money-stat span {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.money-stat strong {
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.money-stat small {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.money-stat.feature {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.money-stat.feature span {
+  color: #dce7dc;
+}
+.money-stat.feature strong {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.panel-heading h2 {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.secondary-button.compact {
+  min-height: 38px;
+  padding: 8px 14px;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+.money-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.money-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 12px 10px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.money-table td {
+  padding: 12px 12px 12px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.money-table td:last-child {
+  font-weight: 600;
+}
+.pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+}
+.pager span {
+  color: var(--muted);
+}
+.privacy-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+.withdrawal-list,
+.account-list {
+  display: grid;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.withdrawal-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.withdrawal-list li > div {
+  display: grid;
+  gap: 3px;
+}
+.withdrawal-list strong {
+  font-variant-numeric: tabular-nums;
+}
+.withdrawal-list small {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.withdrawal-succeeded {
+  background: var(--soft);
+  color: var(--accent);
+}
+.withdrawal-pending,
+.withdrawal-initializing,
+.withdrawal-uncertain {
+  background: var(--warm);
+  color: var(--warm-text);
+}
+.withdrawal-failed,
+.withdrawal-reversed {
+  background: #f6e1df;
+  color: var(--error);
+}
+.withdraw-review dl {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 6px;
+}
+.withdraw-review dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+.withdraw-review dt {
+  color: var(--muted);
+}
+.withdraw-review dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.withdraw-review dd small {
+  color: var(--muted);
+}
+.withdraw-total {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-weight: 700;
+}
+.withdraw-total dt {
+  color: var(--text) !important;
+}
+.withdraw-review .form-actions,
+.account-confirm .form-actions {
+  margin-top: 18px;
+}
+.withdraw-form .form-row,
+.dashboard-side .form-row {
+  grid-template-columns: 1fr;
+}
+.withdraw-done {
+  display: grid;
+  gap: 10px;
+  font-size: 0.875rem;
+}
+.withdraw-fee-note {
+  margin-top: 16px;
+}
+.account-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.account-list li > svg {
+  color: var(--accent);
+  margin-top: 2px;
+}
+.account-details {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  font-size: 0.875rem;
+}
+.account-details span:not(.status-pill),
+.account-details small {
+  color: var(--muted);
+}
+.account-details small {
+  font-size: 0.78rem;
+}
+.account-actions {
+  display: flex;
+  gap: 14px;
+}
+.account-card {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--soft);
+}
+.account-card span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+@media (max-width: 1000px) {
+  .money-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .money-stat.feature {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 600px) {
+  .account-list li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .account-actions {
+    grid-column: 2;
+  }
+  .panel-heading {
+    flex-wrap: wrap;
   }
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { SUPPORTED_CURRENCIES } from '@openraise/shared';
-import { useActionState } from 'react';
 import { decimalInput } from '../../_lib/campaign';
 import { saveCampaign, type FormState } from '../actions';
 import {
@@ -12,6 +11,7 @@ import {
   type Category,
   type OwnerCampaign,
 } from '../_lib/types';
+import { useFormAction } from './use-form-action';
 
 const CURRENCY_NAMES: Record<string, string> = {
   NGN: 'Nigerian naira (NGN)',
@@ -28,7 +28,7 @@ export function CampaignForm({
   campaign?: OwnerCampaign;
   categories: Category[];
 }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(saveCampaign, {});
+  const { state, run: action, pending, version } = useFormAction<FormState>(saveCampaign, {});
   const editable = !campaign || canEdit(campaign.status);
   const currencyLocked = !!campaign && !canChangeCurrency(campaign.status);
   const value = (name: string, fallback: string | null | undefined) =>
@@ -45,7 +45,7 @@ export function CampaignForm({
       : {};
 
   return (
-    <form action={action} className="campaign-form" noValidate>
+    <form action={action} className="campaign-form" noValidate key={version}>
       {campaign && <input type="hidden" name="id" value={campaign.id} />}
       {currencyLocked && (
         <input type="hidden" name="lockedCurrency" value={campaign!.currency} />
