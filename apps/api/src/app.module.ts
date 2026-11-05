@@ -6,6 +6,7 @@ import { CategoriesModule } from './categories/categories.module.js';
 import { validateEnv } from './config/env.js';
 import { FeesModule } from './fees/fees.module.js';
 import { HealthController } from './health/health.controller.js';
+import { LedgerModule } from './ledger/ledger.module.js';
 import { MailModule } from './mail/mail.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { StorageModule } from './storage/storage.module.js';
@@ -17,6 +18,7 @@ import { UsersModule } from './users/users.module.js';
     PrismaModule,
     MailModule,
     StorageModule,
+    LedgerModule,
     FeesModule,
     AuthModule,
     UsersModule,
