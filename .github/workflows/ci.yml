@@ -31,6 +31,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Don't rely on install scripts having run: generate the Prisma client explicitly.
+      - run: pnpm --filter @openraise/api db:generate
       - run: pnpm build:shared
       - run: pnpm lint
       - run: pnpm typecheck
