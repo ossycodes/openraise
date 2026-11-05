@@ -12,6 +12,8 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       DATABASE_URL: e2eDatabaseUrl(process.env.DATABASE_URL ?? ''),
+      // Tests sign their own Google-shaped tokens; never use a real client ID.
+      GOOGLE_CLIENT_ID: 'test-client.apps.googleusercontent.com',
     },
     globalSetup: './test/global-setup.ts',
     fileParallelism: false,

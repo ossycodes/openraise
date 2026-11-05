@@ -33,6 +33,7 @@
     "bullmq": "^6.6.0",
     "dotenv": "^18.0.9",
     "ioredis": "^6.0.0",
+    "jose": "^6.2.15",
     "nodemailer": "^10.3.1",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",

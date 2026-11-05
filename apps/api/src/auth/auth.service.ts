@@ -72,6 +72,11 @@ export class AuthService {
     return this.issueTokens(user, randomUUID());
   }
 
+  /** A new sign-in for a user another method has already authenticated (e.g. Google). */
+  signInAs(user: User): Promise<AuthResult> {
+    return this.issueTokens(user, randomUUID());
+  }
+
   /**
    * Swap a refresh token for a new pair. Each token works once; presenting a
    * spent token means it was stolen or replayed, so the whole family (every
