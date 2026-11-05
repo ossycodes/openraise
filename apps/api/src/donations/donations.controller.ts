@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Req,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -24,8 +25,8 @@ export class DonationsController {
   constructor(private readonly donations: DonationsService) {}
   @Get('campaigns/:slug/donations')
   @Header('Cache-Control', 'no-store')
-  publicSupporters(@Param('slug') slug: string) {
-    return this.donations.publicSupporters(slug);
+  publicSupporters(@Param('slug') slug: string, @Query('sort') sort?: string) {
+    return this.donations.publicSupporters(slug, sort);
   }
   @Post('campaigns/:slug/donations/quote')
   quote(

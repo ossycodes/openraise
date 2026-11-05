@@ -1,5 +1,5 @@
 {
-  "contract": "Public campaign story and progress lead to a guest donation with exact server fees, hosted checkout and server-confirmed status. Warm editorial direction. See docs/Research/Public campaign UI 2026-11.md.",
+  "contract": "Public campaign story and progress lead to a guest donation with exact server fees, hosted checkout and server-confirmed status. Warm editorial direction. See docs/Research/Public campaign UI 2026-11.md. Expanded with reference-driven public discovery, live categories and fees, social sharing, downloadable campaign card and anonymous top-contributor aggregation.",
   "targetViewports": [
     "1440x1000",
     "768x1024",
@@ -54,6 +54,36 @@
       "viewport": "390x844",
       "artifact": "mobile.png",
       "observation": "Story heading and photograph fit with fixed donation action."
+    },
+    {
+      "viewport": "1440x1000",
+      "artifact": "home-desktop.png",
+      "observation": "Full public discovery page with category pills, payment details and feature table."
+    },
+    {
+      "viewport": "768x1024",
+      "artifact": "home-tablet.png",
+      "observation": "Tablet discovery reflows without horizontal document overflow."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "home-mobile.png",
+      "observation": "Mobile discovery uses horizontally scrolling category pills and feature table."
+    },
+    {
+      "viewport": "1440x1000",
+      "artifact": "share-desktop.png",
+      "observation": "Campaign card preview and explicit social sharing/download options."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "share-mobile.png",
+      "observation": "Sharing actions reflow into two rows of three."
+    },
+    {
+      "viewport": "1440x1000",
+      "artifact": "contributors-desktop.png",
+      "observation": "Recent and aggregated top contributor columns without donor identity."
     }
   ],
   "paymentChecks": [
@@ -64,7 +94,7 @@
     "Open Graph route returns 200 image/png."
   ],
   "validation": [
-    "107 API unit tests passed",
+    "109 API unit tests passed",
     "22 shared unit tests passed",
     "Monorepo lint and typecheck passed",
     "Next.js production build passed"
@@ -73,5 +103,12 @@
     "Provider handoff and settlement were exercised with local fixtures, not live payment credentials.",
     "No new database integration run for the supporter feed; privacy/filter contract covered by unit tests.",
     "200% browser zoom and RTL were planned stress cases but not completed in this review."
+  ],
+  "discoveryChecks": [
+    "Category Medical changes URL and selected pill; renders explicit empty result.",
+    "Homepage has no horizontal document overflow at 1440, 768, 390 and 320px.",
+    "axe-core WCAG 2/2.1/2.2 A/AA: no tested violations on homepage at four widths and sharing dialog on mobile.",
+    "Sharing strips reference query parameter; copy feedback verified; native modal traps focus and restores trigger on Escape.",
+    "Download saved openraise-campaign.png and image was visually inspected."
   ]
 }

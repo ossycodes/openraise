@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
+import { Contributors } from '../../_components/contributors';
 import { notFound } from 'next/navigation';
 import {
   ArrowLeft,
-  ArrowUpRight,
   CalendarDays,
   GraduationCap,
   Heart,
@@ -62,9 +62,10 @@ export default async function CampaignPage({
     if (error instanceof CampaignLoadError && error.status === 404) notFound();
     throw error;
   }
-  const [quote, supporters, feeResponse] = await Promise.all([
+  const [quote, supporters, topSupporters, feeResponse] = await Promise.all([
     initialQuote(campaign),
     getSupporters(campaign.slug),
+    getSupporters(campaign.slug, 'top'),
     fetch(`${apiOrigin()}/config/fees`, {
       cache: 'no-store',
       signal: AbortSignal.timeout(4000),
@@ -180,42 +181,7 @@ export default async function CampaignPage({
                   {campaign.donorCount}
                 </span>
               </div>
-              {supporters === null ? (
-                <p className="empty-copy">
-                  Recent donations are unavailable right now. The total above
-                  still reflects confirmed payments.
-                </p>
-              ) : supporters.length ? (
-                <ul className="supporter-list">
-                  {supporters.map((person) => (
-                    <li key={person.id}>
-                      <span className="supporter-avatar">
-                        <Heart size={17} strokeWidth={1.5} aria-hidden="true" />
-                      </span>
-                      <div>
-                        <strong>A supporter</strong>
-                        <small>{date(person.confirmedAt)}</small>
-                      </div>
-                      <span className="supporter-amount">
-                        {formatMoney(BigInt(person.amount), person.currency)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="empty-supporters">
-                  <Heart size={25} strokeWidth={1.3} aria-hidden="true" />
-                  <h3>
-                    {campaign.donorCount === 0
-                      ? 'Be the first to show up.'
-                      : 'Every confirmed donation makes a difference.'}
-                  </h3>
-                  <p>Help this story take its next step.</p>
-                  <a href="#donate">
-                    Support this campaign <ArrowUpRight size={15} />
-                  </a>
-                </div>
-              )}
+              <Contributors recent={supporters} top={topSupporters} />
               <p className="privacy-note">
                 Only confirmed donations appear here. Supporter identities stay
                 private.

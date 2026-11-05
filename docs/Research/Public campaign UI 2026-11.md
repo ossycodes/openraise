@@ -53,3 +53,27 @@ self-hosted Google Fonts with bundled SIL OFL licenses.
 
 Rendered screenshots, state checks and accessibility evidence live in
 `output/campaign-ui/` for review; source inspection does not replace browser tests.
+
+## Reference-driven discovery and sharing revision
+
+The user supplied five visual references for category pills, payment information,
+a feature comparison, social sharing/download controls and contributor columns.
+The revision applies these patterns to OpenRaise's own typography, palette and
+copy. Categories come from the API and filter campaign results on the server.
+The feature table describes current capabilities rather than making unsupported
+competitor comparisons. Country-count claims, instant processing, one-hour
+payouts and unimplemented AI features are not advertised. The configured platform
+fee is read from `/config/fees`.
+
+The sharing dialog previews a generated 1200×630 campaign card with the actual
+cover where available. Explicit social links open compose/share pages; they do
+not automatically post. The public URL excludes all query parameters. Download
+returns a PNG. Missing cover images retain a branded text card. Contributor
+identities remain private; the top panel aggregates confirmed giving per email
+on the server and returns only amounts, currency, last confirmation and rank.
+
+Browser verification: homepage at 1440, 768, 390 and 320px; category filtering and
+empty results; share URL excludes a test payment reference; PNG download; copy
+feedback; keyboard focus trap and Escape restoration. axe-core reported zero
+tested WCAG A/AA violations on homepage and sharing surfaces after fixing the
+category-label contrast. Updated artifacts are in `output/campaign-ui/`.

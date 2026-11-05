@@ -40,12 +40,40 @@ export class DonationsService {
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider | null,
   ) {}
 
-  async publicSupporters(slug: string) {
+  async publicSupporters(slug: string, sort = 'recent') {
+    if (!['recent', 'top'].includes(sort))
+      throw new BadRequestException('Use recent or top sorting');
     const campaign = await this.prisma.campaign.findFirst({
       where: { slug, status: { in: ['ACTIVE', 'PAUSED', 'ENDED'] } },
       select: { id: true },
     });
     if (!campaign) throw new NotFoundException('Campaign not found');
+    if (sort === 'top') {
+      const groups = await this.prisma.donation.groupBy({
+        by: ['donorEmail', 'currency'],
+        where: {
+          campaignId: campaign.id,
+          status: 'SUCCEEDED',
+          ledgerTransactionId: { not: null },
+          succeededAt: { not: null },
+        },
+        _sum: { amount: true },
+        _max: { succeededAt: true },
+        orderBy: [
+          { _sum: { amount: 'desc' } },
+          { _max: { succeededAt: 'desc' } },
+        ],
+        take: 6,
+      });
+      return {
+        items: groups.map((group, index) => ({
+          id: `rank-${index + 1}`,
+          amount: group._sum.amount!.toString(),
+          currency: group.currency,
+          confirmedAt: group._max.succeededAt!.toISOString(),
+        })),
+      };
+    }
     const donations = await this.prisma.donation.findMany({
       where: {
         campaignId: campaign.id,

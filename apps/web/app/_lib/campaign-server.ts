@@ -25,10 +25,13 @@ export const getCampaign = cache(async (slug: string): Promise<Campaign> => {
   if (!response.ok) throw new CampaignLoadError(response.status);
   return response.json();
 });
-export async function getSupporters(slug: string): Promise<Supporter[] | null> {
+export async function getSupporters(
+  slug: string,
+  sort: 'recent' | 'top' = 'recent',
+): Promise<Supporter[] | null> {
   try {
     const response = await fetch(
-      `${apiOrigin()}/campaigns/${encodeURIComponent(slug)}/donations`,
+      `${apiOrigin()}/campaigns/${encodeURIComponent(slug)}/donations?sort=${sort}`,
       { cache: 'no-store', signal: AbortSignal.timeout(5000) },
     );
     return response.ok ? (await response.json()).items : null;

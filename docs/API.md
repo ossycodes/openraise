@@ -157,7 +157,7 @@ charge is above the threshold. See [[Fee engine]].
 
 | Method | Path | Auth | Body / headers | Returns |
 |---|---|---|---|---|
-| GET | `/campaigns/:slug/donations` | — | — | Latest six ledger-backed confirmed donations: `{ items: [{ id, amount, currency, confirmedAt }] }`; no donor identities, 404 for private campaigns |
+| GET | `/campaigns/:slug/donations` | — | — | Latest six ledger-backed confirmed donations (`sort=recent`, default), or top six anonymous supporters by combined giving (`sort=top`): `{ items: [{ id, amount, currency, confirmedAt }] }`; no donor identities, 404 for private campaigns |
 | POST | `/campaigns/:slug/donations/quote` | — | `{ amount, currency?, donorCoversPlatformFee? }` | 201 server-computed fees, currency, provider, minimumAmount; creates nothing |
 | POST | `/campaigns/:slug/donations/checkout` | Optional Bearer | `{ amount, currency?, donorCoversPlatformFee?, email? }`; `Idempotency-Key` random UUID v4 | 201 pending donation, fee snapshot, hosted checkoutUrl, statusToken |
 | GET | `/donations/:id` | Donation capability | `X-Donation-Token: <statusToken>` | Current status and saved fees; 404 without the matching token |

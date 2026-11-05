@@ -32,3 +32,7 @@ backend features and are not represented by simulated controls in this page.
 
 Research: [[Public campaign UI 2026-11]]. Screenshots and browser verification:
 `output/campaign-ui/`. Preview instructions: `apps/web/dev/README.md`.
+
+Recent and top contributor panels are shown separately. Top contributions combine
+confirmed giving by normalized supporter email without returning that email or
+any other donor identity to the browser.

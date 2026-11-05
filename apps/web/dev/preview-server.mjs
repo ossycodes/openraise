@@ -75,8 +75,25 @@ createServer(async (req, res) => {
       donorFlatFeeThreshold: '250000',
       withdrawalFee: '5000',
     });
-  if (url.pathname === '/campaigns')
-    return send(200, { items: [campaign], page: 1, limit: 12, total: 1 });
+  if (url.pathname === '/categories')
+    return send(
+      200,
+      [
+        'Education',
+        'Medical',
+        'Community',
+        'Emergencies',
+        'Environment',
+        'Creative',
+        'Business',
+        'Animals',
+      ].map((name) => ({ slug: name.toLowerCase(), name })),
+    );
+  if (url.pathname === '/campaigns') {
+    const category = url.searchParams.get('category');
+    const items = !category || category === 'education' ? [campaign] : [];
+    return send(200, { items, page: 1, limit: 12, total: items.length });
+  }
   const statusMatch = url.pathname.match(/^\/donations\/([^/]+)$/);
   if (statusMatch) {
     const session = sessions.get(statusMatch[1]);
@@ -111,7 +128,18 @@ createServer(async (req, res) => {
   if (!action && resource === 'partial-campaign') return send(503, {});
   if (!action)
     return send(200, {
-      items: resource === 'empty-campaign' ? [] : supporters,
+      items:
+        resource === 'empty-campaign'
+          ? []
+          : url.searchParams.get('sort') === 'top'
+            ? [...supporters].sort((a, b) =>
+                BigInt(a.amount) > BigInt(b.amount)
+                  ? -1
+                  : BigInt(a.amount) < BigInt(b.amount)
+                    ? 1
+                    : 0,
+              )
+            : supporters,
     });
   if (resource === 'payments-unavailable')
     return send(503, { message: 'Payments are disabled' });
