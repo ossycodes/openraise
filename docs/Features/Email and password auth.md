@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in-progress
 type: feature
 area: auth
 milestone: 1

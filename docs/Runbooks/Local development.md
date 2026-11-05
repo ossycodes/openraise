@@ -12,7 +12,7 @@ Requirements: Node 22+, pnpm, Docker.
 
 ```bash
 pnpm install
-docker compose up -d            # Postgres, Redis, MinIO, Mailpit
+docker compose up -d            # Postgres, Redis, S3 storage, Mailpit
 cp .env.example apps/api/.env
 pnpm dev                        # builds packages/shared, then API :4000 + web :3000
 ```
@@ -22,7 +22,7 @@ pnpm dev                        # builds packages/shared, then API :4000 + web :
 | Web | http://localhost:3000 |
 | API | http://localhost:4000 (`/health`) |
 | Mailpit inbox | http://localhost:8025 |
-| MinIO console | http://localhost:9001 (openraise / openraise-secret) |
+| S3 storage (SeaweedFS) | http://localhost:8333 |
 
 ## Checks before merging a feature branch
 
