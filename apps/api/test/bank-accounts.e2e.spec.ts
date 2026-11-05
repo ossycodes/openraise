@@ -10,7 +10,7 @@ describe('bank accounts', () => {
     payments.accounts.set('058:0123456789', 'USER TEST ADAEZE');
     payments.accounts.set('044:0987654321', 'TEST USER');
     payments.accounts.set('044:1111111111', 'MUSA BELLO');
-    t = await createTestApp({ payments });
+    t = await createTestApp({ paymentProvider: payments });
     owner = await signUpUser(t, { verified: true });
   });
 

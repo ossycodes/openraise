@@ -124,3 +124,33 @@ Uploading is two steps: `PUT` the file to `uploadUrl` with exactly the
 
 `*Bps` are basis points (350 = 3.5%). The flat donor fee applies when the
 charge is above the threshold. See [[Fee engine]].
+
+## Donation checkout
+
+| Method | Path | Auth | Body / headers | Returns |
+|---|---|---|---|---|
+| POST | `/campaigns/:slug/donations/quote` | — | `{ amount, currency?, donorCoversPlatformFee? }` | 201 server-computed fees, currency, provider, minimumAmount; creates nothing |
+| POST | `/campaigns/:slug/donations/checkout` | Optional Bearer | `{ amount, currency?, donorCoversPlatformFee?, email? }`; `Idempotency-Key` random UUID v4 | 201 pending donation, fee snapshot, hosted checkoutUrl, statusToken |
+| GET | `/donations/:id` | Donation capability | `X-Donation-Token: <statusToken>` | Current status and saved fees; 404 without the matching token |
+
+Amounts are positive minor-unit strings; currency defaults to the campaign's
+fixed currency and must match it. Only active campaigns before their end date
+accept new checkouts. Guests must supply an email; signed-in donors use their
+account email. Fees and total charge are computed on the server and stored
+before calling the provider. Numeric amounts and client-supplied fees are 400.
+
+Reuse the same idempotency key with exactly the same donation input after a
+network failure. A completed checkout initialization replays its original fees
+and URL even after fee settings or the campaign status changes. Different input
+with the same key is 409. A concurrent request still initializing is 409; retry
+with that key. A provider rejection is 503 and marks the donation failed. An
+ambiguous write is 503 with `donationId` and `statusToken`, stays pending and
+requires reconciliation; the server does not call the provider again for that
+key. Do not create a replacement charge automatically after an ambiguous result.
+
+Keep the key and status token private. Status responses expose no donor email,
+provider credentials or raw idempotency key. Tokens are derived from the server
+JWT secret and donation ID; rotating that secret invalidates them. Redirects
+back to the campaign never confirm payment. No endpoint in this feature marks
+a donation succeeded; confirmation comes from [[Payment webhooks]]. Payments
+are 503 when `PAYMENT_PROVIDER=disabled`.

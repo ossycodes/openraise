@@ -5,6 +5,7 @@ import { BankAccountsModule } from './bank-accounts/bank-accounts.module.js';
 import { CampaignsModule } from './campaigns/campaigns.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { validateEnv } from './config/env.js';
+import { DonationsModule } from './donations/donations.module.js';
 import { FeesModule } from './fees/fees.module.js';
 import { HealthController } from './health/health.controller.js';
 import { LedgerModule } from './ledger/ledger.module.js';
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module.js';
     LedgerModule,
     FeesModule,
     PaymentsModule,
+    DonationsModule,
     AuthModule,
     UsersModule,
     CategoriesModule,

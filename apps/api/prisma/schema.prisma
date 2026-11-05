@@ -29,6 +29,7 @@ model User {
   updatedAt       DateTime       @updatedAt @db.Timestamptz
   refreshTokens   RefreshToken[]
   emailTokens     EmailToken[]
+  donations       Donation[]
   campaigns       Campaign[]
   bankAccounts    BankAccount[]
 }
@@ -87,15 +88,15 @@ enum EmailTokenPurpose {
 
 /// What a campaign raises for. Seeded by migration; admins can add and edit.
 model Category {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   /// URL segment, e.g. "medical"
-  slug        String   @unique
+  slug        String     @unique
   name        String
   description String
   /// Lower comes first in lists
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now()) @db.Timestamptz
-  updatedAt   DateTime @updatedAt @db.Timestamptz
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now()) @db.Timestamptz
+  updatedAt   DateTime   @updatedAt @db.Timestamptz
   campaigns   Campaign[]
 }
 
@@ -109,33 +110,34 @@ enum CampaignStatus {
 }
 
 model Campaign {
-  id              String         @id @default(cuid())
+  id              String          @id @default(cuid())
   /// Public URL segment: slugified title + random suffix, fixed at creation
-  slug            String         @unique
+  slug            String          @unique
   ownerId         String
-  owner           User           @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  owner           User            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   categoryId      String
-  category        Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category        Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   title           String
   /// One or two sentences for cards and link previews
-  summary         String         @default("")
-  story           String         @default("")
+  summary         String          @default("")
+  story           String          @default("")
   /// Minor units of `currency`
   goalAmount      BigInt
   /// ISO code, one of SUPPORTED_CURRENCIES; fixed once submitted
   currency        String
   beneficiaryName String?
   location        String?
-  endsAt          DateTime?      @db.Timestamptz
-  status          CampaignStatus @default(DRAFT)
+  endsAt          DateTime?       @db.Timestamptz
+  status          CampaignStatus  @default(DRAFT)
   /// Why an admin rejected it; cleared on resubmit
   rejectionReason String?
-  featured        Boolean        @default(false)
-  submittedAt     DateTime?      @db.Timestamptz
-  publishedAt     DateTime?      @db.Timestamptz
-  endedAt         DateTime?      @db.Timestamptz
-  createdAt       DateTime       @default(now()) @db.Timestamptz
-  updatedAt       DateTime       @updatedAt @db.Timestamptz
+  featured        Boolean         @default(false)
+  submittedAt     DateTime?       @db.Timestamptz
+  publishedAt     DateTime?       @db.Timestamptz
+  endedAt         DateTime?       @db.Timestamptz
+  createdAt       DateTime        @default(now()) @db.Timestamptz
+  updatedAt       DateTime        @updatedAt @db.Timestamptz
+  donations       Donation[]
   images          CampaignImage[]
   ledgerAccounts  LedgerAccount[]
 
@@ -244,4 +246,51 @@ model LedgerEntry {
 
   @@index([accountId])
   @@index([transactionId])
+}
+
+enum DonationStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+}
+
+enum CheckoutState {
+  INITIALIZING
+  READY
+  FAILED
+  UNCERTAIN
+}
+
+model Donation {
+  id                     String         @id @default(cuid())
+  campaignId             String
+  campaign               Campaign       @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  donorUserId            String?
+  donor                  User?          @relation(fields: [donorUserId], references: [id], onDelete: SetNull)
+  donorEmail             String
+  idempotencyKeyHash     String         @unique
+  reference              String         @unique
+  provider               String
+  providerCheckoutId     String?
+  providerPaymentId      String?
+  checkoutUrl            String?
+  checkoutState          CheckoutState  @default(INITIALIZING)
+  status                 DonationStatus @default(PENDING)
+  amount                 BigInt
+  currency               String
+  platformFee            BigInt
+  donorFee               BigInt
+  totalCharged           BigInt
+  netToCampaign          BigInt
+  donorCoversPlatformFee Boolean
+  succeededAt            DateTime?      @db.Timestamptz
+  stateEventAt           DateTime?      @db.Timestamptz
+  createdAt              DateTime       @default(now()) @db.Timestamptz
+  updatedAt              DateTime       @updatedAt @db.Timestamptz
+
+  @@unique([provider, providerCheckoutId])
+  @@unique([provider, providerPaymentId])
+  @@index([campaignId, status])
+  @@index([donorUserId])
 }

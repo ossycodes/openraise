@@ -100,21 +100,22 @@ export interface TestApp {
 }
 
 /**
- * `payments` swaps in a fake provider; without it the app runs with payments
- * disabled, as the e2e env configures.
+ * `paymentProvider` swaps in a fake (e.g. FakePaymentProvider); without it the
+ * app runs with payments disabled, as the e2e env configures.
  */
 export async function createTestApp(
-  options: { payments?: PaymentProvider } = {},
+  options: { paymentProvider?: PaymentProvider | null } = {},
 ): Promise<TestApp> {
   const mail = new FakeMailService();
-  let builder = Test.createTestingModule({ imports: [AppModule] })
+  const builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(MailService)
     .useValue(mail);
-  if (options.payments) {
-    builder = builder.overrideProvider(PAYMENT_PROVIDER).useValue(options.payments);
-  }
+  if (Object.hasOwn(options, 'paymentProvider'))
+    builder
+      .overrideProvider(PAYMENT_PROVIDER)
+      .useValue(options.paymentProvider);
   const moduleRef = await builder.compile();
-  const app = moduleRef.createNestApplication();
+  const app = moduleRef.createNestApplication({ rawBody: true });
   await app.init();
   return {
     app,
