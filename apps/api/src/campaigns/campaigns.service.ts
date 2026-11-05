@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import type { AuthUser } from '../auth/auth.types.js';
 import { FeesService } from '../fees/fees.service.js';
-import type { Prisma } from '../generated/prisma/client.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { isUniqueViolation, PrismaService } from '../prisma/prisma.service.js';
 import { StorageService } from '../storage/storage.service.js';
 import {
@@ -30,7 +30,13 @@ const include = {
   owner: { select: { id: true, name: true } },
   images: {
     orderBy: { position: 'asc' },
-    select: { id: true, key: true, position: true, contentType: true, size: true },
+    select: {
+      id: true,
+      key: true,
+      position: true,
+      contentType: true,
+      size: true,
+    },
   },
 } satisfies Prisma.CampaignInclude;
 
@@ -47,14 +53,20 @@ export interface PublicCampaign {
   /** Minor units as strings */
   goalAmount: string;
   currency: string;
-  /** From the ledger once donations ship (M2) */
+  /** Gross donations backed by committed ledger postings */
   raisedAmount: string;
   donorCount: number;
   beneficiaryName: string | null;
   location: string | null;
   endsAt: Date | null;
   /** In display order; the first is the cover */
-  images: { id: string; url: string; position: number; contentType: string; size: number }[];
+  images: {
+    id: string;
+    url: string;
+    position: number;
+    contentType: string;
+    size: number;
+  }[];
   coverImageUrl: string | null;
   status: CampaignRow['status'];
   /** Only shown to the owner and admins */
@@ -78,6 +90,7 @@ function toPublic(
   c: CampaignRow,
   privileged: boolean,
   storage: Pick<StorageService, 'publicUrl'>,
+  totals?: { raisedAmount: string; donorCount: number },
 ): PublicCampaign {
   const images = c.images.map((i) => ({
     id: i.id,
@@ -96,8 +109,8 @@ function toPublic(
     owner: { name: c.owner.name },
     goalAmount: c.goalAmount.toString(),
     currency: c.currency,
-    raisedAmount: '0',
-    donorCount: 0,
+    raisedAmount: totals?.raisedAmount ?? '0',
+    donorCount: totals?.donorCount ?? 0,
     beneficiaryName: c.beneficiaryName,
     location: c.location,
     endsAt: c.endsAt,
@@ -124,7 +137,10 @@ export class CampaignsService {
     private readonly storage: StorageService,
   ) {}
 
-  async create(user: AuthUser, input: CreateCampaignInput): Promise<PublicCampaign> {
+  async create(
+    user: AuthUser,
+    input: CreateCampaignInput,
+  ): Promise<PublicCampaign> {
     const categoryId = await this.categoryId(input.categorySlug);
     const data = {
       ownerId: user.id,
@@ -145,7 +161,7 @@ export class CampaignsService {
           data: { ...data, slug: campaignSlug(input.title) },
           include,
         });
-        return toPublic(row, true, this.storage);
+        return this.presentOne(row, true);
       } catch (error) {
         if (!isUniqueViolation(error) || attempt >= 4) throw error;
       }
@@ -169,7 +185,7 @@ export class CampaignsService {
       this.prisma.campaign.count({ where }),
     ]);
     return {
-      items: rows.map((r) => toPublic(r, false, this.storage)),
+      items: await this.present(rows, false),
       page: query.page,
       limit: query.limit,
       total,
@@ -182,7 +198,7 @@ export class CampaignsService {
       include,
       orderBy: { createdAt: 'desc' },
     });
-    return rows.map((r) => toPublic(r, true, this.storage));
+    return this.present(rows, true);
   }
 
   /**
@@ -191,13 +207,17 @@ export class CampaignsService {
    * 404, so unpublished campaigns can't be discovered by guessing slugs.
    */
   async getBySlug(slug: string, viewer?: AuthUser): Promise<PublicCampaign> {
-    const row = await this.prisma.campaign.findUnique({ where: { slug }, include });
+    const row = await this.prisma.campaign.findUnique({
+      where: { slug },
+      include,
+    });
     if (!row) throw new NotFoundException(NOT_FOUND);
-    const privileged = !!viewer && (viewer.id === row.ownerId || viewer.role === 'ADMIN');
+    const privileged =
+      !!viewer && (viewer.id === row.ownerId || viewer.role === 'ADMIN');
     if (!PUBLIC_STATUSES.includes(row.status) && !privileged) {
       throw new NotFoundException(NOT_FOUND);
     }
-    return toPublic(row, privileged, this.storage);
+    return this.presentOne(row, privileged);
   }
 
   async update(
@@ -218,7 +238,9 @@ export class CampaignsService {
       input.currency !== row.currency &&
       !CURRENCY_EDITABLE_STATUSES.includes(row.status)
     ) {
-      throw new ConflictException('The currency is fixed once a campaign is submitted');
+      throw new ConflictException(
+        'The currency is fixed once a campaign is submitted',
+      );
     }
 
     const { categorySlug, ...fields } = input;
@@ -230,7 +252,7 @@ export class CampaignsService {
       data,
       include,
     });
-    return toPublic(updated, true, this.storage);
+    return this.presentOne(updated, true);
   }
 
   /** Owner actions: submit, pause, resume, end. */
@@ -298,13 +320,54 @@ export class CampaignsService {
         `Can't ${action} a campaign that is ${exists.status.toLowerCase().replace('_', ' ')}`,
       );
     }
-    const row = await this.prisma.campaign.findUniqueOrThrow({ where: { id }, include });
-    return toPublic(row, true, this.storage);
+    const row = await this.prisma.campaign.findUniqueOrThrow({
+      where: { id },
+      include,
+    });
+    return this.presentOne(row, true);
+  }
+
+  private async presentOne(
+    row: CampaignRow,
+    privileged: boolean,
+  ): Promise<PublicCampaign> {
+    return (await this.present([row], privileged))[0]!;
+  }
+
+  private async present(
+    rows: CampaignRow[],
+    privileged: boolean,
+  ): Promise<PublicCampaign[]> {
+    if (!rows.length) return [];
+    // A succeeded flag alone never contributes: require its committed ledger posting.
+    const totals = await this.prisma.$queryRaw<
+      { campaignId: string; raisedAmount: string; donorCount: bigint }[]
+    >`
+      SELECT d."campaignId", SUM(d."amount")::text AS "raisedAmount",
+        COUNT(DISTINCT d."donorEmail") AS "donorCount"
+      FROM "Donation" d JOIN "LedgerTransaction" l ON l."id" = d."ledgerTransactionId"
+      WHERE d."campaignId" IN (${Prisma.join(rows.map((row) => row.id))})
+        AND d."status" = 'SUCCEEDED' AND l."kind" = 'DONATION' AND l."currency" = d."currency"
+      GROUP BY d."campaignId"`;
+    const byCampaign = new Map(
+      totals.map((total) => [
+        total.campaignId,
+        {
+          raisedAmount: total.raisedAmount,
+          donorCount: Number(total.donorCount),
+        },
+      ]),
+    );
+    return rows.map((row) =>
+      toPublic(row, privileged, this.storage, byCampaign.get(row.id)),
+    );
   }
 
   private assertReadyToSubmit(user: AuthUser, row: CampaignRow): void {
     if (!user.emailVerified) {
-      throw new ForbiddenException('Verify your email before submitting a campaign');
+      throw new ForbiddenException(
+        'Verify your email before submitting a campaign',
+      );
     }
     const errors: { path: string; message: string }[] = [];
     if (row.summary.length < SUBMIT_REQUIREMENTS.summaryMin) {
@@ -323,13 +386,19 @@ export class CampaignsService {
       errors.push({ path: 'endsAt', message: 'The end date has passed' });
     }
     if (errors.length) {
-      throw new BadRequestException({ message: 'This campaign is not ready to submit', errors });
+      throw new BadRequestException({
+        message: 'This campaign is not ready to submit',
+        errors,
+      });
     }
   }
 
   /** The campaign if `user` owns it; 404 otherwise, so ids can't be probed. */
   private async owned(user: AuthUser, id: string): Promise<CampaignRow> {
-    const row = await this.prisma.campaign.findUnique({ where: { id }, include });
+    const row = await this.prisma.campaign.findUnique({
+      where: { id },
+      include,
+    });
     if (!row || row.ownerId !== user.id) throw new NotFoundException(NOT_FOUND);
     return row;
   }

@@ -43,6 +43,17 @@ export const envSchema = z
     /** Create the bucket at boot if missing (handy locally; off in production) */
     STORAGE_CREATE_BUCKET: z.stringbool().default(true),
 
+    REDIS_URL: z
+      .url()
+      .refine((value) =>
+        ['redis:', 'rediss:'].includes(new URL(value).protocol),
+      )
+      .default('redis://localhost:6379'),
+    PAYMENT_QUEUE_PREFIX: z
+      .string()
+      .regex(/^[a-zA-Z0-9_-]+$/)
+      .default('openraise'),
+
     // Payments are opt-in: existing development installs need no provider account.
     PAYMENT_PROVIDER: z
       .enum(['disabled', 'paystack', 'bachs'])

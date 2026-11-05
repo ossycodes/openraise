@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
@@ -8,6 +9,7 @@ import {
   PAYMENT_PROVIDER,
   type PaymentProvider,
 } from '../src/payments/payment-provider.js';
+import { PaymentEventQueue } from '../src/webhooks/payment-event.queue.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 export class FakeMailService {
@@ -39,7 +41,10 @@ export interface TestApp {
 }
 
 export async function createTestApp(
-  options: { paymentProvider?: PaymentProvider | null } = {},
+  options: {
+    paymentProvider?: PaymentProvider | null;
+    backgroundJobs?: boolean;
+  } = {},
 ): Promise<TestApp> {
   const mail = new FakeMailService();
   const builder = Test.createTestingModule({ imports: [AppModule] })
@@ -49,7 +54,15 @@ export async function createTestApp(
     builder
       .overrideProvider(PAYMENT_PROVIDER)
       .useValue(options.paymentProvider);
+  if (!options.backgroundJobs)
+    builder
+      .overrideProvider(PaymentEventQueue)
+      .useValue({ enqueue: async () => {} });
   const moduleRef = await builder.compile();
+  if (options.backgroundJobs)
+    moduleRef
+      .get(ConfigService)
+      .set('PAYMENT_QUEUE_PREFIX', `e2e-${randomUUID()}`);
   const app = moduleRef.createNestApplication({ rawBody: true });
   await app.init();
   return {

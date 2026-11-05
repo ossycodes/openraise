@@ -67,3 +67,16 @@ for s in lint typecheck test test:e2e build; do pnpm $s; echo "$s exit: $?"; don
   bucket exists; check with `curl http://localhost:8333/openraise/` instead.
   `BadDigest` on upload means checksums are being sent; see
   [[Decisions#S3 checksums only when required]].
+
+## Payment webhook worker
+
+Payments are disabled by default. Once a provider is enabled, the API starts a
+BullMQ worker using `REDIS_URL` and `PAYMENT_QUEUE_PREFIX`. Give each deployment
+and database a different prefix when sharing Redis. E2e tests now require Redis
+as well as PostgreSQL and the image-test storage service; use the Compose stack.
+The worker tests use their own Redis prefix and database-backed outbox rows.
+
+Pending `PaymentEvent` rows recover automatically after enqueue failures or Redis
+loss. Rejected outcomes need manual investigation. Never interpret a checkout
+timeout as proof that no charge exists; reconcile the provider reference first.
+Raw event bodies are private and must not be copied into public issues or logs.

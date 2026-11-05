@@ -6,3 +6,5 @@ packages:
 allowBuilds:
   '@prisma/engines': true
   prisma: true
+  # Optional native acceleration; BullMQ works with the JavaScript fallback.
+  msgpackr-extract: false
