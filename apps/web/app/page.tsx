@@ -55,7 +55,9 @@ export default async function HomePage({
   const requested = params.category ?? '';
   const category = /^[a-z0-9-]{1,50}$/.test(requested) ? requested : '';
   const q = (params.q ?? '').trim().slice(0, 100);
-  const sort = SORTS.some((s) => s.value === params.sort) ? (params.sort ?? '') : '';
+  const sort = SORTS.some((s) => s.value === params.sort)
+    ? (params.sort ?? '')
+    : '';
   const listQuery = new URLSearchParams({ limit: '12' });
   if (category) listQuery.set('category', category);
   if (q) listQuery.set('q', q);
@@ -196,8 +198,10 @@ export default async function HomePage({
             method="get"
             action="/#campaigns"
           >
-            {category && <input type="hidden" name="category" value={category} />}
-            <label className="visually-hidden" htmlFor="campaign-search-q">
+            {category && (
+              <input type="hidden" name="category" value={category} />
+            )}
+            <label className="sr-only" htmlFor="campaign-search-q">
               Search campaigns
             </label>
             <input
@@ -208,7 +212,7 @@ export default async function HomePage({
               maxLength={100}
               placeholder="Search by name, place or cause"
             />
-            <label className="visually-hidden" htmlFor="campaign-search-sort">
+            <label className="sr-only" htmlFor="campaign-search-sort">
               Sort campaigns
             </label>
             <select id="campaign-search-sort" name="sort" defaultValue={sort}>
