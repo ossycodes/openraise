@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #14 | Public campaign and discovery UI: responsive guest donation and exact fee review, payment recovery, category filters, progress cards, anonymous recent/top contributors, gallery, social sharing and downloadable campaign cards; Open Graph images and documented browser/accessibility evidence ([[Campaign page]], partial [[Landing page]], [[Explore and search]] and [[Share kit]]) |
 | #13 | Donor receipts and batched creator notifications, atomic notification outbox, retryable SMTP delivery and reconciliation for uncertain sends ([[Donor receipts]]) |
 | #12 | Payout bank accounts: provider bank list, account-name lookup, payout recipients, masked numbers, 24-hour hold and owner email on every new account, name match against the profile, default and soft removal; `FakePaymentProvider` for tests ([[Bank accounts]]) |
 | #11 | Signed payment webhook intake, durable event deduplication and outbox recovery, BullMQ jobs, atomic donation/ledger settlement, and campaign progress backed by committed postings ([[Payment webhooks]]) |

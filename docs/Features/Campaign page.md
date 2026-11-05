@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 14
+shipped: 2026-11-05
 branch: feat/public-campaign-page
 type: feature
 area: web
