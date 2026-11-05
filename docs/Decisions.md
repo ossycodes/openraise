@@ -203,3 +203,17 @@ Guest status reads use a separate HMAC capability returned to the checkout
 caller; donation IDs alone cannot reveal payment progress or checkout URLs.
 Signed-in donors are associated with their account email. Provider redirects
 never change donation status.
+
+## Payout accounts: resolved names, a 24-hour hold, and an email
+The account name always comes from the provider's lookup, never from what
+the user types, so the name shown is the real holder of the account. A new
+account can't receive withdrawals for 24 hours and the owner is emailed when
+one is added: the classic takeover is "steal a login, add your own account,
+withdraw", and the hold plus the email gives the real owner a day to notice.
+
+`nameMatchesProfile` needs two full name parts shared with the user's name
+(order-free, accents and punctuation ignored, initials don't count), or one
+part for a genuinely one-word name. "A Obi" doesn't match a bare "OBI"
+account, which could be any relative. It's advisory until
+[[Identity verification]]; withdrawals will then require a match against the
+verified name or an admin override.

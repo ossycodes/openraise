@@ -105,6 +105,32 @@ See [[Campaign images]].
 Uploading is two steps: `PUT` the file to `uploadUrl` with exactly the
 `headers` returned (10 minutes to do it), then attach the `key`.
 
+## Payout bank accounts
+
+All Bearer; every account is the signed-in user's own (others answer 404).
+503 when the deployment has payments disabled; 502 when the provider fails.
+See [[Bank accounts]].
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| GET | `/banks` | — | `[{ code, name }]`, Nigerian banks the provider can pay, by name |
+| POST | `/bank-accounts/resolve` | `{ bankCode, accountNumber }` (10 digits) | 200 `{ bankCode, bankName, accountName, maskedAccountNumber }`; 400 if not found |
+| POST | `/bank-accounts` | `{ bankCode, accountNumber }` | 201 account; 403 unverified email; 409 duplicate or more than 5 |
+| GET | `/bank-accounts` | — | Active accounts, default first |
+| PUT | `/bank-accounts/:id/default` | — | Account list |
+| DELETE | `/bank-accounts/:id` | — | Account list (removed accounts are kept for history) |
+
+An account:
+
+```json
+{
+  "id": "…", "bankCode": "058", "bankName": "GTBank", "accountName": "OBI ADA CHIOMA",
+  "maskedAccountNumber": "******6789", "isDefault": true, "recipientUsable": true,
+  "nameMatchesProfile": true, "payoutsAvailableAt": "2026-11-06T14:15:00.000Z",
+  "createdAt": "2026-11-05T14:15:00.000Z"
+}
+```
+
 ## Config
 
 | Method | Path | Auth | Returns |
