@@ -1,0 +1,28 @@
+{
+  "name": "openraise",
+  "version": "0.0.0",
+  "description": "Open-source, self-hostable crowdfunding for African communities.",
+  "author": "ossycodes",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:shared": "pnpm --filter @openraise/shared build",
+    "dev": "pnpm build:shared && pnpm -r --parallel --filter \"./apps/*\" dev",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,json,css,yml}\""
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "oxlint": "^1.91.0",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0"
+  }
+}

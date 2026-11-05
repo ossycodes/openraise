@@ -11,15 +11,18 @@ tags:
 ```
 .
 ├── apps/
-│   ├── api/        NestJS 11 REST API (Prisma + PostgreSQL, Redis + BullMQ for jobs)
-│   └── web/        Next.js 15 (App Router): public site, creator dashboard, admin
+│   ├── api/        NestJS 12 REST API (Prisma + PostgreSQL, Redis + BullMQ for jobs)
+│   └── web/        Next.js 16 (App Router, React 19): public site, creator dashboard, admin
 ├── packages/
 │   └── shared/     Types, zod schemas, money + fee maths used by api and web
 ├── docker-compose.yml   Postgres, Redis, MinIO (S3-compatible storage), Mailpit (dev email)
 └── docs/           This vault
 ```
 
-pnpm workspaces + Turborepo. Node 22.
+pnpm workspaces (`pnpm -r` runs scripts in dependency order; no Turborepo
+yet). Node 22, TypeScript 6, Vitest, oxlint. `packages/shared` is compiled to
+`dist/` and consumed by both apps, so build it first (`pnpm build:shared`;
+`pnpm dev` does it for you). See [[Local development]].
 
 ## Modules (API)
 

@@ -1,10 +1,12 @@
 ---
-status: planned
+status: shipped
 type: feature
 area: infra
 milestone: 1
 priority: 1
 effort: S
+branch: feat/dev-environment
+shipped: 2026-11-05
 tags:
   - feature
 ---
