@@ -15,7 +15,7 @@ tags:
 │   └── web/        Next.js 16 (App Router, React 19): public site, creator dashboard, admin
 ├── packages/
 │   └── shared/     Types, zod schemas, money + fee maths used by api and web
-├── docker-compose.yml   Postgres, Redis, MinIO (S3-compatible storage), Mailpit (dev email)
+├── docker-compose.yml   Postgres, Redis, SeaweedFS (S3-compatible storage), Mailpit (dev email)
 └── docs/           This vault
 ```
 
@@ -86,7 +86,7 @@ webhook (or a server-side verify call) does.
 | `PaymentProvider` | Paystack, Bachs | `PAYMENT_PROVIDER` |
 | `KycProvider` | QoreID, Dojah, Smile ID, `manual` | `KYC_PROVIDER` |
 | `AiProvider` | Anthropic, OpenAI-compatible | `AI_PROVIDER` |
-| `StorageProvider` | S3-compatible (MinIO, R2, S3) | `STORAGE_*` |
+| `StorageProvider` | S3-compatible (SeaweedFS, R2, S3) | `STORAGE_*` |
 | `MailProvider` | SMTP, Resend | `MAIL_PROVIDER` |
 
 ### Bachs notes

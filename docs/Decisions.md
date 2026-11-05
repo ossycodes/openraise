@@ -74,6 +74,33 @@ to the processor before it (donation + covered platform fee), because that's
 what the processor charges on. Invariant, tested:
 `totalCharged = netToCampaign + platformFee + donorFee`.
 
+## scrypt, not argon2
+Passwords are hashed with Node's built-in `scrypt` (N=2^15, r=8, p=1), with the
+parameters stored in each hash so they can be raised later. Argon2 needs a
+native module, and a self-hoster on a cheap VPS shouldn't have to compile one.
+Unicode is normalised (NFKC) first so the same password typed on two keyboards
+matches.
+
+## Tokens: short JWT + rotating refresh token
+Access tokens are 15-minute JWTs carrying the user's `tokenVersion`; the guard
+checks it against the database on every request, so a password reset signs
+out every device immediately. Refresh tokens are random, stored only as
+SHA-256, and single use: each refresh claims the old token with a conditional
+update and issues a new one in the same family. Presenting a spent token means
+it was stolen or replayed, so the whole family is revoked.
+
+The API returns tokens in JSON rather than setting cookies. The Next.js app
+keeps the refresh token in an httpOnly cookie on its own server (a
+backend-for-frontend), which keeps the API usable by future mobile apps.
+
+## Sign-up says when an email is taken
+`POST /auth/signup` returns 409 for an existing email. That reveals the email
+has an account, but hiding it would mean a confusing sign-up flow for real
+users. Sign-in and password reset don't leak: sign-in gives one message for
+both failures and verifies against a dummy hash for unknown emails, and
+forgot-password always returns 202 without awaiting the email send. Rate
+limiting ([[Rate limiting]]) covers enumeration by brute force.
+
 ## All fees are public
 `GET /config/fees` publishes every fee, including the withdrawal fee, with no
 auth. Hidden withdrawal fees were a gap in the competitors we studied; being

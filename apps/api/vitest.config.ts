@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['src/**/*.spec.ts', 'test/**/*.spec.ts'],
+    // Unit tests only; DB-backed tests in test/ run with vitest.config.e2e.ts.
+    include: ['src/**/*.spec.ts'],
   },
 });

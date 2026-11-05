@@ -29,18 +29,15 @@ services:
       timeout: 5s
       retries: 10
 
-  # S3-compatible storage for campaign images. Console on http://localhost:9001
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: openraise
-      MINIO_ROOT_PASSWORD: openraise-secret
+  # S3-compatible storage for campaign images (SeaweedFS). S3 API on
+  # http://localhost:8333. MinIO no longer publishes community images.
+  storage:
+    image: chrislusf/seaweedfs:latest
+    command: server -s3 -dir=/data -ip.bind=0.0.0.0
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '8333:8333'
     volumes:
-      - minio-data:/data
+      - storage-data:/data
 
   # Catches every email the app sends. Inbox on http://localhost:8025
   mailpit:
@@ -52,4 +49,4 @@ services:
 volumes:
   postgres-data:
   redis-data:
-  minio-data:
+  storage-data:

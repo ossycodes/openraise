@@ -24,7 +24,7 @@ Requirements: Node 22+, pnpm, Docker.
 
 ```bash
 pnpm install
-docker compose up -d            # Postgres, Redis, MinIO, Mailpit
+docker compose up -d            # Postgres, Redis, S3 storage, Mailpit
 cp .env.example apps/api/.env
 pnpm dev                        # API on :4000, web on :3000
 ```
@@ -34,7 +34,7 @@ pnpm dev                        # API on :4000, web on :3000
 | Web app | http://localhost:3000 |
 | API | http://localhost:4000 (health: `/health`) |
 | Mailpit (dev inbox) | http://localhost:8025 |
-| MinIO console | http://localhost:9001 |
+| S3 storage (SeaweedFS) | http://localhost:8333 |
 
 ## Scripts
 
