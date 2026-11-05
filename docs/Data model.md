@@ -51,6 +51,20 @@ Sixteen categories are inserted by the `categories` migration; see
 Indexed on `(status, publishedAt)` for the public list, `(categoryId, status)`
 and `ownerId`.
 
+### CampaignImage
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | cuid | |
+| `campaignId` | → Campaign | Cascade delete (the API also deletes the files) |
+| `key` | text, unique | Storage key `campaigns/{campaignId}/{random}.{ext}` |
+| `contentType` | text | Sniffed from the file's bytes, never taken from the client |
+| `size` | int | Bytes, at most 5 MB |
+| `position` | int | 0 is the cover; kept contiguous on delete |
+| `createdAt` | timestamptz | |
+
+At most 10 per campaign. Indexed on `(campaignId, position)`.
+
 ## Auth
 
 ### User

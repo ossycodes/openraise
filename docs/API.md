@@ -86,6 +86,24 @@ ids and slugs can't be probed. See [[Campaigns]].
 `goalAmount` and `raisedAmount` are minor units as strings (`"50000000"` =
 ₦500,000). `raisedAmount` and `donorCount` are `"0"` / `0` until donations ship.
 `rejectionReason` is only included for the owner and admins.
+Every campaign also carries `images` (`[{ id, url, position, contentType, size }]`,
+in display order) and `coverImageUrl` (the first image's URL, or `null`).
+
+### Campaign images
+
+Owner only, with the same editing rules as the campaign (409 while in review
+or once ended). Each call that changes images returns the full image list.
+See [[Campaign images]].
+
+| Method | Path | Body | Returns |
+|---|---|---|---|
+| POST | `/campaigns/:id/images/upload-url` | `{ contentType: "image/jpeg" \| "image/png" \| "image/webp", size }` (≤ 5 MB) | 201 `{ key, uploadUrl, method: "PUT", headers, expiresIn, maxBytes }`; 409 at 10 images |
+| POST | `/campaigns/:id/images` | `{ key }` | 201 image list; 400 if not uploaded, over 5 MB, not really an image, or from another campaign |
+| PUT | `/campaigns/:id/images/order` | `{ imageIds }` (every image, once) | Image list in the new order |
+| DELETE | `/campaigns/:id/images/:imageId` | — | Image list; the file is deleted from storage |
+
+Uploading is two steps: `PUT` the file to `uploadUrl` with exactly the
+`headers` returned (10 minutes to do it), then attach the `key`.
 
 ## Config
 
