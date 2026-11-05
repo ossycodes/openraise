@@ -18,6 +18,8 @@ properties:
     displayName: Effort
   pr:
     displayName: PR
+  branch:
+    displayName: Branch
   shipped:
     displayName: Shipped
   formula.priority_label:
@@ -56,7 +58,9 @@ views:
     filters: 'status == "shipped"'
     order:
       - file.name
+      - formula.milestone_label
       - area
+      - branch
       - pr
       - shipped
 

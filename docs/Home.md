@@ -32,7 +32,8 @@ startup.
 
 ## Working on it
 
-- [[Changelog]]: every PR, newest first
+- [[Local development]]: setup, scripts, and this repo's gotchas
+- [[Changelog]]: every merged branch, newest first
 - [[Decisions]]: why things are the way they are
 
 ## Research
