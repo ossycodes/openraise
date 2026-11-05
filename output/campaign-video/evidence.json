@@ -57,8 +57,8 @@
     }
   ],
   "verification": [
-    "160 unit tests passed",
-    "122 database-backed tests passed",
+    "162 unit tests passed",
+    "126 database-backed tests passed",
     "Monorepo lint, typecheck and builds passed",
     "No YouTube requests or iframe before load click",
     "Embed uses youtube-nocookie.com and no autoplay parameter",
