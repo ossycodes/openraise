@@ -105,6 +105,28 @@ deleted, and no table stores a balance.
 A transaction's entries sum to zero. Indexed on `accountId` and
 `transactionId`.
 
+## Payouts
+
+### BankAccount
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | cuid | |
+| `userId` | → User | Restrict delete |
+| `country`, `currency` | text | `NG`, `NGN` for now |
+| `bankCode`, `bankName` | text | From the provider's bank list |
+| `accountNumber` | text | 10-digit NUBAN; API responses show only the last 4 |
+| `accountName` | text | Resolved by the provider, never typed by the user |
+| `provider`, `recipientId` | text | The provider's payout recipient |
+| `recipientUsable` | boolean | False if the provider must approve the recipient first |
+| `nameMatchesProfile` | boolean | Two full name parts shared with the user's name |
+| `isDefault` | boolean | One per user |
+| `payoutsAvailableAt` | timestamptz | Created + 24 h |
+| `removedAt` | timestamptz? | Soft delete, kept for withdrawal history |
+| `createdAt` | timestamptz | |
+
+Indexed on `(userId, removedAt)`. At most 5 active per user.
+
 ## Auth
 
 ### User

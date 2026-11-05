@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #12 | Payout bank accounts: provider bank list, account-name lookup, payout recipients, masked numbers, 24-hour hold and owner email on every new account, name match against the profile, default and soft removal; `FakePaymentProvider` for tests ([[Bank accounts]]) |
 | #11 | Signed payment webhook intake, durable event deduplication and outbox recovery, BullMQ jobs, atomic donation/ledger settlement, and campaign progress backed by committed postings ([[Payment webhooks]]) |
 | #10 | Donation fee quotes, idempotent hosted checkout for guests and signed-in donors, immutable fee snapshots and private status reads; ambiguous writes require reconciliation ([[Donation checkout]]) |
 | #9 | Double-entry ledger: accounts for provider clearing, campaign wallets, pending payouts, platform revenue and donor fees; balanced, atomic, idempotent postings; balances summed from entries; database integrity check; `donationEntries()` ([[Ledger]]) |
