@@ -1,4 +1,4 @@
-import { SUPPORTED_CURRENCIES } from '@openraise/shared';
+import { SUPPORTED_CURRENCIES, canonicalYoutubeUrl } from '@openraise/shared';
 import { z } from 'zod';
 
 /** Money arrives as a string of minor units so it survives JSON exactly. */
@@ -18,12 +18,30 @@ const summary = z.string().trim().max(200);
 const story = z.string().trim().max(20_000);
 const shortText = z.string().trim().min(1).max(100);
 
+const videoUrl = z
+  .string()
+  .trim()
+  .max(2048)
+  .transform((value, ctx) => {
+    const canonical = canonicalYoutubeUrl(value);
+    if (!canonical) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Use a YouTube HTTPS video link, such as https://www.youtube.com/watch?v=M7lc1UVf-VE',
+      });
+      return z.NEVER;
+    }
+    return canonical;
+  });
+
 export const createCampaignSchema = z.object({
   title,
   categorySlug: z.string().trim().min(1).max(50),
   goalAmount: minorUnits,
   currency: z.enum(SUPPORTED_CURRENCIES).optional(),
   summary: summary.optional(),
+  videoUrl: videoUrl.nullable().optional(),
   story: story.optional(),
   beneficiaryName: shortText.optional(),
   location: shortText.optional(),
@@ -39,6 +57,7 @@ export const updateCampaignSchema = z
     goalAmount: minorUnits,
     currency: z.enum(SUPPORTED_CURRENCIES),
     summary,
+    videoUrl: videoUrl.nullable(),
     story,
     beneficiaryName: shortText.nullable(),
     location: shortText.nullable(),
@@ -52,7 +71,12 @@ export const rejectCampaignSchema = z.object({
   reason: z.string().trim().min(5, 'Tell the creator what to fix').max(500),
 });
 
-export const CAMPAIGN_SORTS = ['newest', 'trending', 'close-to-goal', 'relevance'] as const;
+export const CAMPAIGN_SORTS = [
+  'newest',
+  'trending',
+  'close-to-goal',
+  'relevance',
+] as const;
 export type CampaignSort = (typeof CAMPAIGN_SORTS)[number];
 
 export const listCampaignsSchema = z.object({

@@ -253,3 +253,11 @@ wallet balance. Payout settlement uses the same campaign lock, then the
 withdrawal lock. Ledger accounts are resolved in canonical key order to avoid
 opposite lock orders between different posting types. Future wallet-debit
 features must use this campaign locking convention too.
+
+
+### Campaign video
+
+`Campaign.videoUrl` is nullable text containing one canonical YouTube watch URL.
+The API canonicalizes supported input URLs; a PostgreSQL check rejects other
+stored formats. Existing campaigns remain null and retain the photo gallery.
+No embed HTML, tracking parameters or third-party thumbnail is stored.

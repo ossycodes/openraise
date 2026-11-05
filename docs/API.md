@@ -262,3 +262,26 @@ hashes. Public history additionally omits bank/account names, account IDs,
 merchant/provider references and internal reconciliation reasons. All reads
 are no-store. Provider transfer expenses are separate from OpenRaise's
 configured withdrawal fee; live provider reconciliation is still required.
+
+
+### Optional campaign YouTube video
+
+`POST /campaigns` and `PATCH /campaigns/:id` accept `videoUrl`, a YouTube HTTPS
+video link. Supported forms: watch URLs on youtube.com (including www/mobile/music),
+youtu.be share links, Shorts, Live and single-video embed links. The API stores and
+returns only `https://www.youtube.com/watch?v=<11-character-id>`; tracking,
+playlist, timestamp and playback parameters are discarded. `videoUrl: null`
+removes a video; omitting it on update preserves the existing one. Existing
+campaigns return null. Ownership, visibility and review locks are unchanged.
+
+Invalid hosts, non-HTTPS URLs, credentials, custom ports, malformed video IDs,
+playlist-only URLs and raw iframe HTML return 400. Validation checks URL shape,
+not whether YouTube permits viewing/embedding a particular video. No server-side
+request to the submitted URL is made. PostgreSQL also restricts the stored value
+to the canonical URL shape. Public lists/detail return the optional field.
+
+The public media section shows video first when present and keeps uploaded photos
+available. The YouTube privacy-enhanced iframe loads only after an explicit click,
+with no autoplay. A direct YouTube link remains available for blocked, private,
+removed or embedding-disabled videos. Creator dashboard form integration is a
+separate feature. See [[Campaign video]].

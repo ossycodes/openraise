@@ -124,6 +124,7 @@ model Campaign {
   title              String
   /// One or two sentences for cards and link previews
   summary            String                   @default("")
+  videoUrl           String?
   story              String                   @default("")
   /// Minor units of `currency`
   goalAmount         BigInt

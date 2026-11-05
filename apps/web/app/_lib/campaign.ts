@@ -5,6 +5,7 @@ export interface Campaign {
   title: string;
   summary: string;
   story: string;
+  videoUrl: string | null;
   category: { slug: string; name: string };
   owner: { name: string };
   goalAmount: string;

@@ -10,7 +10,7 @@ import {
   Sprout,
 } from 'lucide-react';
 import { formatMoney } from '@openraise/shared';
-import { CampaignGallery } from '../../_components/campaign-gallery';
+import { CampaignMedia } from '../../_components/campaign-media';
 import { DonationPanel } from '../../_components/donation-panel';
 import { ShareButton } from '../../_components/share-button';
 import { SiteFooter, SiteHeader } from '../../_components/site-header';
@@ -115,7 +115,10 @@ export default async function CampaignPage({
               <h1>{campaign.title}</h1>
               <p className="campaign-summary">{campaign.summary}</p>
             </div>
-            <CampaignGallery campaign={campaign} />
+            <CampaignMedia
+              key={`${campaign.id}:${campaign.videoUrl ?? 'photos'}`}
+              campaign={campaign}
+            />
             <div className="organiser-line">
               <div className="avatar">{initials}</div>
               <div>

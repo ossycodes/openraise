@@ -504,11 +504,22 @@ describe('campaign withdrawals', () => {
       .get('/admin/withdrawals/review')
       .set('Authorization', `Bearer ${owner.accessToken}`)
       .expect(403);
-    const review = await t
+    let review = await t
       .http()
       .get('/admin/withdrawals/review')
       .set('Authorization', `Bearer ${admin.accessToken}`)
       .expect(200);
+    let page = 1;
+    while (
+      review.body.hasMore &&
+      !review.body.items.some((w: { id: string }) => w.id === r.body.id)
+    ) {
+      review = await t
+        .http()
+        .get(`/admin/withdrawals/review?page=${++page}`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .expect(200);
+    }
     expect(
       review.body.items.some((w: { id: string }) => w.id === r.body.id),
     ).toBe(true);
