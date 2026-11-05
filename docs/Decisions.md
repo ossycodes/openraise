@@ -233,3 +233,20 @@ ledger posting backs them; wallet balances remain net amounts. Distinct donor
 emails determine donor count. Donor processing fees use the ledger's DONOR_FEES
 revenue account; actual provider expenses and settlement reconciliation remain
 separate from the checkout's configured surcharge.
+
+## Notification intents commit with settlement; ambiguous SMTP sends are held
+
+A successful donation must not lose its receipt if the API crashes after posting
+money. Its donor receipt and creator-notification item are written in the same
+transaction as settlement, then claimed from a PostgreSQL outbox. Creator items
+share a one-minute campaign batch until that batch is claimed and its body frozen.
+A database poller is enough for this bounded mail workload and keeps recovery
+independent of Redis.
+
+SMTP cannot provide exactly-once delivery: the server may accept a message before
+a disconnect or before the database can record success. Stable Message-IDs help
+trace attempts but do not guarantee recipient deduplication. Retry only confirmed
+temporary non-acceptance; unknown/interrupted sends require reconciliation. In
+particular, Nodemailer can report ECONNECTION/CONN after DATA, so those labels
+alone do not establish that retrying is safe. SMTP acceptance is distinct from
+final delivery to the recipient's inbox.

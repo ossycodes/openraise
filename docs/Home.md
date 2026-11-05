@@ -36,6 +36,7 @@ startup.
 - [[Changelog]]: every merged branch, newest first
 - [[Decisions]]: why things are the way they are
 - [Contributing](../CONTRIBUTING.md): choosing work, checks and pull requests
+- [[Receipt delivery]]: notification retries and uncertain-send reconciliation
 - [[Writing an adapter]]: payment and KYC provider contribution expectations
 
 ## Research

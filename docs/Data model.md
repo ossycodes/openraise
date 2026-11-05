@@ -209,3 +209,19 @@ existing ledger posting. A check requires that link whenever status is
 `SUCCEEDED`. A trigger prevents edits to monetary snapshot fields, reference,
 provider, campaign and idempotency-key hash after reservation. Payment state,
 ledger entries and event completion commit atomically.
+
+## Notification delivery
+
+`NotificationDelivery` is a durable email outbox. Its unique `dedupeKey` identifies
+one donor receipt or one creator campaign/minute batch. It snapshots `recipient`,
+`campaignTitle`, `campaignUrl`, `currency` and rendered `subject`/`text`/`html`.
+Creator content is rendered and frozen when the row is claimed. States are
+`PENDING`, `SENDING`, `SENT`, `UNCERTAIN` and `FAILED`; delivery tracks attempts,
+next attempt, start/send timestamps and a fixed internal last-error code.
+Indexes cover `(state, nextAttemptAt)` and `(state, startedAt)`.
+
+`DonationNotification` links a settled donation to its outbox delivery. Unique
+`(donationId, kind)` permits one `DONOR_RECEIPT` and one `CREATOR_DONATIONS` item.
+Multiple creator items can share a delivery, but every donor receipt has its own
+row. Foreign keys restrict deletion of related donations/deliveries. These rows
+and the financial settlement commit together; SMTP happens afterward.
