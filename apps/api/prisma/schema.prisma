@@ -30,6 +30,37 @@ model User {
   refreshTokens   RefreshToken[]
   emailTokens     EmailToken[]
   campaigns       Campaign[]
+  bankAccounts    BankAccount[]
+}
+
+/// Where a user's withdrawals are paid. Removed accounts are kept for history.
+model BankAccount {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  /// ISO country; Nigerian bank accounts only for now
+  country            String    @default("NG")
+  currency           String    @default("NGN")
+  bankCode           String
+  bankName           String
+  /// 10-digit NUBAN; responses only ever show the last 4 digits
+  accountNumber      String
+  /// As resolved by the payment provider, never typed by the user
+  accountName        String
+  /// Which provider holds the payout recipient
+  provider           String
+  recipientId        String
+  /// False when the provider needs the recipient approved before paying it
+  recipientUsable    Boolean
+  /// Fuzzy match of the resolved name against the user's name (KYC name later)
+  nameMatchesProfile Boolean
+  isDefault          Boolean   @default(false)
+  /// New accounts can't receive withdrawals until this time (24-hour hold)
+  payoutsAvailableAt DateTime  @db.Timestamptz
+  removedAt          DateTime? @db.Timestamptz
+  createdAt          DateTime  @default(now()) @db.Timestamptz
+
+  @@index([userId, removedAt])
 }
 
 model RefreshToken {

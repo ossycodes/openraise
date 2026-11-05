@@ -56,3 +56,26 @@ export function resetPasswordEmail(name: string, to: string, link: string): Mail
     ),
   };
 }
+
+/** Sent whenever a payout account is added, so a hijacked login can't redirect money quietly. */
+export function payoutAccountAddedEmail(
+  name: string,
+  to: string,
+  account: string,
+  link: string,
+): MailMessage {
+  return {
+    to,
+    subject: 'A payout account was added',
+    text: `Hi ${name},\n\n${account} was added as a payout account on your OpenRaise profile. Withdrawals to it start in 24 hours.\n\nIf this wasn't you, change your password now and remove the account:\n\n${link}`,
+    html: layout(
+      'A payout account was added',
+      [
+        `Hi ${escapeHtml(name)},`,
+        `<strong>${escapeHtml(account)}</strong> was added as a payout account on your OpenRaise profile. Withdrawals to it start in 24 hours.`,
+        "If this wasn't you, change your password now and remove the account.",
+      ],
+      { label: 'Review payout accounts', href: link },
+    ),
+  };
+}

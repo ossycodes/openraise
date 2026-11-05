@@ -4,7 +4,72 @@ import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { MailService, type MailMessage } from '../src/mail/mail.service.js';
+import {
+  PAYMENT_PROVIDER,
+  type AccountInput,
+  type Bank,
+  type PaymentProvider,
+  type Recipient,
+  type RecipientInput,
+  type ResolvedAccount,
+} from '../src/payments/payment-provider.js';
+import { PaymentProviderError } from '../src/payments/provider-http.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+
+/**
+ * Stands in for Paystack/Bachs in tests that need a provider. Only the bank
+ * and recipient calls are implemented; anything else throws so a test can't
+ * pass by accident.
+ */
+export class FakePaymentProvider implements PaymentProvider {
+  readonly name = 'paystack' as const;
+  readonly minimumCheckout = { NGN: 0n, USD: 0n, GHS: 0n, KES: 0n };
+  banks: Bank[] = [
+    { code: '058', name: 'GTBank' },
+    { code: '044', name: 'Access Bank' },
+  ];
+  /** "bankCode:accountNumber" → account name */
+  readonly accounts = new Map<string, string>();
+  readonly recipients: RecipientInput[] = [];
+  /** Make the next provider call fail like a network error. */
+  failNext = false;
+
+  private maybeFail(): void {
+    if (this.failNext) {
+      this.failNext = false;
+      throw new PaymentProviderError('transport-error');
+    }
+  }
+
+  listBanks(): Promise<Bank[]> {
+    this.maybeFail();
+    return Promise.resolve(this.banks);
+  }
+
+  resolveAccount(input: AccountInput): Promise<ResolvedAccount> {
+    this.maybeFail();
+    const name = this.accounts.get(`${input.bankCode}:${input.accountNumber}`);
+    return Promise.resolve(
+      name ? { resolved: true, accountNumber: input.accountNumber, accountName: name } : { resolved: false },
+    );
+  }
+
+  createRecipient(input: RecipientInput): Promise<Recipient> {
+    this.maybeFail();
+    this.recipients.push(input);
+    return Promise.resolve({ id: `RCP_${this.recipients.length}`, usable: true });
+  }
+
+  private unsupported(): never {
+    throw new Error('Not implemented in FakePaymentProvider');
+  }
+  createCheckout = () => this.unsupported();
+  verifyPayment = () => this.unsupported();
+  verifyWebhook = () => this.unsupported();
+  parseWebhook = () => this.unsupported();
+  createPayout = () => this.unsupported();
+  refund = () => this.unsupported();
+}
 
 export class FakeMailService {
   readonly sent: MailMessage[] = [];
@@ -34,12 +99,21 @@ export interface TestApp {
   http: () => ReturnType<typeof request>;
 }
 
-export async function createTestApp(): Promise<TestApp> {
+/**
+ * `payments` swaps in a fake provider; without it the app runs with payments
+ * disabled, as the e2e env configures.
+ */
+export async function createTestApp(
+  options: { payments?: PaymentProvider } = {},
+): Promise<TestApp> {
   const mail = new FakeMailService();
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+  let builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(MailService)
-    .useValue(mail)
-    .compile();
+    .useValue(mail);
+  if (options.payments) {
+    builder = builder.overrideProvider(PAYMENT_PROVIDER).useValue(options.payments);
+  }
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication();
   await app.init();
   return {
