@@ -1,13 +1,9 @@
 import type { NextRequest } from 'next/server';
 import { apiOrigin } from '../../../_lib/campaign-server';
 import { privateJson, sameOrigin } from '../../../_lib/payment-proxy';
-import {
-  AUTH_COOKIE,
-  authCookieOptions,
-  encodeSession,
-} from '../../../_lib/session';
+import { setSessionCookies, type AuthResult } from '../../../_lib/session';
 
-/** Exchanges a Google ID token for an OpenRaise session cookie. */
+/** Exchanges a Google ID token for an OpenRaise session. */
 export async function POST(request: NextRequest) {
   if (!sameOrigin(request))
     return privateJson({ message: 'Sign in from this site.' }, 403);
@@ -30,18 +26,11 @@ export async function POST(request: NextRequest) {
           : 'Google sign-in failed. Try again.';
       return privateJson({ message }, response.status);
     }
+    const auth = data as AuthResult;
     const result = privateJson({
-      user: { name: data.user.name, email: data.user.email },
+      user: { name: auth.user.name, email: auth.user.email },
     });
-    result.cookies.set(
-      AUTH_COOKIE,
-      encodeSession({
-        refreshToken: data.refreshToken,
-        name: data.user.name,
-        email: data.user.email,
-      }),
-      authCookieOptions(),
-    );
+    setSessionCookies(result.cookies, auth);
     return result;
   } catch {
     return privateJson(

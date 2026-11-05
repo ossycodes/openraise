@@ -3,7 +3,7 @@ import { apiOrigin } from '../../../_lib/campaign-server';
 import { privateJson, sameOrigin } from '../../../_lib/payment-proxy';
 import {
   AUTH_COOKIE,
-  authCookieOptions,
+  clearSessionCookies,
   decodeSession,
 } from '../../../_lib/session';
 
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     return privateJson({ message: 'Sign out from this site.' }, 403);
   const session = decodeSession(request.cookies.get(AUTH_COOKIE)?.value);
   if (session) {
-    // Best effort: the cookie is cleared even if the API is unreachable.
+    // Best effort: the cookies are cleared even if the API is unreachable.
     await fetch(`${apiOrigin()}/auth/signout`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -24,6 +24,6 @@ export async function POST(request: NextRequest) {
   }
   const result = NextResponse.redirect(new URL('/', request.url), 303);
   result.headers.set('Cache-Control', 'no-store');
-  result.cookies.set(AUTH_COOKIE, '', authCookieOptions(0));
+  clearSessionCookies(result.cookies);
   return result;
 }

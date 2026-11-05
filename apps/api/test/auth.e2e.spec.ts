@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { createTestApp, uniqueEmail, type TestApp } from './helpers.js';
 
 const PASSWORD = 'a long enough password';
@@ -111,10 +112,38 @@ describe('auth', () => {
       const { refreshToken: first } = await signUp();
       const rotated = await t.http().post('/auth/refresh').send({ refreshToken: first }).expect(200);
       const second = rotated.body.refreshToken as string;
+      // Spent a minute ago: past the window for concurrent refreshes.
+      await t.prisma.refreshToken.update({
+        where: { tokenHash: createHash('sha256').update(first).digest('hex') },
+        data: { revokedAt: new Date(Date.now() - 60_000) },
+      });
 
       // Replaying the spent token: refused, and the newer token dies with it.
       await t.http().post('/auth/refresh').send({ refreshToken: first }).expect(401);
       await t.http().post('/auth/refresh').send({ refreshToken: second }).expect(401);
+    });
+
+    it('treat a replay seconds after rotation as a concurrent refresh, not theft', async () => {
+      const { refreshToken: first } = await signUp();
+      const [a, b] = await Promise.all([
+        t.http().post('/auth/refresh').send({ refreshToken: first }),
+        t.http().post('/auth/refresh').send({ refreshToken: first }),
+      ]);
+      // Exactly one wins; the other is told to retry and gets no tokens.
+      const [won, lost] = a.status === 200 ? [a, b] : [b, a];
+      expect(won.status).toBe(200);
+      expect(lost.status).toBe(401);
+      expect(lost.body).toMatchObject({ code: 'REFRESH_RACE' });
+      expect(lost.body.refreshToken).toBeUndefined();
+
+      // A late duplicate is refused the same way, and the sign-in survives.
+      const late = await t.http().post('/auth/refresh').send({ refreshToken: first }).expect(401);
+      expect(late.body).toMatchObject({ code: 'REFRESH_RACE' });
+      await t
+        .http()
+        .post('/auth/refresh')
+        .send({ refreshToken: won.body.refreshToken })
+        .expect(200);
     });
 
     it('stop working after sign out', async () => {
