@@ -25,6 +25,8 @@ describe('validateEnv', () => {
       STORAGE_PUBLIC_URL: 'http://localhost:8333/openraise',
       STORAGE_CREATE_BUCKET: true,
 
+      REDIS_URL: 'redis://localhost:6379',
+      PAYMENT_QUEUE_PREFIX: 'openraise',
       PAYMENT_PROVIDER: 'disabled',
       BACHS_BASE_URL: 'https://sandbox-api.bachs.io',
       DEFAULT_CURRENCY: 'NGN',

@@ -193,3 +193,19 @@ whether hosted checkout creation completed, not whether the donor paid.
 `checkoutUrl` is private to the caller holding the donation status capability.
 `succeededAt` and `stateEventAt` are reserved for verified webhook processing.
 `createdAt` and `updatedAt` are timestamptz. No mutable balance is stored.
+
+### PaymentEvent
+
+Stores provider + event ID (unique), exact raw body (`bytea`), normalized event
+type, resource ID, merchant reference, optional minor-unit amount/currency,
+source `occurredAt`, first `receivedAt`, optional `processedAt`, processing
+`outcome`/`reason`, and `lastDispatchAt` for fair recovery scanning. Indexed on
+`(processedAt, lastDispatchAt)`. A null processed timestamp is a durable outbox
+item, whether Redis accepted the job or not. Reasons are fixed internal codes,
+not upstream errors or personal information.
+
+`Donation.ledgerTransactionId` uniquely links a successful donation to the
+existing ledger posting. A check requires that link whenever status is
+`SUCCEEDED`. A trigger prevents edits to monetary snapshot fields, reference,
+provider, campaign and idempotency-key hash after reservation. Payment state,
+ledger entries and event completion commit atomically.

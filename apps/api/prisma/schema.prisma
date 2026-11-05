@@ -224,6 +224,7 @@ enum LedgerTransactionKind {
 
 /// One business event (a donation, a withdrawal step). Never updated or deleted.
 model LedgerTransaction {
+  donation       Donation?
   id             String                @id @default(cuid())
   kind           LedgerTransactionKind
   /// One posting per event, e.g. "donation:<id>"; posting it again returns the original
@@ -263,20 +264,22 @@ enum CheckoutState {
 }
 
 model Donation {
-  id                     String         @id @default(cuid())
+  ledgerTransactionId    String?            @unique
+  ledgerTransaction      LedgerTransaction? @relation(fields: [ledgerTransactionId], references: [id], onDelete: Restrict)
+  id                     String             @id @default(cuid())
   campaignId             String
-  campaign               Campaign       @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  campaign               Campaign           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
   donorUserId            String?
-  donor                  User?          @relation(fields: [donorUserId], references: [id], onDelete: SetNull)
+  donor                  User?              @relation(fields: [donorUserId], references: [id], onDelete: SetNull)
   donorEmail             String
-  idempotencyKeyHash     String         @unique
-  reference              String         @unique
+  idempotencyKeyHash     String             @unique
+  reference              String             @unique
   provider               String
   providerCheckoutId     String?
   providerPaymentId      String?
   checkoutUrl            String?
-  checkoutState          CheckoutState  @default(INITIALIZING)
-  status                 DonationStatus @default(PENDING)
+  checkoutState          CheckoutState      @default(INITIALIZING)
+  status                 DonationStatus     @default(PENDING)
   amount                 BigInt
   currency               String
   platformFee            BigInt
@@ -284,13 +287,34 @@ model Donation {
   totalCharged           BigInt
   netToCampaign          BigInt
   donorCoversPlatformFee Boolean
-  succeededAt            DateTime?      @db.Timestamptz
-  stateEventAt           DateTime?      @db.Timestamptz
-  createdAt              DateTime       @default(now()) @db.Timestamptz
-  updatedAt              DateTime       @updatedAt @db.Timestamptz
+  succeededAt            DateTime?          @db.Timestamptz
+  stateEventAt           DateTime?          @db.Timestamptz
+  createdAt              DateTime           @default(now()) @db.Timestamptz
+  updatedAt              DateTime           @updatedAt @db.Timestamptz
 
   @@unique([provider, providerCheckoutId])
   @@unique([provider, providerPaymentId])
   @@index([campaignId, status])
   @@index([donorUserId])
+}
+
+model PaymentEvent {
+  id             String    @id @default(cuid())
+  provider       String
+  eventId        String
+  rawBody        Bytes
+  type           String?
+  resourceId     String?
+  reference      String?
+  amount         BigInt?
+  currency       String?
+  occurredAt     DateTime  @db.Timestamptz
+  receivedAt     DateTime  @default(now()) @db.Timestamptz
+  processedAt    DateTime? @db.Timestamptz
+  outcome        String?
+  reason         String?
+  lastDispatchAt DateTime? @db.Timestamptz
+
+  @@unique([provider, eventId])
+  @@index([processedAt, lastDispatchAt])
 }

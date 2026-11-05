@@ -84,7 +84,9 @@ ids and slugs can't be probed. See [[Campaigns]].
 | POST | `/campaigns/:id/reject` | Admin | `{ reason }` | `REJECTED`; the reason is shown to the owner |
 
 `goalAmount` and `raisedAmount` are minor units as strings (`"50000000"` =
-₦500,000). `raisedAmount` and `donorCount` are `"0"` / `0` until donations ship.
+₦500,000). `raisedAmount` is gross donations backed by committed ledger postings;
+`donorCount` is distinct normalized donor emails among those donations.
+Pending, failed and expired payments do not contribute.
 `rejectionReason` is only included for the owner and admins.
 Every campaign also carries `images` (`[{ id, url, position, contentType, size }]`,
 in display order) and `coverImageUrl` (the first image's URL, or `null`).
@@ -180,3 +182,24 @@ JWT secret and donation ID; rotating that secret invalidates them. Redirects
 back to the campaign never confirm payment. No endpoint in this feature marks
 a donation succeeded; confirmation comes from [[Payment webhooks]]. Payments
 are 503 when `PAYMENT_PROVIDER=disabled`.
+
+## Payment webhooks
+
+| Method | Path | Auth | Returns |
+|---|---|---|---|
+| POST | `/webhooks/:provider` | Provider signature on original JSON bytes | 202 `{ received: true }` after persistence and queue handoff |
+
+The provider path must match the configured adapter (`paystack` or `bachs`).
+Disabled/other providers return 404. Paystack uses `X-Paystack-Signature`;
+Bachs uses `X-Bachs-Signature-V2` with ±300-second delivery tolerance and any
+matching `v1` during secret rotation. Invalid signatures or malformed payloads
+return 400 without changing donations. The normal JSON body-size limit applies.
+
+Duplicate provider event IDs reuse the stored first delivery. Unsupported signed
+events return 202 and are retained as ignored. Internal persistence failures
+return 5xx; queue failure returns 503 while keeping the durable event for retry.
+Redis jobs and a database recovery scan apply payment state later. Workers check
+reference, currency, exact charged amount and event ordering before settling a
+donation and its balanced ledger posting in one transaction. Redirects and
+client calls cannot settle a donation. Payout/refund business processing is not
+yet enabled; those events are retained as ignored for now.
