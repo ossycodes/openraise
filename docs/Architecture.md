@@ -103,7 +103,7 @@ webhook (or a server-side verify call) does.
   `checkout.expired`, `refund.*`, `payout.paid`, `payout.failed`.
 - Payouts: `POST /v1/payouts/destinations`, `POST /v1/payouts`, banks via List
   Banks (`country=NG`).
-- Minimum NGN payment is ₦1,000; the donate form enforces it when Bachs is
+- OpenRaise's Bachs NGN checkout floor is ₦1,000 (a conservative application policy); the donate form enforces it when Bachs is
   active.
 
 ## Milestones
