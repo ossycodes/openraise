@@ -1,5 +1,6 @@
 ---
-status: in-progress
+status: shipped
+shipped: 2026-11-05
 branch: feat/payment-providers
 pr: 8
 type: feature
@@ -80,4 +81,4 @@ rotation, recipient readiness, pagination, transport errors and Nest selection.
 There are no new HTTP endpoints or database tables in this branch. Checkout,
 durable webhook ingestion/deduplication, ledger posting and payout business
 rules belong to [[Donation checkout]], [[Payment webhooks]], [[Ledger]] and
-[[Withdrawals]]. Keep this note in-progress until the branch is merged.
+[[Withdrawals]]. Merged in [PR #8](https://github.com/ossycodes/openraise/pull/8).
