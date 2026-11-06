@@ -26,7 +26,18 @@ CSV export, post an update, wallet balance, bank account, withdraw, KYC status.
 - Signed-in sessions refresh themselves in `proxy.ts`; see
   [[Decisions#Web sessions: two httpOnly cookies, refreshed in proxy.ts]].
 
-## Still to do (part 2: money)
+## Done (part 2: money)
 
-Wallet balance, donations list and CSV export, payout bank accounts,
-withdrawals. Later: campaign updates, KYC status, [[AI story writer]].
+- `/dashboard/campaigns/:id/money`: available balance, raised, platform fees,
+  withdrawals on their way and paid out; confirmed donations (25 a page) with a
+  CSV download; withdrawal history; withdraw with a fee review step and one
+  idempotency key per reviewed quote.
+- `/dashboard/payouts`: add a payout account (name looked up with the bank,
+  confirmed before saving), choose the default, remove.
+- New owner-only API reads: see [[API#Creator money]].
+
+## Not here
+
+Campaign updates ([[Campaign updates]]), KYC status ([[Identity verification]])
+and the [[AI story writer]] have their own notes. Donor names on the donations
+list come with [[Donor messages and anonymous giving]].

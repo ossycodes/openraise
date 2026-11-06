@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { formatMoney } from '@openraise/shared';
 import { ArrowLeft, ArrowUpRight, CircleAlert, Clock } from 'lucide-react';
 import { CampaignForm } from '../../_components/campaign-form';
+import { CampaignTabs } from '../../_components/dashboard-nav';
 import { PhotoManager } from '../../_components/photo-manager';
 import { StatusActions } from '../../_components/status-actions';
 import { categories, myCampaigns } from '../../_lib/data';
@@ -64,6 +65,8 @@ export default async function EditCampaignPage({
           </Link>
         )}
       </div>
+
+      <CampaignTabs id={campaign.id} />
 
       {created && (
         <p className="dashboard-notice" role="status">

@@ -27,7 +27,12 @@ export class ApiError extends Error {
  */
 export async function apiAs<T>(
   path: string,
-  init: { method?: string; body?: unknown; returnTo?: string } = {},
+  init: {
+    method?: string;
+    body?: unknown;
+    returnTo?: string;
+    headers?: Record<string, string>;
+  } = {},
 ): Promise<T> {
   const token = (await cookies()).get(ACCESS_COOKIE)?.value;
   const next = encodeURIComponent(init.returnTo ?? '/dashboard');
@@ -37,6 +42,7 @@ export async function apiAs<T>(
     headers: {
       Authorization: `Bearer ${token}`,
       ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...init.headers,
     },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
     cache: 'no-store',
