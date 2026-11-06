@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 34
+shipped: 2026-11-06
 branch: feat/campaign-reports
 type: feature
 area: trust
