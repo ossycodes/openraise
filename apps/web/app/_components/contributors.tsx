@@ -65,7 +65,11 @@ export function Contributors({
                     )}
                   </span>
                   <div>
-                    <strong>A supporter</strong>
+                    <strong>
+                      {list.top
+                        ? 'Anonymous'
+                        : (item.displayName ?? 'Anonymous')}
+                    </strong>
                     <small>
                       {list.top
                         ? 'Total contributed'
@@ -74,6 +78,9 @@ export function Contributors({
                             timeZone: 'Africa/Lagos',
                           }).format(new Date(item.confirmedAt))}
                     </small>
+                    {!list.top && item.message && (
+                      <p className="supporter-message">{item.message}</p>
+                    )}
                   </div>
                   <b>{formatMoney(BigInt(item.amount), item.currency)}</b>
                 </li>

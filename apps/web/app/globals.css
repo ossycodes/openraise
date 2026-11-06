@@ -3883,3 +3883,96 @@ h3 {
     width: 100%;
   }
 }
+.donor-preferences {
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 24px 0 0;
+  margin: 24px 0 0;
+  min-width: 0;
+}
+.donor-preferences legend {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  padding: 0;
+  margin-bottom: 18px;
+}
+.donor-preferences > label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-block: 16px 8px;
+}
+.donor-preferences > .cover-fee {
+  display: flex;
+  font-weight: 400;
+  margin-block: 16px;
+}
+.donor-preferences > input,
+.donor-preferences textarea {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+.donor-preferences textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+.donor-preferences > small {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-top: 10px;
+}
+.supporter-message {
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-top: 8px;
+  font-weight: 400;
+}
+.contributor-list li {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.contributor-list li > div {
+  flex: 1;
+}
+.contributor-list strong {
+  overflow-wrap: anywhere;
+}
+.donor-visibility {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  margin-top: 5px;
+}
+.donor-details {
+  margin-top: 25px;
+  border-block: 1px solid var(--line);
+  padding-block: 15px;
+}
+.donor-details > summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  min-height: 30px;
+}
+.donor-details > summary > span {
+  float: right;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+.donor-details .donor-preferences {
+  margin: 0;
+  padding-top: 0;
+  border: 0;
+}

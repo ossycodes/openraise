@@ -16,8 +16,8 @@ const IN_PROGRESS = ['INITIALIZING', 'PENDING', 'UNCERTAIN'] as const;
 
 /**
  * What a creator sees about their campaign's money. Read only: every figure
- * comes from confirmed donations, withdrawals and the ledger. Donor identities
- * are not shared with creators.
+ * comes from confirmed donations, withdrawals and the ledger. Donor-provided names and messages are visible only to the owner; email
+ * addresses and account identifiers are not shared.
  */
 @Injectable()
 export class CreatorMoneyService {
@@ -122,7 +122,10 @@ export class CreatorMoneyService {
   }
 
   /** Succeeded and posted to the ledger, the same rule as `raisedAmount`. */
-  private confirmed(campaignId: string, currency: string): Prisma.DonationWhereInput {
+  private confirmed(
+    campaignId: string,
+    currency: string,
+  ): Prisma.DonationWhereInput {
     return {
       campaignId,
       currency,
@@ -150,9 +153,14 @@ const DONATION_FIELDS = {
   netToCampaign: true,
   donorCoversPlatformFee: true,
   succeededAt: true,
+  donorName: true,
+  donorMessage: true,
+  isAnonymous: true,
 } satisfies Prisma.DonationSelect;
 
-function toReceived(d: Prisma.DonationGetPayload<{ select: typeof DONATION_FIELDS }>) {
+function toReceived(
+  d: Prisma.DonationGetPayload<{ select: typeof DONATION_FIELDS }>,
+) {
   return {
     id: d.id,
     currency: d.currency,
@@ -162,5 +170,8 @@ function toReceived(d: Prisma.DonationGetPayload<{ select: typeof DONATION_FIELD
     netToCampaign: d.netToCampaign.toString(),
     donorCoveredPlatformFee: d.donorCoversPlatformFee,
     confirmedAt: d.succeededAt,
+    donorName: d.donorName,
+    donorMessage: d.donorMessage,
+    isAnonymous: d.isAnonymous,
   };
 }

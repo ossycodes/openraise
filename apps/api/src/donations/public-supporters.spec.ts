@@ -18,6 +18,9 @@ describe('public supporter privacy', () => {
         id: 'donation',
         amount: 500000n,
         currency: 'NGN',
+        donorName: 'Private Name',
+        donorMessage: null,
+        isAnonymous: true,
         succeededAt: new Date('2026-11-05T12:00:00Z'),
       },
     ]);
@@ -28,6 +31,8 @@ describe('public supporter privacy', () => {
           amount: '500000',
           currency: 'NGN',
           confirmedAt: '2026-11-05T12:00:00.000Z',
+          displayName: 'Anonymous',
+          message: null,
         },
       ],
     });
@@ -42,7 +47,15 @@ describe('public supporter privacy', () => {
         ledgerTransactionId: { not: null },
         succeededAt: { not: null },
       },
-      select: { id: true, amount: true, currency: true, succeededAt: true },
+      select: {
+        id: true,
+        amount: true,
+        currency: true,
+        succeededAt: true,
+        donorName: true,
+        donorMessage: true,
+        isAnonymous: true,
+      },
       orderBy: [{ succeededAt: 'desc' }, { id: 'desc' }],
       take: 6,
     });

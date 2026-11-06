@@ -11,6 +11,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { Roles } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
 import type { AuthUser } from '../auth/auth.types.js';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard.js';
 import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
@@ -23,6 +26,13 @@ import { DonationsService } from './donations.service.js';
 @Controller()
 export class DonationsController {
   constructor(private readonly donations: DonationsService) {}
+  @Get('admin/donations/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @Header('Cache-Control', 'no-store')
+  adminDetails(@Param('id') id: string) {
+    return this.donations.adminDetails(id);
+  }
   @Get('campaigns/:slug/donations')
   @Header('Cache-Control', 'no-store')
   publicSupporters(@Param('slug') slug: string, @Query('sort') sort?: string) {
