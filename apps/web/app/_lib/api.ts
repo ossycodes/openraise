@@ -1,3 +1,4 @@
+import { rateLimitHeaders } from './rate-limit-relay';
 import 'server-only';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -41,8 +42,11 @@ export async function apiAs<T>(
     method: init.method ?? 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
-      ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(init.body === undefined
+        ? {}
+        : { 'Content-Type': 'application/json' }),
       ...init.headers,
+      ...(await rateLimitHeaders(init.method ?? 'GET', path)),
     },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
     cache: 'no-store',
@@ -58,7 +62,11 @@ export async function apiAs<T>(
       typeof data?.message === 'string'
         ? data.message
         : 'Something went wrong. Try again.';
-    throw new ApiError(response.status, message, Array.isArray(data?.errors) ? data.errors : []);
+    throw new ApiError(
+      response.status,
+      message,
+      Array.isArray(data?.errors) ? data.errors : [],
+    );
   }
   return data as T;
 }

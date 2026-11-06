@@ -1,3 +1,4 @@
+import { rateLimitHeaders } from './app/_lib/rate-limit-relay';
 import { NextResponse, type NextRequest } from 'next/server';
 import { apiOrigin } from './app/_lib/campaign-server';
 import {
@@ -28,7 +29,10 @@ export async function proxy(request: NextRequest) {
   try {
     response = await fetch(`${apiOrigin()}/auth/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(await rateLimitHeaders('POST', '/auth/refresh', request.headers)),
+      },
       body: JSON.stringify({ refreshToken: session.refreshToken }),
       cache: 'no-store',
       signal: AbortSignal.timeout(8000),
@@ -42,7 +46,9 @@ export async function proxy(request: NextRequest) {
     const auth = data as AuthResult;
     // The render reads cookies from the request, so update those too.
     setSessionCookies(
-      { set: (name: string, value: string) => request.cookies.set(name, value) },
+      {
+        set: (name: string, value: string) => request.cookies.set(name, value),
+      },
       auth,
     );
     const next = NextResponse.next({ request: { headers: request.headers } });
@@ -81,12 +87,20 @@ function signedOut(request: NextRequest, isApi: boolean, clear = false) {
         { status: 401, headers: { 'Cache-Control': 'no-store' } },
       )
     : NextResponse.redirect(
-        new URL(`/signin?next=${encodeURIComponent(pathname + search)}`, request.url),
+        new URL(
+          `/signin?next=${encodeURIComponent(pathname + search)}`,
+          request.url,
+        ),
       );
   if (clear) clearSessionCookies(result.cookies);
   return result;
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/dashboard/:path*', '/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/api/dashboard/:path*',
+    '/admin/:path*',
+    '/api/admin/:path*',
+  ],
 };

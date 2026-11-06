@@ -387,7 +387,7 @@ new review endpoint is required for browser submission-version protection.
 Report categories: `FRAUD`, `MISLEADING`, `OFFENSIVE`, `OTHER`. Trimmed detail
 must have 20–2,000 characters. Only public `ACTIVE`, `PAUSED`, `ENDED` campaigns
 accept reports. Repeated keys with identical input return the same acknowledgement;
-changed input returns 409. General abuse throttling is separate planned work.
+changed input returns 409. Request throttling is described in [[Rate limiting deployment]].
 
 Actions: `PAUSE`, `LIFT_PAUSE`, `FREEZE`, `UNFREEZE`, `RESOLVE`, `DISMISS`.
 Reasons are 5–500 trimmed characters. Version timestamps must match the latest
@@ -433,3 +433,18 @@ Verification gates other endpoints, with `code: 'IDENTITY_UNVERIFIED'`:
   `code: 'ACCOUNT_NAME_MISMATCH'` when the payout account's name doesn't match
   the verified name. New payout accounts' `nameMatchesProfile` uses the
   verified name once there is one.
+
+## Request limits
+
+Protected POST requests use shared Redis limits; see [[Rate limiting deployment]]
+for groups, defaults and trusted proxy/BFF relay configuration. 429 returns
+`{ code: "RATE_LIMITED", message, retryAfterSeconds }` and `Retry-After` seconds.
+Redis unavailability returns 503 `{ code: "RATE_LIMIT_UNAVAILABLE", message,
+retryAfterSeconds: 5 }`. Both responses are no-store and occur before the handler
+performs its write. Unknown responses from earlier checkout writes still require
+the existing same-key recovery flow; no automatic retry is added.
+
+Health, payment webhooks, sign-out and donation-status reads are exempt. The API
+does not blindly accept X-Forwarded-For or X-OpenRaise-Client-IP. Signatures bind
+the relay address to method/path/time and exact proxy networks are configured
+explicitly. Native API clients see the same Retry-After header (CORS-exposed).

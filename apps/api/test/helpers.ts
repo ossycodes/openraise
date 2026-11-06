@@ -1,3 +1,4 @@
+import { RateLimitGuard } from '../src/rate-limit/rate-limit.guard.js';
 import { CampaignUpdateWorker } from '../src/campaign-updates/update.worker.js';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -120,6 +121,7 @@ export async function createTestApp(
   options: {
     paymentProvider?: PaymentProvider | null;
     backgroundJobs?: boolean;
+    rateLimiting?: boolean;
     /** Any other provider to replace, e.g. Google's signing keys. */
     overrides?: { provide: unknown; useValue: unknown }[];
   } = {},
@@ -143,7 +145,14 @@ export async function createTestApp(
     builder.overrideProvider(NotificationWorker).useValue({});
   if (!options.backgroundJobs)
     builder.overrideProvider(CampaignUpdateWorker).useValue({});
+  if (!options.rateLimiting)
+    builder
+      .overrideProvider(RateLimitGuard)
+      .useValue({ canActivate: () => true });
   const moduleRef = await builder.compile();
+  moduleRef
+    .get(ConfigService)
+    .set('RATE_LIMIT_PREFIX', `e2e-rate-${randomUUID()}`);
   if (options.backgroundJobs)
     moduleRef
       .get(ConfigService)

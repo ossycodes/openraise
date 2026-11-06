@@ -1,3 +1,4 @@
+import { rateLimitHeaders } from '../../../../_lib/rate-limit-relay';
 import type { NextRequest } from 'next/server';
 import { apiOrigin } from '../../../../_lib/campaign-server';
 import { sameOrigin, privateJson } from '../../../../_lib/payment-proxy';
@@ -21,6 +22,11 @@ export async function POST(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(await rateLimitHeaders(
+            'POST',
+            `/campaigns/${encodeURIComponent(slug)}/reports`,
+            request.headers,
+          )),
           'Idempotency-Key': request.headers.get('idempotency-key') ?? '',
         },
         body: JSON.stringify(body),
@@ -28,7 +34,7 @@ export async function POST(
         signal: AbortSignal.timeout(15000),
       },
     );
-    return privateJson(await response.json(), response.status);
+    return privateJson(await response.json(), response.status, response);
   } catch {
     return privateJson(
       { message: 'Receipt could not be confirmed. Retry this same report.' },
