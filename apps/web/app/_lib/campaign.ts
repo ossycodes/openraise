@@ -75,3 +75,32 @@ export interface UpdatePage {
   page: number;
   hasMore: boolean;
 }
+export interface MoneyTrail {
+  currency: Currency;
+  asOf: string;
+  raised: string;
+  platformFeesDeducted: string;
+  donorCoveredPlatformFees: string;
+  received: string;
+  donationCount: number;
+  walletBalance: string;
+  reserved: string;
+  paidOut: string;
+  withdrawalFeesPaid: string;
+  returned: string;
+  otherWalletChanges: string;
+  withdrawals: {
+    items: {
+      id: string;
+      amount: string;
+      fee: string;
+      netPaidOut: string;
+      state: 'PAID' | 'IN_PROGRESS' | 'RETURNED';
+      requestedAt: string;
+      recordedAt: string;
+    }[];
+    page: number;
+    hasMore: boolean;
+    total: number;
+  };
+}

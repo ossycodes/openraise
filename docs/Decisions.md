@@ -453,3 +453,22 @@ Queue definitions are explicit and type-specific. Do not classify an ordinary
 abandoned checkout as lost money. The withdrawal predicate is shared with the
 existing backend review queue. Provider event payloads and donor identity stay
 private even in this dashboard; only selected investigation fields are returned.
+
+## The public trail explains wallet flows without exposing destinations
+
+Show committed campaign money movements, not private banking metadata. The public
+trail intentionally omits bank names and account suffixes from the earlier roadmap
+sketch; those fields are not needed to explain amounts and remain in private views.
+Donor identity, provider references and reconciliation notes are omitted too.
+
+A withdrawal's public state follows its linked posting chain and matching account
+amounts. A mutable SUCCEEDED flag or non-null but unrelated posting does not prove
+a payout. Returned withdrawals restore gross reservations, including their fee;
+completed totals exclude those reversals. Summaries and history share a snapshot.
+
+Fee explanations distinguish fees taken from gifts, platform fees covered by
+donors and processing charges outside the gift. Actual wallet postings remain the
+source of the balance. A visible other-changes line accounts for refunds or
+adjustments rather than silently forcing the balance to an incomplete formula.
+Wallet balance is not an eligibility promise, spending receipt or external cash
+statement. On an API failure, the page shows unavailable data rather than zero.

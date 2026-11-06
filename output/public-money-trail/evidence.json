@@ -1,0 +1,63 @@
+{
+  "contract": "design-contract.md: exact, ledger-backed public money flows with clear withdrawal states, separate donor-covered fees, private banking data and a graceful unavailable state.",
+  "targetViewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "axe WCAG2 A/AA and 2.1 AA: zero violations on desktop and mobile including expanded breakdown; native details and labelled dates/withdrawal states reviewed."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "No document overflow on desktop/mobile, including a wallet balance beyond Number precision. Rows stack amount below copy on mobile."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "not-applicable",
+      "reason": "This server-rendered section arrives with the campaign route rather than an independent client request/loading screen."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "Empty campaign renders explicit zero totals and No withdrawals recorded yet."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "Unavailable trail shows reload action instead of zero figures."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Failed trail leaves campaign story and Donate now control intact."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Paid/in-progress/returned states, exact large amounts, breakdown disclosure and page-2 navigation preserving update pagination verified."
+    },
+    "permission": {
+      "status": "pass",
+      "evidence": "API e2e verifies drafts/review/rejected campaigns return 404; public pages expose no donor/bank/provider fields."
+    }
+  },
+  "renderedEvidence": [
+    {
+      "viewport": "1440x1000",
+      "artifact": "desktop.png",
+      "observation": "Trail totals, highlighted wallet balance and state-labelled withdrawals beside the existing donation sidebar."
+    },
+    {
+      "viewport": "1440x1000",
+      "artifact": "breakdown-desktop.png",
+      "observation": "Expandable accounting identity and explicit donor-covered fee/returned-reservation explanation."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "mobile.png",
+      "observation": "Stacked totals and wallet balance fit mobile width above the existing donate control."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "breakdown-mobile.png",
+      "observation": "Gift fees, net payouts, reserved amounts and balance remain readable."
+    }
+  ]
+}

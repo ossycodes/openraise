@@ -83,3 +83,17 @@ export async function getUpdates(
     return null;
   }
 }
+export async function getMoneyTrail(
+  slug: string,
+  page = 1,
+): Promise<import('./campaign').MoneyTrail | null> {
+  try {
+    const response = await fetch(
+      `${apiOrigin()}/campaigns/${encodeURIComponent(slug)}/money-trail?page=${page}`,
+      { cache: 'no-store', signal: AbortSignal.timeout(5000) },
+    );
+    return response.ok ? response.json() : null;
+  } catch {
+    return null;
+  }
+}

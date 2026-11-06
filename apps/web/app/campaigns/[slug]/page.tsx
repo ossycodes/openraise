@@ -1,3 +1,5 @@
+import { MoneyTrail } from '../../_components/money-trail';
+import { getMoneyTrail } from '../../_lib/campaign-server';
 import { ReportForm } from '../../_components/report-form';
 import { UpdatesFeed } from '../../_components/updates-feed';
 import { getUpdates } from '../../_lib/campaign-server';
@@ -59,9 +61,17 @@ export default async function CampaignPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ updatesPage?: string }>;
+  searchParams: Promise<{ updatesPage?: string; moneyPage?: string }>;
 }) {
-  const requestedPage = Number((await searchParams).updatesPage ?? 1);
+  const query = await searchParams;
+  const requestedMoneyPage = Number(query.moneyPage ?? 1);
+  const moneyPage =
+    Number.isInteger(requestedMoneyPage) &&
+    requestedMoneyPage >= 1 &&
+    requestedMoneyPage <= 1000
+      ? requestedMoneyPage
+      : 1;
+  const requestedPage = Number(query.updatesPage ?? 1);
   const updatesPage =
     Number.isInteger(requestedPage) &&
     requestedPage >= 1 &&
@@ -75,7 +85,7 @@ export default async function CampaignPage({
     if (error instanceof CampaignLoadError && error.status === 404) notFound();
     throw error;
   }
-  const [quote, supporters, topSupporters, feeResponse, updates] =
+  const [quote, supporters, topSupporters, feeResponse, updates, moneyTrail] =
     await Promise.all([
       initialQuote(campaign),
       getSupporters(campaign.slug),
@@ -87,6 +97,7 @@ export default async function CampaignPage({
         .then((response) => (response.ok ? response.json() : null))
         .catch(() => null),
       getUpdates(campaign.slug, updatesPage),
+      getMoneyTrail(campaign.slug, moneyPage),
     ]);
   const initials = campaign.owner.name
     .split(' ')
@@ -160,6 +171,7 @@ export default async function CampaignPage({
                 The story
               </a>
               <a href="#updates">Updates</a>
+              <a href="#money-trail">Money trail</a>
               <a href="#supporters">
                 Supporters <span>{campaign.donorCount}</span>
               </a>
@@ -189,6 +201,7 @@ export default async function CampaignPage({
             </section>
             <ReportForm slug={campaign.slug} />
             <UpdatesFeed updates={updates} />
+            <MoneyTrail trail={moneyTrail} updatesPage={updatesPage} />
             <section id="supporters" className="supporters-section">
               <div className="section-title-row">
                 <div>
