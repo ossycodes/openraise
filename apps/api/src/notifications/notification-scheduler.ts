@@ -1,3 +1,4 @@
+import { UpdateSubscriptions } from '../campaign-updates/update-subscriptions.js';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { isCurrency } from '@openraise/shared';
@@ -7,7 +8,10 @@ import { donationReceiptEmail } from './receipt-templates.js';
 
 @Injectable()
 export class NotificationScheduler {
-  constructor(private readonly config: ConfigService<Env, true>) {}
+  constructor(
+    private readonly config: ConfigService<Env, true>,
+    private readonly subscriptions: UpdateSubscriptions,
+  ) {}
 
   /** Called in the same transaction as payment settlement; never performs email I/O. */
   async schedule(
@@ -22,6 +26,7 @@ export class NotificationScheduler {
       !isCurrency(donation.currency)
     )
       throw new Error('Receipts require a settled donation');
+    await this.subscriptions.subscribe(tx, donation);
     const campaign = await tx.campaign.findUniqueOrThrow({
       where: { id: donation.campaignId },
       include: { owner: { select: { email: true } } },

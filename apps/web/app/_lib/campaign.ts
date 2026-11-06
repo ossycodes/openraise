@@ -61,3 +61,17 @@ export const progressPercent = (raised: string, goal: string) =>
   BigInt(goal) > 0n
     ? Number((BigInt(raised) * 10000n) / BigInt(goal)) / 100
     : 0;
+
+export interface CampaignUpdate {
+  id: string;
+  title: string;
+  body: string;
+  publishedAt: string;
+  hiddenAt: string | null;
+  images: { id: string; url: string; position: number }[];
+}
+export interface UpdatePage {
+  items: CampaignUpdate[];
+  page: number;
+  hasMore: boolean;
+}

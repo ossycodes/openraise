@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 29
+shipped: 2026-11-06
 branch: feat/donor-messages
 type: feature
 area: donations

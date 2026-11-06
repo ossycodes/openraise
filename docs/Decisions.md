@@ -326,3 +326,26 @@ and exports the same as CSV, but never the donor's email. Donors give an email
 for their receipt, not to be contacted by the campaign, and checkout never asked
 whether to share it. Donor names, and the choice to give anonymously, arrive
 with the donor messages feature, where the donor decides what the creator sees.
+
+## Engagement emails require explicit campaign-specific consent
+
+Receipt email is required for payment recovery; it is not consent to campaign
+updates. Checkout defaults update emails off. A successful ledger-backed
+payment creates consent in the same transaction as settlement. Fan-out considers
+only subscriptions already created when a post was published, so delayed payment
+settlement does not backfill old posts. Duplicate and older settlements cannot
+reverse an unsubscribe; a later explicit opt-in donation can resubscribe.
+
+Posts themselves are durable fan-out work, scanned in locked batches of 100
+subscriptions. Delivery rows have per-update/per-subscription dedupe keys.
+Eligibility is checked again when an email is claimed. An unsubscribe or
+removal cancels pending deliveries but cannot revoke a message already in SMTP.
+Unknown acceptance remains UNCERTAIN and requires the existing operator review.
+Email scanners cannot unsubscribe with a GET: the capability stays in a fragment,
+and the web page requires an explicit confirmation POST.
+
+Published updates are immutable; corrections use a new post or soft removal.
+A still-valid upload URL must not modify a published photo. Publication copies
+uploads into separate server-owned keys, checks the copy's actual size and magic
+bytes, and attaches only those immutable keys. The existing orphan-upload cleanup
+follow-up also applies to unused update uploads.

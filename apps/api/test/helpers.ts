@@ -1,3 +1,4 @@
+import { CampaignUpdateWorker } from '../src/campaign-updates/update.worker.js';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
@@ -53,14 +54,23 @@ export class FakePaymentProvider implements PaymentProvider {
     this.maybeFail();
     const name = this.accounts.get(`${input.bankCode}:${input.accountNumber}`);
     return Promise.resolve(
-      name ? { resolved: true, accountNumber: input.accountNumber, accountName: name } : { resolved: false },
+      name
+        ? {
+            resolved: true,
+            accountNumber: input.accountNumber,
+            accountName: name,
+          }
+        : { resolved: false },
     );
   }
 
   createRecipient(input: RecipientInput): Promise<Recipient> {
     this.maybeFail();
     this.recipients.push(input);
-    return Promise.resolve({ id: `RCP_${this.recipients.length}`, usable: true });
+    return Promise.resolve({
+      id: `RCP_${this.recipients.length}`,
+      usable: true,
+    });
   }
 
   private unsupported(): never {
@@ -131,6 +141,8 @@ export async function createTestApp(
       .useValue({ enqueue: async () => {} });
   if (!options.backgroundJobs)
     builder.overrideProvider(NotificationWorker).useValue({});
+  if (!options.backgroundJobs)
+    builder.overrideProvider(CampaignUpdateWorker).useValue({});
   const moduleRef = await builder.compile();
   if (options.backgroundJobs)
     moduleRef

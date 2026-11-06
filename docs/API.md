@@ -300,6 +300,39 @@ with no autoplay. A direct YouTube link remains available for blocked, private,
 removed or embedding-disabled videos. Creator dashboard form integration is a
 separate feature. See [[Campaign video]].
 
+## Campaign updates
+
+| Method | Path | Auth | Body | Returns |
+|---|---|---|---|---|
+| GET | `/campaigns/:slug/updates?page=1` | — | — | `{ items, page, hasMore }`, newest first, ten per page, public campaigns only; hidden posts excluded |
+| GET | `/campaigns/:id/updates/mine?page=1` | Owner | — | Same shape, including removed posts with `hiddenAt` |
+| POST | `/campaigns/:id/updates/images/upload-url` | Verified owner | `{ contentType, size }` | Presigned PUT ticket for JPEG/PNG/WebP, at most 5 MB |
+| POST | `/campaigns/:id/updates` | Verified owner | `{ title, body, imageKeys?: [] }` | 201 published update; UUID v4 `Idempotency-Key` required |
+| DELETE | `/campaign-updates/:id` | Owner | — | Soft removal; queued emails cancelled |
+| DELETE | `/admin/campaign-updates/:id` | Admin | — | Audited soft removal |
+| POST | `/campaign-update-subscriptions/:id/unsubscribe` | Signed capability | `{ token }` | `{ unsubscribed: true }`; repeatable, invalid link 404 |
+
+An update has `id`, `title`, `body`, `publishedAt`, `hiddenAt`, and `images`
+(`id`, `url`, `position`). Title is 3–120 characters, plain-text body 10–5,000,
+with at most three distinct image keys from this campaign's update uploads.
+At publication, images are copied to server-owned keys and validated from the
+stored copy. Reusing the request key with different content returns 409.
+Only approved campaigns (`ACTIVE`, `PAUSED`, `ENDED`) accept posts. Updates
+are immutable; removal hides the public post but retains its audit history.
+
+Donation checkout additionally accepts `updatesOptIn?: boolean` (default
+`false`). This choice is immutable for an idempotent checkout attempt and
+creates a campaign-specific subscription only when that donation settles
+successfully with ledger postings. Donor receipt delivery is independent.
+Subscription emails and unsubscribe tokens are never included in campaign or
+owner reads. Old donations are not opted in by migration.
+
+The web unsubscribe link carries its capability in the URL fragment, removes it
+from the address bar, and requires a confirmation POST. Visiting a link with a
+GET alone has no effect. Only future posts are emailed, with eligibility
+checked again when delivery is claimed. Removal or unsubscribe cannot retract
+an email already being sent or accepted by SMTP. See [[Receipt delivery]] for
+uncertain-delivery handling.
 ## Donor messages and privacy
 
 Donation quote/checkout accept optional `donorName` (100 characters),

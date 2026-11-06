@@ -3883,6 +3883,130 @@ h3 {
     width: 100%;
   }
 }
+.updates-section {
+  padding-block: 40px;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 25px;
+}
+.updates-section > h2 {
+  margin: 12px 0 30px;
+  font-size: 1.8rem;
+}
+.updates-empty {
+  padding: 30px;
+  border: 1px dashed var(--control-border);
+  border-radius: 14px;
+  color: var(--muted);
+  background: var(--soft);
+}
+.updates-empty h3 {
+  color: var(--text);
+  font-size: 1.25rem;
+  margin-block: 12px 8px;
+}
+.updates-empty p {
+  font-size: 0.85rem;
+}
+.updates-timeline {
+  padding-left: 25px;
+  border-left: 1px solid var(--line);
+  margin-left: 15px;
+}
+.campaign-update {
+  position: relative;
+  padding: 25px;
+  margin-bottom: 25px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.update-marker {
+  position: absolute;
+  top: 23px;
+  left: -42px;
+  background: var(--soft);
+  border: 5px solid var(--paper);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+.update-byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.update-byline > span {
+  color: var(--accent);
+  font-weight: 600;
+}
+.campaign-update h3 {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  line-height: 1.2;
+  margin-block: 18px 15px;
+  overflow-wrap: anywhere;
+}
+.update-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.9;
+}
+.update-images {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+.update-images a:first-child:last-child {
+  grid-column: 1/-1;
+}
+.update-images img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+.update-editor {
+  max-width: 780px;
+}
+.update-editor h2 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin-block: 12px;
+}
+.update-editor > p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+.update-editor fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.update-editor label:not(.secondary-button) {
+  display: block;
+  font-weight: 500;
+  font-size: 0.85rem;
+  margin-block: 22px 9px;
+}
+.update-editor input:not([type='file']),
+.update-editor textarea {
+  font: inherit;
+  font-size: 16px;
+  width: 100%;
+  padding: 13px 15px;
 .donor-preferences {
   border: 0;
   border-top: 1px solid var(--line);
@@ -3919,6 +4043,130 @@ h3 {
   background: var(--surface);
   color: var(--text);
 }
+.update-editor textarea {
+  resize: vertical;
+}
+.update-upload-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-block: 20px;
+}
+.update-upload-row small {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.update-upload-row label {
+  display: inline-flex;
+  gap: 9px;
+  cursor: pointer;
+}
+.update-photo-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+.update-photo-previews > div {
+  position: relative;
+}
+.update-photo-previews img {
+  object-fit: cover;
+  border-radius: 8px;
+}
+.update-photo-previews button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.update-editor > .primary-button {
+  width: auto;
+  gap: 10px;
+  padding-inline: 24px;
+}
+.owner-update-history {
+  margin-top: 40px;
+}
+.owner-update-history h2 {
+  font-size: 1.6rem;
+  margin-bottom: 25px;
+}
+.owner-update-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 25px;
+  padding: 25px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  margin-bottom: 18px;
+}
+.owner-update-card h3 {
+  font-size: 1.35rem;
+  margin-block: 14px;
+}
+.owner-update-card time,
+.owner-update-card small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.owner-update-card > div {
+  min-width: 0;
+  flex: 1;
+}
+.owner-update-card .status-pill {
+  margin-left: 12px;
+}
+.update-opt-in {
+  padding-block: 10px;
+}
+.unsubscribe-page {
+  max-width: 620px;
+  padding: 80px 25px;
+  margin: auto;
+}
+.unsubscribe-page h1 {
+  font-size: 2.7rem;
+  line-height: 1.15;
+  margin-block: 20px;
+}
+.unsubscribe-page > p {
+  color: var(--muted);
+  margin-block: 20px;
+}
+.unsubscribe-page > a {
+  display: inline-block;
+  margin-top: 25px;
+}
+@media (max-width: 540px) {
+  .campaign-update {
+    padding: 22px 18px;
+  }
+  .update-images {
+    grid-template-columns: 1fr;
+  }
+  .updates-timeline {
+    padding-left: 15px;
+    margin-left: 10px;
+  }
+  .update-marker {
+    left: -32px;
+  }
+  .campaign-update h3 {
+    font-size: 1.45rem;
+  }
+  .owner-update-card {
+    flex-direction: column;
+    padding: 22px;
+  }
+  .update-editor > .primary-button {
+    width: 100%;
+  }
 .donor-preferences textarea {
   resize: vertical;
   min-height: 100px;

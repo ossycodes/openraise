@@ -235,6 +235,7 @@ export class DonationsService {
       donation.donorCoversPlatformFee !== body.donorCoversPlatformFee ||
       donation.donorEmail !== email ||
       donation.donorUserId !== (user?.id ?? null) ||
+      donation.updatesOptIn !== body.updatesOptIn ||
       donation.donorName !== (body.donorName ?? null) ||
       donation.donorMessage !== (body.donorMessage ?? null) ||
       donation.isAnonymous !== body.isAnonymous
@@ -294,6 +295,7 @@ export class DonationsService {
             campaignId: campaign.id,
             donorUserId: user?.id,
             donorEmail: email,
+            updatesOptIn: body.updatesOptIn,
             donorName: body.donorName ?? null,
             donorMessage: body.donorMessage ?? null,
             isAnonymous: body.isAnonymous,

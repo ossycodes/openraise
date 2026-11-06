@@ -22,38 +22,77 @@ export class NotificationDeliveryService {
       const row = await tx.notificationDelivery.findUniqueOrThrow({
         where: { id: rows[0].id },
       });
-      const [totals] = await tx.$queryRaw<
-        { count: bigint; amount: string; invalid: bigint }[]
-      >`
+      let body = { subject: row.subject, text: row.text, html: row.html };
+      if (row.kind === 'CAMPAIGN_UPDATE') {
+        const update = row.campaignUpdateId
+          ? await tx.campaignUpdate.findUnique({
+              where: { id: row.campaignUpdateId },
+              include: { campaign: true },
+            })
+          : null;
+        const subscription = row.updateSubscriptionId
+          ? await tx.campaignUpdateSubscription.findUnique({
+              where: { id: row.updateSubscriptionId },
+              include: { donation: true },
+            })
+          : null;
+        if (
+          !update ||
+          !subscription ||
+          update.hiddenAt ||
+          !['ACTIVE', 'PAUSED', 'ENDED'].includes(update.campaign.status) ||
+          subscription.unsubscribedAt ||
+          subscription.consentedAt > update.publishedAt ||
+          subscription.createdAt > update.publishedAt ||
+          subscription.campaignId !== update.campaignId ||
+          subscription.email !== row.recipient ||
+          subscription.donation.campaignId !== update.campaignId ||
+          subscription.donation.status !== 'SUCCEEDED' ||
+          !subscription.donation.ledgerTransactionId
+        ) {
+          await tx.notificationDelivery.update({
+            where: { id: row.id },
+            data: {
+              state: 'FAILED',
+              lastError: 'ineligible-update-subscription',
+            },
+          });
+          return null;
+        }
+      } else {
+        const [totals] = await tx.$queryRaw<
+          { count: bigint; amount: string; invalid: bigint }[]
+        >`
         SELECT COUNT(*) AS "count", COALESCE(SUM(d."amount"), 0)::text AS "amount",
           COUNT(*) FILTER (WHERE d."status" <> 'SUCCEEDED' OR d."ledgerTransactionId" IS NULL
             OR d."currency" <> ${row.currency} OR n."kind" <> ${row.kind}::"NotificationKind") AS "invalid"
         FROM "DonationNotification" n JOIN "Donation" d ON d."id" = n."donationId"
         WHERE n."deliveryId" = ${row.id}`;
-      if (
-        !totals ||
-        totals.count === 0n ||
-        totals.invalid > 0n ||
-        totals.count > BigInt(Number.MAX_SAFE_INTEGER) ||
-        !isCurrency(row.currency)
-      ) {
-        await tx.notificationDelivery.update({
-          where: { id: row.id },
-          data: { state: 'FAILED', lastError: 'invalid-settlement' },
-        });
-        return null;
+        if (
+          !totals ||
+          totals.count === 0n ||
+          totals.invalid > 0n ||
+          totals.count > BigInt(Number.MAX_SAFE_INTEGER) ||
+          !isCurrency(row.currency)
+        ) {
+          await tx.notificationDelivery.update({
+            where: { id: row.id },
+            data: { state: 'FAILED', lastError: 'invalid-settlement' },
+          });
+          return null;
+        }
+        body =
+          row.kind === 'CREATOR_DONATIONS' && !row.subject
+            ? creatorDonationsEmail({
+                to: row.recipient,
+                campaignTitle: row.campaignTitle,
+                campaignUrl: row.campaignUrl,
+                currency: row.currency,
+                count: Number(totals.count),
+                amount: BigInt(totals.amount),
+              })
+            : { subject: row.subject, text: row.text, html: row.html };
       }
-      const body =
-        row.kind === 'CREATOR_DONATIONS' && !row.subject
-          ? creatorDonationsEmail({
-              to: row.recipient,
-              campaignTitle: row.campaignTitle,
-              campaignUrl: row.campaignUrl,
-              currency: row.currency,
-              count: Number(totals.count),
-              amount: BigInt(totals.amount),
-            })
-          : { subject: row.subject, text: row.text, html: row.html };
       if (!body.subject || !body.text || !body.html)
         throw new Error('Missing notification content');
       return tx.notificationDelivery.update({
