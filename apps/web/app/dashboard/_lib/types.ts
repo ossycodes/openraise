@@ -1,12 +1,7 @@
 import type { Currency } from '@openraise/shared';
 
 export type CampaignStatus =
-  | 'DRAFT'
-  | 'PENDING_REVIEW'
-  | 'ACTIVE'
-  | 'PAUSED'
-  | 'ENDED'
-  | 'REJECTED';
+  'DRAFT' | 'PENDING_REVIEW' | 'ACTIVE' | 'PAUSED' | 'ENDED' | 'REJECTED';
 
 /** A campaign as its owner sees it (GET /campaigns/mine). */
 export interface OwnerCampaign {
@@ -71,6 +66,9 @@ export interface MoneySummary {
 }
 
 export interface ReceivedDonation {
+  donorName: string | null;
+  donorMessage: string | null;
+  isAnonymous: boolean;
   id: string;
   currency: Currency;
   amount: string;

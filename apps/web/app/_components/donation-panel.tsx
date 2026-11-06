@@ -29,6 +29,9 @@ interface Attempt {
   currency: Campaign['currency'];
   donorCoversPlatformFee: boolean;
   email: string;
+  donorName?: string | null;
+  donorMessage?: string | null;
+  isAnonymous?: boolean;
 }
 function money(amount: string, currency: Campaign['currency']) {
   return formatMoney(BigInt(amount), currency);
@@ -55,6 +58,10 @@ export function DonationPanel({
   );
   const [cover, setCover] = useState(false);
   const [email, setEmail] = useState('');
+  const [donorName, setDonorName] = useState('');
+  const [donorMessage, setDonorMessage] = useState('');
+  const [isAnonymous, setAnonymous] = useState(true);
+  const nameInput = useRef<HTMLInputElement>(null);
   const [quote, setQuote] = useState(initial);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error, setError] = useState('');
@@ -130,6 +137,9 @@ export function DonationPanel({
           attempt.current = parsed;
           setAmount(decimalInput(parsed.amount));
           setEmail(parsed.email);
+          setDonorName(parsed.donorName ?? '');
+          setDonorMessage(parsed.donorMessage ?? '');
+          setAnonymous(parsed.isAnonymous ?? true);
           setCover(parsed.donorCoversPlatformFee);
           setSaved(true);
         }
@@ -287,12 +297,21 @@ export function DonationPanel({
       setError('Wait for the current fee breakdown before continuing.');
       return;
     }
+    if (!attempt.current && !isAnonymous && !donorName.trim()) {
+      setError('Add a name to appear publicly, or keep your name anonymous.');
+      nameInput.current?.closest('details')?.setAttribute('open', '');
+      nameInput.current?.focus();
+      return;
+    }
     const payload = attempt.current ?? {
       key: crypto.randomUUID(),
       amount: minor!,
       currency: campaign.currency,
       donorCoversPlatformFee: cover,
       email: email.trim().toLowerCase(),
+      donorName: donorName.trim() || null,
+      donorMessage: donorMessage.trim() || null,
+      isAnonymous,
     };
     try {
       sessionStorage.setItem(storageKey, JSON.stringify(payload));
@@ -676,6 +695,62 @@ export function DonationPanel({
                   No account needed. Just a receipt for your kindness.
                 </small>
               </div>
+            )}
+            {!locked && (
+              <details className="donor-details">
+                <summary>
+                  Add a name or a message <span>Optional</span>
+                </summary>
+                <fieldset className="donor-preferences">
+                  <legend className="sr-only">
+                    Public name and message preferences
+                  </legend>
+                  <label htmlFor={`${id}-donor-name`}>
+                    Your name{!isAnonymous ? ' (required)' : ''}
+                  </label>
+                  <input
+                    ref={nameInput}
+                    id={`${id}-donor-name`}
+                    value={donorName}
+                    onChange={(e) => setDonorName(e.target.value)}
+                    maxLength={100}
+                    autoComplete="name"
+                    required={!isAnonymous}
+                    aria-describedby={`${id}-privacy-help`}
+                  />
+                  <label className="cover-fee">
+                    <input
+                      type="checkbox"
+                      checked={isAnonymous}
+                      onChange={(e) => setAnonymous(e.target.checked)}
+                    />
+                    <span>
+                      Keep my name anonymous
+                      <small>
+                        The organiser can see a name you provide. Other visitors
+                        won’t.
+                      </small>
+                    </span>
+                  </label>
+                  <label htmlFor={`${id}-donor-message`}>
+                    Message of support
+                  </label>
+                  <textarea
+                    id={`${id}-donor-message`}
+                    value={donorMessage}
+                    onChange={(e) => setDonorMessage(e.target.value)}
+                    maxLength={500}
+                    rows={3}
+                    placeholder="A few kind words can go a long way."
+                    aria-describedby={`${id}-privacy-help`}
+                  />
+                  <small id={`${id}-privacy-help`}>
+                    Your message will be public after payment confirmation.
+                    Anonymous hides your name, not personal details you write
+                    here.
+                  </small>
+                </fieldset>
+              </details>
             )}
             {breakdown && (
               <div className="fee-breakdown">

@@ -6,13 +6,32 @@ export const donationInputSchema = z
     amount: z.string().regex(/^[1-9]\d{0,18}$/),
     currency: z.enum(SUPPORTED_CURRENCIES).optional(),
     donorCoversPlatformFee: z.boolean().default(false),
+    donorName: z
+      .string()
+      .trim()
+      .max(100)
+      .transform((value) => value || null)
+      .nullable()
+      .optional(),
+    donorMessage: z
+      .string()
+      .trim()
+      .max(500)
+      .transform((value) => value || null)
+      .nullable()
+      .optional(),
+    isAnonymous: z.boolean().default(true),
     email: z
       .email()
       .max(254)
       .transform((value) => value.trim().toLowerCase())
       .optional(),
   })
-  .strict();
+  .strict()
+  .refine((value) => value.isAnonymous || !!value.donorName, {
+    message: 'Add a name to appear publicly, or choose anonymous giving',
+    path: ['donorName'],
+  });
 export type DonationInput = z.infer<typeof donationInputSchema>;
 export const idempotencyKeySchema = z
   .string()

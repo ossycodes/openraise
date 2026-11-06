@@ -299,3 +299,23 @@ available. The YouTube privacy-enhanced iframe loads only after an explicit clic
 with no autoplay. A direct YouTube link remains available for blocked, private,
 removed or embedding-disabled videos. Creator dashboard form integration is a
 separate feature. See [[Campaign video]].
+
+## Donor messages and privacy
+
+Donation quote/checkout accept optional `donorName` (100 characters),
+`donorMessage` (500 characters) and `isAnonymous` (default true). Text is trimmed;
+empty values become null. A non-anonymous donation requires a name. These fields
+are immutable parts of the idempotent checkout snapshot; changing them under the
+same key returns 409. Existing donations remain anonymous.
+
+Recent public donations return `displayName` and `message` only after confirmed
+ledger settlement. Anonymous names are always replaced with “Anonymous”; email,
+user IDs and private names never appear in that response. A message is public
+even when its author hides their name, as explained before checkout. Public
+rankings stay anonymous, avoiding links between a donor's public and anonymous
+gifts. Messages are rendered as plain text, not HTML.
+
+Owner-only received-donation reads include the supplied name/message and anonymity
+flag; CSV exports remain amounts only. `GET /admin/donations/:id` is admin-only
+and includes supplied donor preferences for review, without payment capabilities,
+account identifiers or email addresses. A supplied name is not identity-verified.

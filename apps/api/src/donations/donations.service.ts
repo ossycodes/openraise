@@ -81,20 +81,58 @@ export class DonationsService {
         ledgerTransactionId: { not: null },
         succeededAt: { not: null },
       },
-      select: { id: true, amount: true, currency: true, succeededAt: true },
+      select: {
+        id: true,
+        amount: true,
+        currency: true,
+        succeededAt: true,
+        donorName: true,
+        donorMessage: true,
+        isAnonymous: true,
+      },
       orderBy: [{ succeededAt: 'desc' }, { id: 'desc' }],
       take: 6,
     });
     return {
-      items: donations.map(({ id, amount, currency, succeededAt }) => ({
-        id,
-        amount: amount.toString(),
-        currency,
-        confirmedAt: succeededAt!.toISOString(),
-      })),
+      items: donations.map(
+        ({
+          id,
+          amount,
+          currency,
+          succeededAt,
+          donorName,
+          donorMessage,
+          isAnonymous,
+        }) => ({
+          id,
+          amount: amount.toString(),
+          currency,
+          confirmedAt: succeededAt!.toISOString(),
+          displayName:
+            isAnonymous !== false ? 'Anonymous' : (donorName ?? 'A supporter'),
+          message: donorMessage,
+        }),
+      ),
     };
   }
 
+  async adminDetails(id: string) {
+    const donation = await this.prisma.donation.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        campaignId: true,
+        donorName: true,
+        donorMessage: true,
+        isAnonymous: true,
+        status: true,
+        currency: true,
+        amount: true,
+      },
+    });
+    if (!donation) throw new NotFoundException('Donation not found');
+    return { ...donation, amount: donation.amount.toString() };
+  }
   private breakdown(body: DonationInput, code: string) {
     if (!this.provider)
       throw new ServiceUnavailableException('Payments are disabled');
@@ -196,7 +234,10 @@ export class DonationsService {
       donation.currency !== (body.currency ?? donation.currency) ||
       donation.donorCoversPlatformFee !== body.donorCoversPlatformFee ||
       donation.donorEmail !== email ||
-      donation.donorUserId !== (user?.id ?? null)
+      donation.donorUserId !== (user?.id ?? null) ||
+      donation.donorName !== (body.donorName ?? null) ||
+      donation.donorMessage !== (body.donorMessage ?? null) ||
+      donation.isAnonymous !== body.isAnonymous
     )
       throw new ConflictException(
         'Idempotency key was used with different input',
@@ -253,6 +294,9 @@ export class DonationsService {
             campaignId: campaign.id,
             donorUserId: user?.id,
             donorEmail: email,
+            donorName: body.donorName ?? null,
+            donorMessage: body.donorMessage ?? null,
+            isAnonymous: body.isAnonymous,
             idempotencyKeyHash: hash,
             reference: `don_${randomUUID().replaceAll('-', '')}`,
             provider: this.provider!.name,
