@@ -1,0 +1,68 @@
+{
+  "contract": "design-contract.md: read-only admin money operations; exact currency-separated balances, investigative links and explicit queue definitions in the existing admin design.",
+  "targetViewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "axe WCAG2 A/AA and WCAG2.1 AA reported zero violations on desktop overview and mobile posting detail; GET filters have labels and read-only context is persistent."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "Desktop queue and 390px overview/ledger/posting/record views have no document overflow. Tabular values, wrapped references and stacked mobile rows inspected."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "pass",
+      "evidence": "Delayed fixture API displays Loading the latest records before source rows render."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "Unmatched ledger filter shows No matching postings with clear filters."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "Unavailable ledger API renders retry state; missing record has a dedicated not-found screen."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Failed summary keeps ledger and reconciliation links available. Unknown event currency displays raw minor units."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Currency filter, linked reservation navigation, campaign wallet balances and loaded integrity status checked."
+    },
+    "permission": {
+      "status": "pass",
+      "evidence": "Non-admin gets Administrator access needed; signed-out admin path redirects to signin. API e2e verifies all read boundaries and revoked role."
+    }
+  },
+  "renderedEvidence": [
+    {
+      "viewport": "1440x1000",
+      "artifact": "overview-desktop.png",
+      "observation": "Full-page overview captured from desktop viewport, with counts, integrity checks and separate NGN/USD balances."
+    },
+    {
+      "viewport": "1440x1000",
+      "artifact": "queue-desktop.png",
+      "observation": "Withdrawals review queue with reason, provider reference, amount and GET filters."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "overview-mobile.png",
+      "observation": "Admin navigation wraps, read-only note and metrics fit mobile width."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "posting-mobile.png",
+      "observation": "Signed-entry inspection stacks account context and debit/credit amounts."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "campaign-wallet-mobile.png",
+      "observation": "Campaign-filtered wallet panel shows separate NGN and USD balances."
+    }
+  ]
+}
