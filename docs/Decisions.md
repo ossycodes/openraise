@@ -320,6 +320,10 @@ instead: no tokens are issued, nothing is revoked, and the web app retries
 with the cookies the winning request set. Reuse after that window still signs
 every device out.
 
+Claiming the spent token and creating its replacement happen in one
+transaction (#40). Otherwise the losing request could look for a live token
+before the winner had written one and treat the race as theft.
+
 ## Creators see supplied preferences, never donor email
 The creator dashboard lists each confirmed donation's amount, fees and date,
 and exports those financial fields as CSV. Donor messages (#29) add optional
