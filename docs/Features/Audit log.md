@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 48
+shipped: 2026-11-06
 branch: feat/audit-log
 type: feature
 area: trust
