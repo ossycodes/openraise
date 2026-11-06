@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #30 | Organiser updates with validated photos, public timelines, explicit opt-in supporter emails, durable fan-out, confirmed unsubscribe and audited removal ([[Campaign updates]]) |
 | #29 | Donor messages, anonymous-by-default giving, private organiser disclosure, confirmed public supporter messages and admin review ([[Donor messages and anonymous giving]]) |
 | #27 | "Start a campaign" in the header and homepage hero; Google One Tap prompts only in production, the button works in development ([[Google sign-in]]) |
 | #26 | Creator dashboard, money: per-campaign totals, confirmed donations with CSV export, withdrawals with a fee review step, payout accounts; owner-only `GET /campaigns/:id/money` and `/donations/received(.csv)` ([[Creator dashboard]]) |

@@ -320,12 +320,16 @@ instead: no tokens are issued, nothing is revoked, and the web app retries
 with the cookies the winning request set. Reuse after that window still signs
 every device out.
 
-## Creators see amounts, not donors
+## Creators see supplied preferences, never donor email
 The creator dashboard lists each confirmed donation's amount, fees and date,
-and exports the same as CSV, but never the donor's email. Donors give an email
-for their receipt, not to be contacted by the campaign, and checkout never asked
-whether to share it. Donor names, and the choice to give anonymously, arrive
-with the donor messages feature, where the donor decides what the creator sees.
+and exports those financial fields as CSV. Donor messages (#29) add optional
+names and messages to the private view. Checkout explains that the organiser
+can see a supplied name, while anonymous giving hides it from other visitors.
+Public rankings remain anonymous so public and private gifts are not linked.
+
+Donor email stays private: the receipt address is not permission to contact
+someone. Campaign update emails (#30) require separate explicit consent and
+are dispatched by the platform, without handing donor email to the creator.
 
 ## Engagement emails require explicit campaign-specific consent
 
