@@ -36,6 +36,7 @@ startup.
 - [[Changelog]]: every merged branch, newest first
 - [[Decisions]]: why things are the way they are
 - [Contributing](../CONTRIBUTING.md): choosing work, checks and pull requests
+- [[Rate limiting deployment]]: Redis limits and trusted ingress configuration
 - [[Receipt delivery]]: notification retries and uncertain-send reconciliation
 - [[Writing an adapter]]: payment and KYC provider contribution expectations
 

@@ -38,6 +38,6 @@ operations use the existing payout-freeze audit and campaign reservation lock;
 already-held or dispatched transfers are unaffected.
 
 No attachments, report email notifications, appeals or automatic fraud decisions.
-General rate limiting remains [[Rate limiting]]; request idempotency prevents
+Request throttling is covered by [[Rate limiting]]; request idempotency prevents
 accidental duplication, not intentional spam. Screenshots and checks are in
 `output/campaign-reports/verification.md`.

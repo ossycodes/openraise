@@ -1,3 +1,4 @@
+import { rateLimitHeaders } from '../../../../../../_lib/rate-limit-relay';
 import type { NextRequest } from 'next/server';
 import { apiOrigin } from '../../../../../../_lib/campaign-server';
 import { privateJson, sameOrigin } from '../../../../../../_lib/payment-proxy';
@@ -39,7 +40,15 @@ export async function POST(
   try {
     const ticket = await fetch(`${campaign}/upload-url`, {
       method: 'POST',
-      headers: { ...auth, 'Content-Type': 'application/json' },
+      headers: {
+        ...auth,
+        'Content-Type': 'application/json',
+        ...(await rateLimitHeaders(
+          'POST',
+          new URL(`${campaign}/upload-url`).pathname,
+          request.headers,
+        )),
+      },
       body: JSON.stringify({ contentType: file.type, size: file.size }),
       cache: 'no-store',
       signal: AbortSignal.timeout(10000),
@@ -49,6 +58,7 @@ export async function POST(
       return privateJson(
         { message: slot.message ?? 'Upload refused.' },
         ticket.status,
+        ticket,
       );
 
     const stored = await fetch(slot.uploadUrl, {

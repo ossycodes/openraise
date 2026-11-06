@@ -1,3 +1,4 @@
+import { rateLimitHeaders } from '../../../../../_lib/rate-limit-relay';
 import type { NextRequest } from 'next/server';
 import { apiOrigin } from '../../../../../_lib/campaign-server';
 import { privateJson, sameOrigin } from '../../../../../_lib/payment-proxy';
@@ -39,14 +40,26 @@ export async function POST(
   try {
     const ticket = await fetch(`${campaign}/upload-url`, {
       method: 'POST',
-      headers: { ...auth, 'Content-Type': 'application/json' },
+      headers: {
+        ...auth,
+        'Content-Type': 'application/json',
+        ...(await rateLimitHeaders(
+          'POST',
+          new URL(`${campaign}/upload-url`).pathname,
+          request.headers,
+        )),
+      },
       body: JSON.stringify({ contentType: file.type, size: file.size }),
       cache: 'no-store',
       signal: AbortSignal.timeout(10000),
     });
     const slot = await ticket.json();
     if (!ticket.ok)
-      return privateJson({ message: slot.message ?? 'Upload refused.' }, ticket.status);
+      return privateJson(
+        { message: slot.message ?? 'Upload refused.' },
+        ticket.status,
+        ticket,
+      );
 
     const stored = await fetch(slot.uploadUrl, {
       method: slot.method ?? 'PUT',
@@ -54,11 +67,20 @@ export async function POST(
       body: Buffer.from(await file.arrayBuffer()),
       signal: AbortSignal.timeout(60000),
     });
-    if (!stored.ok) return privateJson({ message: 'The upload failed. Try again.' }, 502);
+    if (!stored.ok)
+      return privateJson({ message: 'The upload failed. Try again.' }, 502);
 
     const confirmed = await fetch(campaign, {
       method: 'POST',
-      headers: { ...auth, 'Content-Type': 'application/json' },
+      headers: {
+        ...auth,
+        'Content-Type': 'application/json',
+        ...(await rateLimitHeaders(
+          'POST',
+          new URL(campaign).pathname,
+          request.headers,
+        )),
+      },
       body: JSON.stringify({ key: slot.key }),
       cache: 'no-store',
       signal: AbortSignal.timeout(15000),

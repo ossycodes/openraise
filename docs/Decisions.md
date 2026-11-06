@@ -418,3 +418,19 @@ to admins only, uncached. The key comes from `KYC_ENCRYPTION_KEY`, or is
 derived from `JWT_SECRET` so existing installs keep working; deployments
 should set their own. Declined photos are deleted; verified ones are kept as
 evidence for fraud investigations until a retention policy is decided.
+
+## Limits follow verified ingress identity and share atomic Redis counters
+
+The Next.js BFF's socket is not the visitor. A deployment-selected single-IP
+header, overwritten by a trusted ingress, is signed by the web server using a
+shared relay secret; arbitrary unsigned headers never choose a bucket. Direct
+API proxy chains are trusted only through configured CIDRs, traversed backwards
+until the first untrusted address. Incorrect ingress configuration cannot be
+made trustworthy by header parsing, so deployment prerequisites are explicit.
+
+Redis checks all network/account/email buckets before incrementing any and never
+extends an exhausted window on rejection. This makes decisions atomic across
+replicas and avoids consuming an unrelated allowance when another bucket blocks.
+Key identities are HMACs and expire. IPv6 /64 grouping limits rotating-address
+bypasses. Failed Redis checks block selected expensive/sensitive requests briefly;
+webhook settlement, health and payment-status recovery must remain available.

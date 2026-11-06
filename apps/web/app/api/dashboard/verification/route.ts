@@ -1,3 +1,4 @@
+import { rateLimitHeaders } from '../../../_lib/rate-limit-relay';
 import type { NextRequest } from 'next/server';
 import { apiOrigin } from '../../../_lib/campaign-server';
 import { privateJson, sameOrigin } from '../../../_lib/payment-proxy';
@@ -9,8 +10,8 @@ const text = (form: FormData, name: string) => {
   const v = form.get(name);
   return typeof v === 'string' ? v : '';
 };
-const fileError = (message: string, status = 400) =>
-  privateJson({ errors: [{ path: 'file', message }] }, status);
+const fileError = (message: string, status = 400, upstream?: Response) =>
+  privateJson({ errors: [{ path: 'file', message }] }, status, upstream);
 
 /**
  * Sends identity details for review. The photo goes to the API from this
@@ -42,7 +43,11 @@ export async function POST(request: NextRequest) {
     if (file) {
       const upload = await fetch(`${apiOrigin()}/kyc/document`, {
         method: 'POST',
-        headers: { ...auth, 'Content-Type': file.type },
+        headers: {
+          ...auth,
+          'Content-Type': file.type,
+          ...(await rateLimitHeaders('POST', '/kyc/document', request.headers)),
+        },
         body: Buffer.from(await file.arrayBuffer()),
         cache: 'no-store',
         signal: AbortSignal.timeout(60000),
@@ -52,18 +57,24 @@ export async function POST(request: NextRequest) {
         return fileError(
           stored.message ?? 'Upload a clear photo of your ID.',
           upload.status,
+          upload,
         );
       if (!upload.ok)
         return privateJson(
           { message: stored.message ?? 'The upload failed. Try again.' },
           upload.status,
+          upload,
         );
       documentKey = stored.documentKey;
     }
 
     const response = await fetch(`${apiOrigin()}/kyc`, {
       method: 'POST',
-      headers: { ...auth, 'Content-Type': 'application/json' },
+      headers: {
+        ...auth,
+        'Content-Type': 'application/json',
+        ...(await rateLimitHeaders('POST', '/kyc', request.headers)),
+      },
       body: JSON.stringify({
         documentType: text(form, 'documentType'),
         idNumber: text(form, 'idNumber'),
@@ -79,6 +90,7 @@ export async function POST(request: NextRequest) {
     return privateJson(
       response.ok ? { status: result.status } : result,
       response.status,
+      response,
     );
   } catch {
     return privateJson(

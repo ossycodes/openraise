@@ -1,10 +1,20 @@
+import { rateLimitHeaders } from './rate-limit-relay';
 import { NextResponse, type NextRequest } from 'next/server';
 import { apiOrigin } from './campaign-server';
 export const SESSION_COOKIE = 'openraise_donation';
-export const privateJson = (value: unknown, status = 200) =>
+export const privateJson = (
+  value: unknown,
+  status = 200,
+  upstream?: Response,
+) =>
   NextResponse.json(value, {
     status,
-    headers: { 'Cache-Control': 'no-store' },
+    headers: {
+      'Cache-Control': 'no-store',
+      ...(upstream?.headers.get('retry-after')
+        ? { 'Retry-After': upstream.headers.get('retry-after')! }
+        : {}),
+    },
   });
 export function sameOrigin(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -30,6 +40,11 @@ export async function proxyPayment(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(await rateLimitHeaders(
+            'POST',
+            `/campaigns/${encodeURIComponent(slug)}/donations/${action}`,
+            request.headers,
+          )),
           ...(request.headers.get('idempotency-key')
             ? { 'Idempotency-Key': request.headers.get('idempotency-key')! }
             : {}),
@@ -41,7 +56,7 @@ export async function proxyPayment(
     );
     const data = await response.json();
     const { statusToken, ...publicData } = data;
-    const result = privateJson(publicData, response.status);
+    const result = privateJson(publicData, response.status, response);
     const id = data.id ?? data.donationId;
     if (
       action === 'checkout' &&

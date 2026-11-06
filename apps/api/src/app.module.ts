@@ -1,3 +1,4 @@
+import { RateLimitModule } from './rate-limit/rate-limit.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { WithdrawalsModule } from './withdrawals/withdrawals.module.js';
 import { CampaignUpdatesModule } from './campaign-updates/campaign-updates.module.js';
@@ -34,6 +35,7 @@ import { KycModule } from './kyc/kyc.module.js';
     DonationsModule,
     WebhooksModule,
     AuthModule,
+    RateLimitModule,
     UsersModule,
     CategoriesModule,
     CampaignsModule,

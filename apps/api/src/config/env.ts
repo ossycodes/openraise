@@ -1,3 +1,4 @@
+import { trustedProxies } from '../rate-limit/client-address.js';
 import { DEFAULT_FEE_CONFIG, SUPPORTED_CURRENCIES } from '@openraise/shared';
 import { z } from 'zod';
 
@@ -66,6 +67,62 @@ export const envSchema = z
         ['redis:', 'rediss:'].includes(new URL(value).protocol),
       )
       .default('redis://localhost:6379'),
+    RATE_LIMIT_ENABLED: z.stringbool().default(true),
+    RATE_LIMIT_PREFIX: z
+      .string()
+      .regex(/^[a-zA-Z0-9_-]{1,80}$/)
+      .default('openraise-rate'),
+    RATE_LIMIT_WINDOW_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(86400)
+      .default(60),
+    RATE_LIMIT_TRUSTED_PROXIES: z
+      .string()
+      .default('')
+      .refine((v) => {
+        try {
+          trustedProxies(v);
+          return true;
+        } catch {
+          return false;
+        }
+      }, 'Use IP addresses or CIDRs, never proxy hop counts'),
+    RATE_LIMIT_RELAY_SECRET: z
+      .string()
+      .trim()
+      .optional()
+      .transform((v) => v || undefined)
+      .pipe(z.string().min(32).optional()),
+    RATE_LIMIT_AUTH_MAX: z.coerce.number().int().min(1).max(10000).default(10),
+    RATE_LIMIT_SIGNUP_MAX: z.coerce.number().int().min(1).max(10000).default(5),
+    RATE_LIMIT_RECOVERY_MAX: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(10000)
+      .default(5),
+    RATE_LIMIT_REFRESH_MAX: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(10000)
+      .default(120),
+    RATE_LIMIT_CHECKOUT_MAX: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(10000)
+      .default(30),
+    RATE_LIMIT_REPORT_MAX: z.coerce.number().int().min(1).max(10000).default(5),
+    RATE_LIMIT_UPLOAD_MAX: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(10000)
+      .default(10),
+    RATE_LIMIT_AI_MAX: z.coerce.number().int().min(1).max(10000).default(10),
     PAYMENT_QUEUE_PREFIX: z
       .string()
       .regex(/^[a-zA-Z0-9_-]+$/)

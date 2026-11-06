@@ -8,7 +8,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const config = app.get(ConfigService<Env, true>);
 
-  app.enableCors({ origin: config.get('WEB_URL'), credentials: true });
+  app.enableCors({
+    origin: config.get('WEB_URL'),
+    credentials: true,
+    exposedHeaders: ['Retry-After'],
+  });
   app.enableShutdownHooks();
 
   await app.listen(config.get('PORT'));
