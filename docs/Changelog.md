@@ -10,6 +10,8 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #40 | Concurrent refreshes no longer risk signing the person out: the spent token is claimed and its replacement issued in one transaction, so a losing request always sees the new token and answers `REFRESH_RACE` |
+| #39 | Identity verification, part 1: `KycProvider` with a manual adapter; creators send ID details and a photo (encrypted at rest, last four ID characters only), admins verify or decline from an Identity checks queue; verification required to submit, approve and withdraw, and payout accounts must match the verified name ([[Identity verification]]) |
 | #37 | Donation panel when payments are off: the unavailable message shows once, the donate buttons are disabled, and focus wraps the whole amount field ([[Campaign page]]) |
 | #35 | Admin review count and report allegation cards use a full thin border instead of a thick left accent |
 | #34 | Private campaign reports without an account, idempotent submissions; admin Reports & moderation queue with reasoned pause, lift, payout freeze/unfreeze, resolve and dismiss, version-checked and audited; a moderation pause blocks creator resume ([[Reports and flags]]) |

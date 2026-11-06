@@ -1,6 +1,7 @@
 ---
 status: in-progress
 branch: feat/identity-verification
+pr: 39
 type: feature
 area: trust
 milestone: 4
