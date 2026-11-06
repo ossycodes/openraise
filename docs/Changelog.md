@@ -10,6 +10,9 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #27 | "Start a campaign" in the header and homepage hero; Google One Tap prompts only in production, the button works in development ([[Google sign-in]]) |
+| #26 | Creator dashboard, money: per-campaign totals, confirmed donations with CSV export, withdrawals with a fee review step, payout accounts; owner-only `GET /campaigns/:id/money` and `/donations/received(.csv)` ([[Creator dashboard]]) |
+| #25 | Creator dashboard, campaigns: create, edit, photos, submit, pause, resume, end, delete drafts; sessions refreshed in `proxy.ts`; concurrent refresh tokens get `REFRESH_RACE` instead of revoking the sign-in ([[Creator dashboard]]) |
 | #24 | Homepage layout fix: restores section styles broken by an unclosed CSS rule from the #20/#21 merge; search controls as a responsive grid and wrapping category pills |
 | #22 | Optional YouTube campaign videos: validated canonical links, click-to-load player, photo/video controls, responsive playback, screenshots and browser verification ([[Campaign video]]) |
 | #21 | Homepage band for people raising money: three steps (tell your story, bring your people in, put support to work) and a Start a campaign button ([[Landing page]]) |
