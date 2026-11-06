@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #48 | Protected admin audit history: atomic redacted before/after events for campaign controls, reports, identity decisions, bank-account changes and roles; actor attribution, ID/action/date filters, and append-only database guards ([[Audit log]]) |
 | #46 | Public campaign money trail: ledger-backed gifts, fees, wallet balance and paginated paid/pending/returned withdrawal history, with exact amounts and private bank/donor details ([[Public money trail]]) |
 | #44 | Read-only admin money workspace: currency-separated ledger balances, campaign wallets, posting inspection and payment/withdrawal/event reconciliation queues with masked payout details ([[Admin money dashboard]]) |
 | #42 | Shared Redis request limits for auth, checkout, reports and uploads; signed visitor relay, explicit trusted proxies, Retry-After responses and outage handling with webhook/status exemptions ([[Rate limiting]]) |
