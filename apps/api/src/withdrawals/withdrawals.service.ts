@@ -1,3 +1,4 @@
+import { withdrawalReviewWhere } from './withdrawal-review.js';
 import {
   BadRequestException,
   ConflictException,
@@ -404,33 +405,18 @@ export class WithdrawalsService {
   }
   async reviewQueue(page: number) {
     const rows = await this.prisma.withdrawal.findMany({
-      where: {
-        OR: [
-          { reconciliationRequired: true },
-          { status: 'UNCERTAIN' },
-          {
-            status: 'INITIALIZING',
-            createdAt: { lt: new Date(Date.now() - 60000) },
-          },
-          {
-            status: 'PENDING',
-            updatedAt: { lt: new Date(Date.now() - 86400000) },
-          },
-        ],
-      },
+      where: withdrawalReviewWhere(),
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       skip: (page - 1) * 20,
       take: 21,
     });
     return {
-      items: rows
-        .slice(0, 20)
-        .map((w) => ({
-          ...this.public(w),
-          reference: w.reference,
-          provider: w.provider,
-          providerPayoutId: w.providerPayoutId,
-        })),
+      items: rows.slice(0, 20).map((w) => ({
+        ...this.public(w),
+        reference: w.reference,
+        provider: w.provider,
+        providerPayoutId: w.providerPayoutId,
+      })),
       page,
       hasMore: rows.length > 20,
     };

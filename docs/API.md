@@ -448,3 +448,42 @@ Health, payment webhooks, sign-out and donation-status reads are exempt. The API
 does not blindly accept X-Forwarded-For or X-OpenRaise-Client-IP. Signatures bind
 the relay address to method/path/time and exact proxy networks are configured
 explicitly. Native API clients see the same Retry-After header (CORS-exposed).
+
+## Admin money inspection
+
+All routes below require the current ADMIN role and return no-store responses.
+They are read-only and do not call payment providers or change financial state.
+
+| Method | Path | Query | Returns |
+|---|---|---|---|
+| GET | `/admin/money/summary` | — | `{ asOf, transactionCount, unbalancedCount, balances, review }`; normal-sign account balances by type/currency; separate withdrawal/donation/event review counts |
+| GET | `/admin/money/ledger` | `page` 1–1000, `q` ≤100, optional supported `currency`, posting `kind`, `campaignId` ≤100 | `{ items, total, page, limit: 20, campaignWallet }`; newest first, debit/credit totals as strings; campaign-filtered wallet balances when found |
+| GET | `/admin/money/ledger/:id` | — | Signed entries with account type/currency, campaign links, related money-record IDs/references, signed `sum` and `balanced` flag |
+| GET | `/admin/money/reconciliation` | `kind=WITHDRAWAL\|DONATION\|EVENT`, page, q, currency; campaignId for withdrawals/donations | `{ items, total, page, limit: 20 }`; oldest first. q searches reference/campaign title, or event ID/reference for events |
+| GET | `/admin/money/reconciliation/:kind/:id` | — | Selected record fields, string amounts, ledger links; withdrawal destination masked and recent 20 freeze events; provider events link matched donation/withdrawal records |
+
+Posting kinds: DONATION, WITHDRAWAL_HOLD, WITHDRAWAL_SETTLE,
+WITHDRAWAL_REVERSE, REFUND, ADJUSTMENT. Ledger campaign filters follow wallet
+entries and linked donation/withdrawal relations, including settlement/reversal
+postings involving only global accounts. Summary checks flag missing entries,
+non-zero posting sums and account/transaction currency mismatches. Summary reads
+use a repeatable-read snapshot; these checks do not prove provider solvency.
+
+Queue classification:
+
+- Withdrawals: reconciliationRequired, UNCERTAIN, INITIALIZING older than one
+  minute, or PENDING unchanged for over 24 hours. Shared with the existing
+  `/admin/withdrawals/review` route.
+- Checkouts: pending UNCERTAIN, pending INITIALIZING older than one minute, or
+  SUCCEEDED without a ledger link. Ordinary abandoned READY checkouts are excluded.
+- Events: REJECTED, unprocessed for over one minute, or ignored because a
+  donation/withdrawal/reference could not be matched. Other routine ignored
+  events do not enter the queue. Event queues reject campaignId filters; use
+  reference search instead.
+
+Queue counts describe records, not unique incidents, and can overlap across
+categories. Detail reads may inspect a record after it leaves the queue.
+Provider-event amounts may lack a known currency; clients must not infer one.
+Donor identities, checkout URLs, request hashes, raw event bytes, full account
+numbers and payout-recipient IDs are never returned by these endpoints.
+No mutation or reconciliation-resolution endpoints are added by this feature.

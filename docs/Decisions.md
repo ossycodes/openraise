@@ -434,3 +434,22 @@ replicas and avoids consuming an unrelated allowance when another bucket blocks.
 Key identities are HMACs and expire. IPv6 /64 grouping limits rotating-address
 bypasses. Failed Redis checks block selected expensive/sensitive requests briefly;
 webhook settlement, health and payment-status recovery must remain available.
+
+## Admin money inspection is read-only and grounded in postings
+
+The money workspace separates visibility from operational authority. It exposes
+exact ledger-derived amounts and provider references, without a button that can
+replay money, mark a payout paid or create an adjustment. Those workflows need
+separate evidence and action controls. Existing moderation handles payout freezes;
+the money page shows recent freeze history without adding a second write path.
+
+Account balances use the ledger's normal debit/credit sign and keep currencies
+separate. They are not bank balances or proof of provider cash. Campaign wallet
+balances include reservation postings and do not imply payout eligibility.
+Summary integrity is checked in a repeatable-read snapshot. Per-record screens
+refresh current source state and may change as background settlement proceeds.
+
+Queue definitions are explicit and type-specific. Do not classify an ordinary
+abandoned checkout as lost money. The withdrawal predicate is shared with the
+existing backend review queue. Provider event payloads and donor identity stay
+private even in this dashboard; only selected investigation fields are returned.

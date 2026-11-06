@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardCheck, Flag, IdCard } from 'lucide-react';
+import { ClipboardCheck, Flag, IdCard, BookOpenCheck } from 'lucide-react';
 export function WorkspaceNav() {
   const path = usePathname();
   return (
@@ -28,6 +28,13 @@ export function WorkspaceNav() {
       >
         <IdCard size={16} aria-hidden="true" />
         Identity checks
+      </Link>
+      <Link
+        href="/admin/money"
+        aria-current={path.startsWith('/admin/money') ? 'page' : undefined}
+      >
+        <BookOpenCheck size={16} aria-hidden="true" />
+        Money operations
       </Link>
     </nav>
   );

@@ -1,3 +1,4 @@
+import { AdminMoneyModule } from './admin-money/admin-money.module.js';
 import { RateLimitModule } from './rate-limit/rate-limit.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { WithdrawalsModule } from './withdrawals/withdrawals.module.js';
@@ -36,6 +37,7 @@ import { KycModule } from './kyc/kyc.module.js';
     WebhooksModule,
     AuthModule,
     RateLimitModule,
+    AdminMoneyModule,
     UsersModule,
     CategoriesModule,
     CampaignsModule,
