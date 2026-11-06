@@ -6,7 +6,7 @@ tags:
 
 # Local development
 
-See the [README](../README.md#development) for installation and the compose-based
+See the [README](../README.md#quick-start) for installation and the compose-based
 local stack. Copy API settings to `apps/api/.env`; web settings belong in
 `apps/web/.env.local` (see its `.env.example`).
 
