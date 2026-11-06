@@ -262,3 +262,25 @@ features must use this campaign locking convention too.
 The API canonicalizes supported input URLs; a PostgreSQL check rejects other
 stored formats. Existing campaigns remain null and retain the photo gallery.
 No embed HTML, tracking parameters or third-party thumbnail is stored.
+
+## Campaign engagement updates
+
+- `Donation.updatesOptIn`: explicit checkout consent, defaults false for all
+  existing and new donations. Subscription creation happens in the settlement
+  transaction alongside the receipt outbox.
+- `CampaignUpdate`: immutable title/body, author and campaign, publication time,
+  original upload keys, owner-scoped unique idempotency hash; soft-removal time
+  and actor. `fanoutCursor` and `fanoutCompletedAt` persist notification work.
+- `CampaignUpdateImage`: ordered, validated server-owned storage snapshots,
+  separate from the campaign gallery. Three photos maximum via API.
+- `CampaignUpdateSubscription`: unique `(campaignId, email)`, settled donation
+  anchor, creation/consent/unsubscribe timestamps. A duplicate or older payment
+  cannot undo an unsubscribe; a new, later explicit opt-in can subscribe again.
+- `NotificationDelivery`: `CAMPAIGN_UPDATE` kind plus update/subscription foreign
+  keys. A unique dedupe key identifies one post/recipient delivery. Existing
+  retry and uncertain-SMTP states apply; there is no new money movement.
+
+Posts, photos and subscriptions use restrictive foreign keys and are retained
+for history. Private subscription data is never returned by public or owner
+campaign endpoints. Rotating `JWT_SECRET` invalidates old unsubscribe
+capabilities; keep the old deployment secret stable while its emails are live.

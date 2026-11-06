@@ -1,5 +1,6 @@
 import {
   CreateBucketCommand,
+  CopyObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
@@ -71,10 +72,18 @@ export class StorageService implements OnModuleInit {
   }
 
   /** A URL the browser can PUT one file to, with this exact Content-Type. */
-  presignUpload(key: string, contentType: string, expiresIn: number): Promise<string> {
+  presignUpload(
+    key: string,
+    contentType: string,
+    expiresIn: number,
+  ): Promise<string> {
     return getSignedUrl(
       this.s3,
-      new PutObjectCommand({ Bucket: this.bucket, Key: key, ContentType: contentType }),
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ContentType: contentType,
+      }),
       { expiresIn },
     );
   }
@@ -82,7 +91,9 @@ export class StorageService implements OnModuleInit {
   /** Size and type of a stored object, or null if it doesn't exist. */
   async head(key: string): Promise<StoredObject | null> {
     try {
-      const res = await this.s3.send(new HeadObjectCommand({ Bucket: this.bucket, Key: key }));
+      const res = await this.s3.send(
+        new HeadObjectCommand({ Bucket: this.bucket, Key: key }),
+      );
       return { size: res.ContentLength ?? 0, contentType: res.ContentType };
     } catch (error) {
       if (isNotFound(error)) return null;
@@ -93,13 +104,31 @@ export class StorageService implements OnModuleInit {
   /** The first `length` bytes of an object, to check what it really is. */
   async readStart(key: string, length = 16): Promise<Uint8Array> {
     const res = await this.s3.send(
-      new GetObjectCommand({ Bucket: this.bucket, Key: key, Range: `bytes=0-${length - 1}` }),
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Range: `bytes=0-${length - 1}`,
+      }),
     );
     return res.Body ? res.Body.transformToByteArray() : new Uint8Array();
   }
 
+  /** Server-owned immutable snapshot: no presigned PUT is issued for the destination. */
+  async copy(source: string, destination: string): Promise<void> {
+    await this.s3.send(
+      new CopyObjectCommand({
+        Bucket: this.bucket,
+        Key: destination,
+        CopySource: [this.bucket, ...source.split('/')]
+          .map(encodeURIComponent)
+          .join('/'),
+      }),
+    );
+  }
   async delete(key: string): Promise<void> {
-    await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+    await this.s3.send(
+      new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
   }
 
   /** Delete without failing the caller; logs instead. For cleanup. */
@@ -114,5 +143,9 @@ export class StorageService implements OnModuleInit {
 
 function isNotFound(error: unknown): boolean {
   const e = error as { name?: string; $metadata?: { httpStatusCode?: number } };
-  return e?.name === 'NotFound' || e?.name === 'NoSuchKey' || e?.$metadata?.httpStatusCode === 404;
+  return (
+    e?.name === 'NotFound' ||
+    e?.name === 'NoSuchKey' ||
+    e?.$metadata?.httpStatusCode === 404
+  );
 }

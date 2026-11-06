@@ -68,3 +68,18 @@ export async function initialQuote(
     return null;
   }
 }
+
+export async function getUpdates(
+  slug: string,
+  page = 1,
+): Promise<import('./campaign').UpdatePage | null> {
+  try {
+    const response = await fetch(
+      `${apiOrigin()}/campaigns/${encodeURIComponent(slug)}/updates?page=${page}`,
+      { cache: 'no-store', signal: AbortSignal.timeout(5000) },
+    );
+    return response.ok ? response.json() : null;
+  } catch {
+    return null;
+  }
+}

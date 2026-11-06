@@ -196,7 +196,8 @@ export class DonationsService {
       donation.currency !== (body.currency ?? donation.currency) ||
       donation.donorCoversPlatformFee !== body.donorCoversPlatformFee ||
       donation.donorEmail !== email ||
-      donation.donorUserId !== (user?.id ?? null)
+      donation.donorUserId !== (user?.id ?? null) ||
+      donation.updatesOptIn !== body.updatesOptIn
     )
       throw new ConflictException(
         'Idempotency key was used with different input',
@@ -253,6 +254,7 @@ export class DonationsService {
             campaignId: campaign.id,
             donorUserId: user?.id,
             donorEmail: email,
+            updatesOptIn: body.updatesOptIn,
             idempotencyKeyHash: hash,
             reference: `don_${randomUUID().replaceAll('-', '')}`,
             provider: this.provider!.name,

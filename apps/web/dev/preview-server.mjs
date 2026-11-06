@@ -27,6 +27,26 @@ const campaign = {
   coverImageUrl: '/preview/ada-study.png',
   images: [{ id: 'preview-photo', url: '/preview/ada-study.png', position: 0 }],
 };
+const previewUpdates = [
+  {
+    id: 'preview-update-1',
+    title: 'One step closer: Ada is back in class',
+    body: 'Because you showed up, Ada’s first semester fees are now paid. She returned to her clinical placement this week, with her books, uniform and a little more room to breathe.\n\nWe still have one semester to go. Thank you for helping this next chapter take shape. We’ll keep sharing our progress here.',
+    publishedAt: '2026-11-06T09:00:00Z',
+    hiddenAt: null,
+    images: [
+      { id: 'update-photo', url: '/preview/ada-study.png', position: 0 },
+    ],
+  },
+  {
+    id: 'preview-update-2',
+    title: 'A little kindness, a very big beginning',
+    body: 'Our family is grateful for every gift, every message and every person who shared Ada’s story. This is our first update, and the beginning of a journey we’re glad to share with you.',
+    publishedAt: '2026-11-02T12:00:00Z',
+    hiddenAt: null,
+    images: [],
+  },
+];
 const sessions = new Map();
 const keys = new Map();
 const serialize = (data) =>
@@ -95,6 +115,36 @@ createServer(async (req, res) => {
     const items = !category || category === 'education' ? [campaign] : [];
     return send(200, { items, page: 1, limit: 12, total: items.length });
   }
+  // Fictional owner responses are confined to this loopback preview server.
+  if (url.pathname === '/campaigns/mine') return send(200, [campaign]);
+  const updatesMatch = url.pathname.match(
+    /^\/campaigns\/([^/]+)\/updates(?:\/(mine))?$/,
+  );
+  if (updatesMatch) {
+    const resource = updatesMatch[1];
+    if (resource === 'unavailable-updates') return send(503, {});
+    if (req.method === 'POST') {
+      const update = {
+        id: randomUUID(),
+        ...body,
+        publishedAt: new Date().toISOString(),
+        hiddenAt: null,
+        images: [],
+      };
+      previewUpdates.unshift(update);
+      return send(201, update);
+    }
+    return send(200, {
+      items: resource === 'empty-campaign' ? [] : previewUpdates,
+      page: Number(url.searchParams.get('page') || 1),
+      hasMore: false,
+    });
+  }
+  if (
+    url.pathname.startsWith('/campaign-update-subscriptions/') &&
+    req.method === 'POST'
+  )
+    return send(200, { unsubscribed: true });
   const statusMatch = url.pathname.match(/^\/donations\/([^/]+)$/);
   if (statusMatch) {
     const session = sessions.get(statusMatch[1]);

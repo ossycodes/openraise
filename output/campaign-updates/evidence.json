@@ -1,0 +1,63 @@
+{
+  "contract": "OpenRaise campaign engagement: forest-green and ivory organiser timeline and publishing form, explicit opt-in emails, responsive photos and recoverable actions.",
+  "targetViewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "axe WCAG2 A/AA and 2.1 AA reported zero violations on timeline, publisher and mobile checkout with reduced motion; labelled controls and status announcements reviewed."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "390px public timeline and publisher have no document overflow. Photo and text layouts fit the available width; desktop sidebar stays intact."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "pass",
+      "evidence": "Delayed publishing response displays Publishing\u2026 and disables submission."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "Empty fixture shows The next chapter is still unfolding."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "503 public update read shows retry fallback; ambiguous publish locks content and retries same body/key."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Unavailable updates leave the campaign story and donation panel usable."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Publish adds a history entry and clears the form; explicit unsubscribe POST succeeds."
+    },
+    "permission": {
+      "status": "pass",
+      "evidence": "API e2e verifies owner/admin gates and unverified/draft restrictions; no subscription identities are returned."
+    }
+  },
+  "renderedEvidence": [
+    {
+      "viewport": "1440x1000",
+      "artifact": "public-desktop.png",
+      "observation": "Dated timeline, plain text and photo alongside the donation sidebar."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "public-mobile.png",
+      "observation": "Timeline cards and photos fit the mobile width above the sticky donate control."
+    },
+    {
+      "viewport": "1440x1200",
+      "artifact": "publisher-desktop.png",
+      "observation": "Filled organiser form and photo preview with explicit public/email publishing copy."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "publisher-mobile.png",
+      "observation": "Publisher controls wrap without horizontal overflow; validation feedback is visible."
+    }
+  ]
+}

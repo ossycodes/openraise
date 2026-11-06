@@ -1,3 +1,5 @@
+import { UpdatesFeed } from '../../_components/updates-feed';
+import { getUpdates } from '../../_lib/campaign-server';
 import type { Metadata } from 'next';
 import { Contributors } from '../../_components/contributors';
 import { notFound } from 'next/navigation';
@@ -53,9 +55,18 @@ export async function generateMetadata({
 }
 export default async function CampaignPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ updatesPage?: string }>;
 }) {
+  const requestedPage = Number((await searchParams).updatesPage ?? 1);
+  const updatesPage =
+    Number.isInteger(requestedPage) &&
+    requestedPage >= 1 &&
+    requestedPage <= 1000
+      ? requestedPage
+      : 1;
   let campaign;
   try {
     campaign = await getCampaign((await params).slug);
@@ -63,17 +74,19 @@ export default async function CampaignPage({
     if (error instanceof CampaignLoadError && error.status === 404) notFound();
     throw error;
   }
-  const [quote, supporters, topSupporters, feeResponse] = await Promise.all([
-    initialQuote(campaign),
-    getSupporters(campaign.slug),
-    getSupporters(campaign.slug, 'top'),
-    fetch(`${apiOrigin()}/config/fees`, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(4000),
-    })
-      .then((response) => (response.ok ? response.json() : null))
-      .catch(() => null),
-  ]);
+  const [quote, supporters, topSupporters, feeResponse, updates] =
+    await Promise.all([
+      initialQuote(campaign),
+      getSupporters(campaign.slug),
+      getSupporters(campaign.slug, 'top'),
+      fetch(`${apiOrigin()}/config/fees`, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(4000),
+      })
+        .then((response) => (response.ok ? response.json() : null))
+        .catch(() => null),
+      getUpdates(campaign.slug, updatesPage),
+    ]);
   const initials = campaign.owner.name
     .split(' ')
     .map((value) => value[0])
@@ -145,6 +158,7 @@ export default async function CampaignPage({
               <a href="#story" className="active">
                 The story
               </a>
+              <a href="#updates">Updates</a>
               <a href="#supporters">
                 Supporters <span>{campaign.donorCount}</span>
               </a>
@@ -172,6 +186,7 @@ export default async function CampaignPage({
                 <Sprout size={30} strokeWidth={1.3} aria-hidden="true" />
               </div>
             </section>
+            <UpdatesFeed updates={updates} />
             <section id="supporters" className="supporters-section">
               <div className="section-title-row">
                 <div>

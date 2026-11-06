@@ -29,6 +29,7 @@ interface Attempt {
   currency: Campaign['currency'];
   donorCoversPlatformFee: boolean;
   email: string;
+  updatesOptIn?: boolean;
 }
 function money(amount: string, currency: Campaign['currency']) {
   return formatMoney(BigInt(amount), currency);
@@ -55,6 +56,7 @@ export function DonationPanel({
   );
   const [cover, setCover] = useState(false);
   const [email, setEmail] = useState('');
+  const [updatesOptIn, setUpdatesOptIn] = useState(false);
   const [quote, setQuote] = useState(initial);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error, setError] = useState('');
@@ -130,6 +132,7 @@ export function DonationPanel({
           attempt.current = parsed;
           setAmount(decimalInput(parsed.amount));
           setEmail(parsed.email);
+          setUpdatesOptIn(parsed.updatesOptIn ?? false);
           setCover(parsed.donorCoversPlatformFee);
           setSaved(true);
         }
@@ -293,6 +296,7 @@ export function DonationPanel({
       currency: campaign.currency,
       donorCoversPlatformFee: cover,
       email: email.trim().toLowerCase(),
+      updatesOptIn,
     };
     try {
       sessionStorage.setItem(storageKey, JSON.stringify(payload));
@@ -676,6 +680,22 @@ export function DonationPanel({
                   No account needed. Just a receipt for your kindness.
                 </small>
               </div>
+            )}
+            {!locked && (
+              <label className="cover-fee update-opt-in">
+                <input
+                  type="checkbox"
+                  checked={updatesOptIn}
+                  onChange={(e) => setUpdatesOptIn(e.target.checked)}
+                />
+                <span>
+                  Email me updates from this campaign
+                  <small>
+                    Optional. Unsubscribe from any update email. Your receipt is
+                    sent either way.
+                  </small>
+                </span>
+              </label>
             )}
             {breakdown && (
               <div className="fee-breakdown">

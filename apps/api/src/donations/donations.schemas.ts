@@ -6,6 +6,7 @@ export const donationInputSchema = z
     amount: z.string().regex(/^[1-9]\d{0,18}$/),
     currency: z.enum(SUPPORTED_CURRENCIES).optional(),
     donorCoversPlatformFee: z.boolean().default(false),
+    updatesOptIn: z.boolean().default(false),
     email: z
       .email()
       .max(254)
