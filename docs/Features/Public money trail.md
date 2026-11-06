@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 46
+shipped: 2026-11-06
 branch: feat/public-money-trail
 type: feature
 area: trust

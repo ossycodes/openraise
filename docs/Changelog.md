@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #46 | Public campaign money trail: ledger-backed gifts, fees, wallet balance and paginated paid/pending/returned withdrawal history, with exact amounts and private bank/donor details ([[Public money trail]]) |
 | #44 | Read-only admin money workspace: currency-separated ledger balances, campaign wallets, posting inspection and payment/withdrawal/event reconciliation queues with masked payout details ([[Admin money dashboard]]) |
 | #42 | Shared Redis request limits for auth, checkout, reports and uploads; signed visitor relay, explicit trusted proxies, Retry-After responses and outage handling with webhook/status exemptions ([[Rate limiting]]) |
 | #40 | Concurrent refreshes no longer risk signing the person out: the spent token is claimed and its replacement issued in one transaction, so a losing request always sees the new token and answers `REFRESH_RACE` |
