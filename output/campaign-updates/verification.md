@@ -37,3 +37,9 @@ validation and overwriting the original upload are covered against real local
 SeaweedFS in the API suite. Publisher screenshots include a photo draft; the
 mobile version also demonstrates validation feedback. Publishing-busy controls
 were checked with a delayed response, then a 400 returned the form to editing.
+
+Integration with donor messages (#29): merged checkout retains name/message,
+anonymous giving and campaign email consent, including saved request snapshots.
+Mobile browser check confirms anonymous defaults on, updates default off and
+no horizontal overflow (combined-checkout-mobile.png). Combined lint, typecheck,
+162 unit tests, 147 database e2e tests and both builds passed with exit code 0.
