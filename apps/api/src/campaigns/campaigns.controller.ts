@@ -47,14 +47,16 @@ export class CampaignsController {
   @UseGuards(JwtAuthGuard)
   create(
     @CurrentUser() user: AuthUser,
-    @Body(new ZodValidationPipe(createCampaignSchema)) body: CreateCampaignInput,
+    @Body(new ZodValidationPipe(createCampaignSchema))
+    body: CreateCampaignInput,
   ): Promise<PublicCampaign> {
     return this.campaigns.create(user, body);
   }
 
   @Get()
   list(
-    @Query(new ZodValidationPipe(listCampaignsSchema)) query: ListCampaignsQuery,
+    @Query(new ZodValidationPipe(listCampaignsSchema))
+    query: ListCampaignsQuery,
   ): Promise<CampaignPage> {
     return this.campaigns.listPublic(query);
   }
@@ -80,7 +82,8 @@ export class CampaignsController {
   update(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(updateCampaignSchema)) body: UpdateCampaignInput,
+    @Body(new ZodValidationPipe(updateCampaignSchema))
+    body: UpdateCampaignInput,
   ): Promise<PublicCampaign> {
     return this.campaigns.update(user, id, body);
   }
@@ -88,35 +91,50 @@ export class CampaignsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<void> {
+  async remove(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<void> {
     await this.campaigns.remove(user, id);
   }
 
   @Post(':id/submit')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  submit(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<PublicCampaign> {
+  submit(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<PublicCampaign> {
     return this.campaigns.ownerAction(user, id, 'submit');
   }
 
   @Post(':id/pause')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  pause(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<PublicCampaign> {
+  pause(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<PublicCampaign> {
     return this.campaigns.ownerAction(user, id, 'pause');
   }
 
   @Post(':id/resume')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  resume(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<PublicCampaign> {
+  resume(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<PublicCampaign> {
     return this.campaigns.ownerAction(user, id, 'resume');
   }
 
   @Post(':id/end')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  end(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<PublicCampaign> {
+  end(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<PublicCampaign> {
     return this.campaigns.ownerAction(user, id, 'end');
   }
 
@@ -124,8 +142,11 @@ export class CampaignsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @HttpCode(HttpStatus.OK)
-  approve(@Param('id') id: string): Promise<PublicCampaign> {
-    return this.campaigns.approve(id);
+  approve(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+  ): Promise<PublicCampaign> {
+    return this.campaigns.approve(id, user);
   }
 
   @Post(':id/reject')
@@ -133,9 +154,10 @@ export class CampaignsController {
   @Roles('ADMIN')
   @HttpCode(HttpStatus.OK)
   reject(
+    @CurrentUser() user: AuthUser,
     @Param('id') id: string,
     @Body(new ZodValidationPipe(rejectCampaignSchema)) body: { reason: string },
   ): Promise<PublicCampaign> {
-    return this.campaigns.reject(id, body.reason);
+    return this.campaigns.reject(id, body.reason, user);
   }
 }

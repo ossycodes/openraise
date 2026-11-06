@@ -5,7 +5,14 @@ import { ExternalLink, Images, Play, Video } from 'lucide-react';
 import { canonicalYoutubeUrl, youtubeVideoId } from '@openraise/shared';
 import type { Campaign } from '../_lib/campaign';
 import { CampaignGallery } from './campaign-gallery';
-export function CampaignMedia({ campaign }: { campaign: Campaign }) {
+export function CampaignMedia({
+  campaign,
+}: {
+  campaign: Pick<
+    Campaign,
+    'id' | 'title' | 'coverImageUrl' | 'images' | 'videoUrl'
+  >;
+}) {
   const id = useId();
   const videoId = campaign.videoUrl ? youtubeVideoId(campaign.videoUrl) : null;
   const [mode, setMode] = useState<'video' | 'photos'>(

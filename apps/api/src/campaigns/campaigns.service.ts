@@ -24,6 +24,7 @@ import {
   type ListCampaignsQuery,
   type UpdateCampaignInput,
 } from './campaigns.schemas.js';
+import type { ReviewQueueQuery } from './review.schemas.js';
 import { campaignSlug } from './slug.js';
 
 const include = {
@@ -361,13 +362,156 @@ export class CampaignsService {
     return this.transition(row.id, action, extra);
   }
 
-  /** Admin review decisions. */
-  async approve(id: string): Promise<PublicCampaign> {
-    return this.transition(id, 'approve', { publishedAt: new Date() });
+  async reviewQueue(query: ReviewQueueQuery) {
+    const where: Prisma.CampaignWhereInput = {
+      status: query.status,
+      ...(query.q
+        ? {
+            OR: [
+              { title: { contains: query.q, mode: 'insensitive' } },
+              { owner: { name: { contains: query.q, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
+    };
+    const [rows, total, pending] = await this.prisma.$transaction([
+      this.prisma.campaign.findMany({
+        where,
+        include,
+        orderBy: [{ submittedAt: 'asc' }, { id: 'asc' }],
+        skip: (query.page - 1) * 20,
+        take: 20,
+      }),
+      this.prisma.campaign.count({ where }),
+      this.prisma.campaign.count({ where: { status: 'PENDING_REVIEW' } }),
+    ]);
+    return {
+      items: rows.map((c) => ({
+        id: c.id,
+        slug: c.slug,
+        title: c.title,
+        summary: c.summary,
+        status: c.status,
+        owner: { name: c.owner.name },
+        category: c.category,
+        location: c.location,
+        goalAmount: c.goalAmount.toString(),
+        currency: c.currency,
+        coverImageUrl: c.images[0]
+          ? this.storage.publicUrl(c.images[0].key)
+          : null,
+        submittedAt: c.submittedAt,
+        updatedAt: c.updatedAt,
+      })),
+      total,
+      pending,
+      page: query.page,
+      limit: 20,
+    };
   }
 
-  async reject(id: string, reason: string): Promise<PublicCampaign> {
-    return this.transition(id, 'reject', { rejectionReason: reason });
+  async reviewDetail(id: string) {
+    const row = await this.prisma.campaign.findUnique({
+      where: { id },
+      include,
+    });
+    if (!row) throw new NotFoundException(NOT_FOUND);
+    const [organiser, reviews] = await Promise.all([
+      this.prisma.user.findUniqueOrThrow({
+        where: { id: row.ownerId },
+        select: { name: true, emailVerifiedAt: true, createdAt: true },
+      }),
+      this.prisma.campaignReview.findMany({
+        where: { campaignId: id },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: 20,
+        select: {
+          id: true,
+          decision: true,
+          reason: true,
+          submittedAt: true,
+          createdAt: true,
+          reviewer: { select: { name: true } },
+        },
+      }),
+    ]);
+    return {
+      campaign: await this.presentOne(row, true),
+      organiser: {
+        name: organiser.name,
+        emailVerified: !!organiser.emailVerifiedAt,
+        createdAt: organiser.createdAt,
+      },
+      reviews,
+    };
+  }
+
+  /** Legacy routes share the same atomic decision/audit path. */
+  approve(id: string, user: AuthUser) {
+    return this.decideReview(user, id, 'APPROVE');
+  }
+  reject(id: string, reason: string, user: AuthUser) {
+    return this.decideReview(user, id, 'REJECT', reason);
+  }
+
+  async decideReview(
+    user: AuthUser,
+    id: string,
+    decision: 'APPROVE' | 'REJECT',
+    reason?: string,
+    expectedUpdatedAt?: string,
+  ) {
+    const row = await this.prisma.$transaction(async (tx) => {
+      const current = await tx.campaign.findUnique({ where: { id } });
+      if (!current) throw new NotFoundException(NOT_FOUND);
+      if (current.ownerId === user.id)
+        throw new ForbiddenException(
+          'Another administrator must review your campaign',
+        );
+      if (
+        current.status !== 'PENDING_REVIEW' ||
+        (expectedUpdatedAt &&
+          current.updatedAt.getTime() !== new Date(expectedUpdatedAt).getTime())
+      )
+        throw new ConflictException(
+          'This submission has changed or was already reviewed. Reload it before deciding.',
+        );
+      if (
+        decision === 'APPROVE' &&
+        current.endsAt &&
+        current.endsAt <= new Date()
+      )
+        throw new ConflictException(
+          'The campaign end date has passed. Return it to the creator for changes.',
+        );
+      const updated = await tx.campaign.updateMany({
+        where: { id, status: 'PENDING_REVIEW', updatedAt: current.updatedAt },
+        data:
+          decision === 'APPROVE'
+            ? {
+                status: 'ACTIVE',
+                publishedAt: new Date(),
+                rejectionReason: null,
+              }
+            : { status: 'REJECTED', rejectionReason: reason },
+      });
+      if (!updated.count)
+        throw new ConflictException(
+          'Another reviewer changed this submission. Reload before deciding.',
+        );
+      await tx.campaignReview.create({
+        data: {
+          campaignId: id,
+          reviewerId: user.id,
+          decision,
+          reason: decision === 'REJECT' ? reason : null,
+          submittedAt: current.submittedAt,
+          reviewedVersion: current.updatedAt,
+        },
+      });
+      return tx.campaign.findUniqueOrThrow({ where: { id }, include });
+    });
+    return this.presentOne(row, true);
   }
 
   /** Only drafts can be deleted; anything that has been submitted is kept. */

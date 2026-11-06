@@ -352,3 +352,25 @@ Owner-only received-donation reads include the supplied name/message and anonymi
 flag; CSV exports remain amounts only. `GET /admin/donations/:id` is admin-only
 and includes supplied donor preferences for review, without payment capabilities,
 account identifiers or email addresses. A supplied name is not identity-verified.
+
+## Admin campaign review
+
+All endpoints require a current `ADMIN` role (401 signed out, 403 non-admin).
+Reads use `Cache-Control: no-store` and never expose donor information or
+organiser email/password fields.
+
+| Method | Path | Body/query | Returns |
+|---|---|---|---|
+| GET | `/admin/campaigns` | `status=PENDING_REVIEW\|ACTIVE\|REJECTED`, `q` ≤100 characters, `page` 1–1000 | `{ items, total, pending, page, limit: 20 }`; oldest submissions first, search title or organiser name |
+| GET | `/admin/campaigns/:id` | — | `{ campaign, organiser: { name, emailVerified, createdAt }, reviews }`; latest 20 decisions, reviewer names and reasons |
+| POST | `/admin/campaigns/:id/review` | `{ decision: "APPROVE"\|"REJECT", expectedUpdatedAt, reason? }` | 200 campaign; 409 if stale/already reviewed/expired approval, 403 self-review |
+
+`expectedUpdatedAt` is the exact ISO timestamp from the inspected campaign.
+Rejection needs 3–1000 trimmed characters. Approvals move `PENDING_REVIEW` to
+`ACTIVE`; rejection moves it to `REJECTED`. The campaign transition and history
+insert commit together. A lost response should be followed by reloading the
+campaign; another decision cannot duplicate the committed transition.
+
+The legacy `/campaigns/:id/approve` and `/reject` routes now also record reviewer
+history and reject self-review. Their existing payloads remain compatible; the
+new review endpoint is required for browser submission-version protection.
