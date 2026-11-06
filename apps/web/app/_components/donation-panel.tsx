@@ -68,6 +68,7 @@ export function DonationPanel({
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [error, setError] = useState('');
   const [quoteError, setQuoteError] = useState('');
+  const [paymentsOff, setPaymentsOff] = useState(false);
   const [retry, setRetry] = useState(0);
   const [busy, setBusy] = useState(false);
   const [restored, setRestored] = useState(false);
@@ -198,6 +199,7 @@ export function DonationPanel({
           },
         );
         const data = await response.json();
+        if (!abort.signal.aborted) setPaymentsOff(response.status === 503);
         if (!response.ok)
           throw new Error(
             data.minimumAmount
@@ -245,10 +247,9 @@ export function DonationPanel({
         quote.amount !== minor ||
         quote.donorCoversPlatformFee !== cover)
     ) {
-      setError(
-        quoteError ||
-          'Enter a valid donation amount and wait for the fee breakdown.',
-      );
+      // A fee error is already shown under the button; don't repeat it.
+      if (!quoteError)
+        setError('Enter a valid donation amount and wait for the fee breakdown.');
       amountInput.current?.focus();
       return;
     }
@@ -510,7 +511,9 @@ export function DonationPanel({
               <button
                 className="primary-button donate-button"
                 type="button"
-                disabled={!restored || quoteLoading || busy}
+                disabled={
+                  !restored || quoteLoading || busy || (paymentsOff && !locked)
+                }
                 onClick={open}
               >
                 <Heart size={18} aria-hidden="true" />
@@ -533,7 +536,7 @@ export function DonationPanel({
                     </button>
                   </>
                 )}
-                {error && !dialog.current?.open && (
+                {error && error !== quoteError && !dialog.current?.open && (
                   <p className="field-error">{error}</p>
                 )}
               </div>
@@ -581,7 +584,7 @@ export function DonationPanel({
           <button
             type="button"
             className="primary-button"
-            disabled={!restored || quoteLoading}
+            disabled={!restored || quoteLoading || (paymentsOff && !locked)}
             onClick={open}
           >
             {locked ? 'View donation' : 'Donate now'}

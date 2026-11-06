@@ -696,7 +696,14 @@ progress::-moz-progress-bar {
   font-size: 1rem;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  outline-offset: 8px;
+}
+/* The whole field shows focus, not the bare input inside it. */
+.amount-field input:focus-visible {
+  outline: none;
+}
+.amount-field:focus-within {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 .amount-field-suffix {
   color: var(--muted);
