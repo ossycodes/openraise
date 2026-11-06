@@ -265,6 +265,18 @@ merchant/provider references and internal reconciliation reasons. All reads
 are no-store. Provider transfer expenses are separate from OpenRaise's
 configured withdrawal fee; live provider reconciliation is still required.
 
+## Creator money
+
+Owner-only (Bearer); another owner's campaign answers 404. Read only, no-store.
+Counts only donations that succeeded and were posted to the ledger, the same
+rule as `raisedAmount`. Donor identities are never included; see
+[[Decisions#Creators see amounts, not donors]].
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/campaigns/:id/money` | `{ currency, donationCount, raised, platformFees, received, available, withdrawalsInProgress, paidOut, withdrawalFeesPaid, withdrawalFee, payoutsSupported, payoutsFrozen, payoutFreezeReason }`; `available` is the ledger wallet balance |
+| GET | `/campaigns/:id/donations/received?page=1` | `{ items: [{ id, currency, amount, platformFee, donorFee, netToCampaign, donorCoveredPlatformFee, confirmedAt }], page, hasMore }`, newest first, 25 per page |
+| GET | `/campaigns/:id/donations/received.csv` | Every confirmed donation as CSV (`confirmed_at,donation_id,currency,amount,platform_fee,donor_fee,net_to_campaign`), amounts in major units |
 
 ### Optional campaign YouTube video
 
