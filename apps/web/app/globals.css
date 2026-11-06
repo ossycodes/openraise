@@ -3522,3 +3522,61 @@ h3 {
     display: none;
   }
 }
+
+/* Keep campaign creation visible before visitors need to scroll. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.header-create {
+  display: inline-flex;
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 12px 18px;
+  font-size: 0.8rem;
+}
+.hero-actions {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.hero-actions > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding-inline: 22px;
+  min-height: 48px;
+}
+@media (max-width: 1000px) {
+  .header-inner > nav {
+    display: none;
+  }
+}
+@media (max-width: 540px) {
+  .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+  }
+  .header-actions {
+    display: contents;
+  }
+  .header-actions > .header-account {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .header-create {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+  .hero-actions {
+    flex-direction: column;
+  }
+  .hero-actions > a {
+    width: 100%;
+  }
+}

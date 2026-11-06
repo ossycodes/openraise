@@ -75,29 +75,41 @@ export async function SiteHeader({
             <Link href="/">Explore campaigns</Link>
             <a href="/#giving-details">How giving works</a>
           </nav>
-          {viewer ? (
-            <form className="header-account" action="/api/auth/signout" method="post">
-              <Link
-                href="/dashboard"
-                className="account-link"
-                title={viewer.email}
-                aria-label={`Your dashboard (${viewer.name})`}
-              >
-                <span className="account-avatar" aria-hidden="true">
-                  {initials(viewer.name)}
-                </span>
-                <span className="account-name">Dashboard</span>
-              </Link>
-
-              <button type="submit" className="text-button">
-                Sign out
-              </button>
-            </form>
-          ) : (
-            <Link className="header-account header-sign-in" href="/signin">
-              Sign in
+          <div className="header-actions">
+            <Link
+              className="primary-button header-create"
+              href="/dashboard/campaigns/new"
+            >
+              Start a campaign
             </Link>
-          )}
+            {viewer ? (
+              <form
+                className="header-account"
+                action="/api/auth/signout"
+                method="post"
+              >
+                <Link
+                  href="/dashboard"
+                  className="account-link"
+                  title={viewer.email}
+                  aria-label={`Your dashboard (${viewer.name})`}
+                >
+                  <span className="account-avatar" aria-hidden="true">
+                    {initials(viewer.name)}
+                  </span>
+                  <span className="account-name">Dashboard</span>
+                </Link>
+
+                <button type="submit" className="text-button">
+                  Sign out
+                </button>
+              </form>
+            ) : (
+              <Link className="header-account header-sign-in" href="/signin">
+                Sign in
+              </Link>
+            )}
+          </div>
         </div>
       </header>
       {!viewer && oneTap && site.googleClientId && (
