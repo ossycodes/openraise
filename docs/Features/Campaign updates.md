@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 30
+shipped: 2026-11-06
 branch: feat/campaign-updates
 type: feature
 area: growth
@@ -15,7 +17,7 @@ tags:
 Creators post updates (text + images) on the campaign page. Donors who opted in
 get them by email. Updates are the main way to show where the money went.
 
-## Implementation in review
+## Implementation
 
 - Verified organisers publish plain text and up to three validated photos from
   the campaign dashboard's Updates tab; approved, paused and ended campaigns
@@ -26,7 +28,7 @@ get them by email. Updates are the main way to show where the money went.
 - Checkout asks separately for update emails, unchecked by default. Paid,
   ledger-backed opt-ins receive future updates through the durable notification
   outbox. One campaign/email subscription prevents repeated donations creating
-  duplicate emails. Names/messages remain the separate [[Donor messages and anonymous giving]] PR.
+  duplicate emails. Names/messages shipped separately in #29; see [[Donor messages and anonymous giving]].
 - Unsubscribe requires an explicit confirmation; queued sends are cancelled,
   already-sending messages may complete. Receipt emails are unaffected.
 - Screenshots and checks: `output/campaign-updates/verification.md`.

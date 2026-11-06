@@ -284,3 +284,15 @@ Posts, photos and subscriptions use restrictive foreign keys and are retained
 for history. Private subscription data is never returned by public or owner
 campaign endpoints. Rotating `JWT_SECRET` invalidates old unsubscribe
 capabilities; keep the old deployment secret stable while its emails are live.
+
+## Donor disclosure preferences
+
+`Donation.donorName` (nullable, at most 100 characters) and `donorMessage`
+(nullable, at most 500) store optional supplied text. `isAnonymous` defaults
+true, including pre-existing donations. Database constraints require a name
+when public attribution is chosen and bound the stored text lengths.
+
+All three preferences are immutable checkout snapshots. Confirmed public gifts
+map the chosen name or “Anonymous” plus the message, never private identity
+fields. Owners/admins can review supplied preferences, but email is excluded.
+Messages are public even when a name is anonymous; the checkout explains this.
