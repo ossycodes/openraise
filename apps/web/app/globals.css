@@ -5253,3 +5253,186 @@ h3 {
     width: 100%;
   }
 }
+
+/* Identity verification */
+.identity-callout {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  border: 1px solid #cfdcc9;
+  border-radius: 12px;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+.identity-callout.declined {
+  border-color: #e3c9c5;
+  background: #fbf0ee;
+  color: var(--error);
+}
+.identity-callout.waiting {
+  border-color: #e6d4c3;
+  background: var(--warm);
+  color: var(--warm-text);
+}
+.identity-callout svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.identity-callout p {
+  color: var(--text);
+  line-height: 1.5;
+}
+.identity-callout a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  color: inherit;
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+.dashboard-panel .identity-callout {
+  margin-bottom: 16px;
+}
+.identity-verified {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  color: var(--accent);
+}
+.identity-verified svg {
+  flex-shrink: 0;
+}
+.identity-verified h2 {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.identity-verified p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.identity-facts {
+  display: grid;
+  gap: 0;
+  margin: 22px 0 0;
+  border-top: 1px solid var(--line);
+}
+.identity-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.875rem;
+}
+.identity-facts dt {
+  color: var(--muted);
+}
+.identity-facts dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.identity-privacy {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.identity-privacy li {
+  display: flex;
+  gap: 10px;
+}
+.identity-privacy svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--accent);
+}
+.verification-form > .primary-button {
+  margin-top: 22px;
+}
+.verification-form .dashboard-notice {
+  margin: 18px 0 0;
+}
+.verification-form input[type='file'] {
+  padding: 10px;
+}
+.identity-document {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.identity-document h2 {
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+.identity-document img {
+  display: block;
+  width: 100%;
+  max-height: 560px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f2f3ef;
+}
+.identity-document small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.identity-no-document {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 16px;
+  border: 1px dashed var(--control-border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.review-email-status.is-missing {
+  color: var(--error);
+}
+.review-email-status + .review-email-status {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 12px;
+}
+.review-reason input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #8e9f89;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+}
+@media (max-width: 900px) {
+  /* The status matters more than the explainer beside it. */
+  .dashboard-columns.main-first > .dashboard-side {
+    order: 0;
+  }
+}
+@media (max-width: 700px) {
+  .identity-facts > div {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .identity-facts dd {
+    text-align: left;
+  }
+}

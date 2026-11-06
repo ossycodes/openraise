@@ -14,6 +14,8 @@ export default defineConfig({
       DATABASE_URL: e2eDatabaseUrl(process.env.DATABASE_URL ?? ''),
       // Tests sign their own Google-shaped tokens; never use a real client ID.
       GOOGLE_CLIENT_ID: 'test-client.apps.googleusercontent.com',
+      // Tests that need payments inject a fake provider; never real keys.
+      PAYMENT_PROVIDER: 'disabled',
     },
     globalSetup: './test/global-setup.ts',
     fileParallelism: false,

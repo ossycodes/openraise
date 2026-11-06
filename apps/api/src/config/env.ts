@@ -82,6 +82,17 @@ export const envSchema = z
       .enum(['https://sandbox-api.bachs.io', 'https://api.bachs.io'])
       .default('https://sandbox-api.bachs.io'),
 
+    // Identity verification. "manual" (an admin reviews an uploaded ID) needs
+    // no vendor contract, so it's the default; vendor adapters come later.
+    KYC_PROVIDER: z.enum(['manual']).default('manual'),
+    // Encrypts ID document images before they reach storage. Falls back to a
+    // key derived from JWT_SECRET; set it so rotating JWT_SECRET can't make
+    // stored documents unreadable.
+    KYC_ENCRYPTION_KEY: z
+      .string()
+      .min(32, 'Use at least 32 random characters')
+      .optional(),
+
     // Fees (see docs/Features/Fee engine.md). Amounts are minor units.
     DEFAULT_CURRENCY: z.enum(SUPPORTED_CURRENCIES).default('NGN'),
     PLATFORM_FEE_BPS: bps.default(DEFAULT_FEE_CONFIG.platformFeeBps),

@@ -2,7 +2,12 @@ import 'server-only';
 import { cache } from 'react';
 import { apiAs } from '../../_lib/api';
 import { apiOrigin } from '../../_lib/campaign-server';
-import type { Category, OwnerCampaign } from './types';
+import type { Category, IdentityState, OwnerCampaign } from './types';
+
+/** Where the signed-in person's identity check stands. */
+export const identity = cache((returnTo = '/dashboard') =>
+  apiAs<IdentityState>('/kyc', { returnTo }),
+);
 
 /** Every campaign the signed-in person owns, any status. */
 export const myCampaigns = cache((returnTo = '/dashboard') =>

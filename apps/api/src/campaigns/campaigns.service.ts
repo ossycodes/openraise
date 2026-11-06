@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import type { AuthUser } from '../auth/auth.types.js';
 import { FeesService } from '../fees/fees.service.js';
+import { KycService } from '../kyc/kyc.service.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { isUniqueViolation, PrismaService } from '../prisma/prisma.service.js';
 import { StorageService } from '../storage/storage.service.js';
@@ -147,6 +148,7 @@ export class CampaignsService {
     private readonly prisma: PrismaService,
     private readonly fees: FeesService,
     private readonly storage: StorageService,
+    private readonly kyc: KycService,
   ) {}
 
   async create(
@@ -358,7 +360,13 @@ export class CampaignsService {
     action: Exclude<CampaignAction, 'approve' | 'reject'>,
   ): Promise<PublicCampaign> {
     const row = await this.owned(user, id);
-    if (action === 'submit') this.assertReadyToSubmit(user, row);
+    if (action === 'submit') {
+      this.assertReadyToSubmit(user, row);
+      await this.kyc.requireVerified(
+        user.id,
+        'Verify your identity before submitting a campaign',
+      );
+    }
     if (action === 'resume' && row.moderationPaused)
       throw new ConflictException(
         'An administrator has paused this campaign. Wait for the moderation restriction to be lifted.',
@@ -428,7 +436,7 @@ export class CampaignsService {
       include,
     });
     if (!row) throw new NotFoundException(NOT_FOUND);
-    const [organiser, reviews] = await Promise.all([
+    const [organiser, reviews, verifiedName] = await Promise.all([
       this.prisma.user.findUniqueOrThrow({
         where: { id: row.ownerId },
         select: { name: true, emailVerifiedAt: true, createdAt: true },
@@ -446,12 +454,15 @@ export class CampaignsService {
           reviewer: { select: { name: true } },
         },
       }),
+      this.kyc.verifiedName(row.ownerId),
     ]);
     return {
       campaign: await this.presentOne(row, true),
       organiser: {
         name: organiser.name,
         emailVerified: !!organiser.emailVerifiedAt,
+        identityVerified: verifiedName !== null,
+        verifiedName,
         createdAt: organiser.createdAt,
       },
       reviews,
@@ -496,6 +507,17 @@ export class CampaignsService {
         throw new ConflictException(
           'The campaign end date has passed. Return it to the creator for changes.',
         );
+      // Checked again here: verification is the condition for going live,
+      // not only for submitting.
+      if (
+        decision === 'APPROVE' &&
+        !(await this.kyc.verifiedName(current.ownerId, tx))
+      )
+        throw new ConflictException({
+          message:
+            "The organiser's identity isn't verified. Approve once it is, or return the campaign.",
+          code: 'IDENTITY_UNVERIFIED',
+        });
       const updated = await tx.campaign.updateMany({
         where: { id, status: 'PENDING_REVIEW', updatedAt: current.updatedAt },
         data:

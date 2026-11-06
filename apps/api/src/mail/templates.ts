@@ -70,6 +70,44 @@ export function resetPasswordEmail(
   };
 }
 
+/** The outcome of an identity review. `reason` is null when verified. */
+export function identityDecisionEmail(
+  name: string,
+  to: string,
+  reason: string | null,
+  link: string,
+): MailMessage {
+  if (reason === null)
+    return {
+      to,
+      subject: 'Your identity is verified',
+      text: `Hi ${name},\n\nYour identity is verified on ${siteName()}. You can now submit campaigns for review and withdraw to a payout account in your name.\n\n${link}`,
+      html: layout(
+        'Your identity is verified',
+        [
+          `Hi ${escapeHtml(name)},`,
+          `Your identity is verified on ${escapeHtml(siteName())}. You can now submit campaigns for review and withdraw to a payout account in your name.`,
+        ],
+        { label: 'Open your dashboard', href: link },
+      ),
+    };
+  return {
+    to,
+    subject: 'We couldn’t verify your identity',
+    text: `Hi ${name},\n\nWe couldn't verify your identity from what you sent:\n\n${reason}\n\nYou can send your details again:\n\n${link}`,
+    html: layout(
+      'We couldn’t verify your identity',
+      [
+        `Hi ${escapeHtml(name)},`,
+        "We couldn't verify your identity from what you sent:",
+        `<em>${escapeHtml(reason)}</em>`,
+        'You can send your details again from your dashboard.',
+      ],
+      { label: 'Try again', href: link },
+    ),
+  };
+}
+
 /** Sent whenever a payout account is added, so a hijacked login can't redirect money quietly. */
 export function payoutAccountAddedEmail(
   name: string,

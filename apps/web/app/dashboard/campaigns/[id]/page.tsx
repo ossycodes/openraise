@@ -6,7 +6,8 @@ import { CampaignForm } from '../../_components/campaign-form';
 import { CampaignTabs } from '../../_components/dashboard-nav';
 import { PhotoManager } from '../../_components/photo-manager';
 import { StatusActions } from '../../_components/status-actions';
-import { categories, myCampaigns } from '../../_lib/data';
+import { IdentityCallout } from '../../_components/identity-callout';
+import { categories, identity, myCampaigns } from '../../_lib/data';
 import { canEdit, STATUS_LABEL, type CampaignStatus } from '../../_lib/types';
 
 const STATUS_HELP: Record<CampaignStatus, string> = {
@@ -42,10 +43,11 @@ export default async function EditCampaignPage({
   searchParams: Promise<{ created?: string }>;
 }) {
   const { id } = await params;
-  const [mine, cats, { created }] = await Promise.all([
+  const [mine, cats, { created }, kyc] = await Promise.all([
     myCampaigns(`/dashboard/campaigns/${id}`),
     categories(),
     searchParams,
+    identity(`/dashboard/campaigns/${id}`),
   ]);
   const campaign = mine.find((c) => c.id === id);
   if (!campaign) notFound();
@@ -128,6 +130,10 @@ export default async function EditCampaignPage({
                 ? `An administrator has paused this campaign: ${campaign.moderationPauseReason ?? 'Under review'}. You can resume after the restriction is lifted.`
                 : STATUS_HELP[campaign.status]}
             </p>
+            {(campaign.status === 'DRAFT' ||
+              campaign.status === 'REJECTED') && (
+              <IdentityCallout status={kyc.status} purpose="publish" />
+            )}
             <StatusActions
               id={campaign.id}
               status={campaign.status}

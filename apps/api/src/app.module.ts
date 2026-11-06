@@ -20,6 +20,7 @@ import { SiteController } from './site/site.controller.js';
 import { StorageModule } from './storage/storage.module.js';
 import { WebhooksModule } from './webhooks/webhooks.module.js';
 import { UsersModule } from './users/users.module.js';
+import { KycModule } from './kyc/kyc.module.js';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { UsersModule } from './users/users.module.js';
     BankAccountsModule,
     WithdrawalsModule,
     CreatorMoneyModule,
+    KycModule,
   ],
   controllers: [HealthController, SiteController],
 })

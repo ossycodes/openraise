@@ -30,6 +30,7 @@ describe('validateEnv', () => {
       PAYMENT_QUEUE_PREFIX: 'openraise',
       PAYMENT_PROVIDER: 'disabled',
       BACHS_BASE_URL: 'https://sandbox-api.bachs.io',
+      KYC_PROVIDER: 'manual',
       DEFAULT_CURRENCY: 'NGN',
       PLATFORM_FEE_BPS: 350,
       DONOR_FEE_BPS: 150,

@@ -6,8 +6,10 @@ import { CampaignImagesController } from './campaign-images.controller.js';
 import { CampaignImagesService } from './campaign-images.service.js';
 import { CampaignsController } from './campaigns.controller.js';
 import { CampaignsService } from './campaigns.service.js';
+import { KycModule } from '../kyc/kyc.module.js';
 
 @Module({
+  imports: [KycModule],
   controllers: [
     CampaignReviewController,
     CampaignsController,

@@ -163,6 +163,34 @@ describe('campaign withdrawals', () => {
     expect(await balance()).toBe(3000000n);
     expect(payout).not.toHaveBeenCalled();
   });
+  it('pays only a verified person, to an account in their verified name', async () => {
+    const identity = { userId: owner.id, status: 'VERIFIED' as const };
+    try {
+      await t.prisma.identityVerification.updateMany({
+        where: identity,
+        data: { verifiedName: 'Musa Bello' },
+      });
+      const mismatch = await request().expect(409);
+      expect(mismatch.body.code).toBe('ACCOUNT_NAME_MISMATCH');
+
+      await t.prisma.identityVerification.updateMany({
+        where: identity,
+        data: { status: 'REJECTED', reason: 'Expired document' },
+      });
+      const unverified = await request().expect(403);
+      expect(unverified.body.code).toBe('IDENTITY_UNVERIFIED');
+      expect(payout).not.toHaveBeenCalled();
+      expect(await balance()).toBe(3000000n);
+      expect(
+        await t.prisma.withdrawal.count({ where: { campaignId } }),
+      ).toBe(0);
+    } finally {
+      await t.prisma.identityVerification.updateMany({
+        where: { userId: owner.id },
+        data: { status: 'VERIFIED', verifiedName: 'Test User', reason: null },
+      });
+    }
+  });
   it('reserves gross funds once, sends only net and keeps an immutable masked destination snapshot', async () => {
     const key = randomUUID();
     const response = await request({}, key).expect(201);

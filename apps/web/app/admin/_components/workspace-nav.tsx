@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardCheck, Flag } from 'lucide-react';
+import { ClipboardCheck, Flag, IdCard } from 'lucide-react';
 export function WorkspaceNav() {
   const path = usePathname();
   return (
@@ -19,6 +19,15 @@ export function WorkspaceNav() {
       >
         <Flag size={16} aria-hidden="true" />
         Reports & moderation
+      </Link>
+      <Link
+        href="/admin/verifications"
+        aria-current={
+          path.startsWith('/admin/verifications') ? 'page' : undefined
+        }
+      >
+        <IdCard size={16} aria-hidden="true" />
+        Identity checks
       </Link>
     </nav>
   );
