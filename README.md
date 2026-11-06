@@ -2,6 +2,11 @@
 
 Open-source, self-hostable crowdfunding for African communities.
 
+An open-source alternative to [Gathr](https://gathrhq.com),
+[QuickRaiz](https://quickraiz.com), [GoFundMe](https://www.gofundme.com),
+[M-Changa](https://www.mchanga.africa), [BackaBuddy](https://www.backabuddy.co.za)
+and [Thundafund](https://www.thundafund.com).
+
 Run your own fundraising platform: verified creators, donations by card, bank
 transfer, USSD and mobile money, fast payouts to local bank accounts, and a
 public money trail on every campaign so donors can see where their money went.
