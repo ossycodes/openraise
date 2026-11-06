@@ -15,29 +15,30 @@ enum Role {
 }
 
 model User {
-  campaignReviews    CampaignReview[]
-  campaignUpdates    CampaignUpdate[]
-  id                 String              @id @default(cuid())
+  reportModerationActions ReportModerationAction[]
+  campaignReviews         CampaignReview[]
+  campaignUpdates         CampaignUpdate[]
+  id                      String                   @id @default(cuid())
   /// Always stored lower-cased and trimmed
-  email              String              @unique
-  name               String
+  email                   String                   @unique
+  name                    String
   /// "scrypt$N$r$p$salt$hash" (base64 salt and hash)
-  passwordHash       String
-  role               Role                @default(USER)
-  emailVerifiedAt    DateTime?           @db.Timestamptz
+  passwordHash            String
+  role                    Role                     @default(USER)
+  emailVerifiedAt         DateTime?                @db.Timestamptz
   /// Stamped into every access token; bumping it signs out every device
-  tokenVersion       Int                 @default(0)
-  createdAt          DateTime            @default(now()) @db.Timestamptz
-  updatedAt          DateTime            @updatedAt @db.Timestamptz
+  tokenVersion            Int                      @default(0)
+  createdAt               DateTime                 @default(now()) @db.Timestamptz
+  updatedAt               DateTime                 @updatedAt @db.Timestamptz
   /// Google's stable account id ("sub"), set on first Google sign-in
-  googleSubject      String?             @unique
-  refreshTokens      RefreshToken[]
-  emailTokens        EmailToken[]
-  donations          Donation[]
-  campaigns          Campaign[]
-  bankAccounts       BankAccount[]
-  withdrawals        Withdrawal[]
-  payoutFreezeEvents PayoutFreezeEvent[]
+  googleSubject           String?                  @unique
+  refreshTokens           RefreshToken[]
+  emailTokens             EmailToken[]
+  donations               Donation[]
+  campaigns               Campaign[]
+  bankAccounts            BankAccount[]
+  withdrawals             Withdrawal[]
+  payoutFreezeEvents      PayoutFreezeEvent[]
 }
 
 /// Where a user's withdrawals are paid. Removed accounts are kept for history.
@@ -118,49 +119,53 @@ enum CampaignStatus {
 }
 
 model Campaign {
-  reviews             CampaignReview[]
-  updates             CampaignUpdate[]
-  updateSubscriptions CampaignUpdateSubscription[]
-  id                  String                       @id @default(cuid())
+  reports                 CampaignReport[]
+  reportModerationActions ReportModerationAction[]
+  moderationPaused        Boolean                      @default(false)
+  moderationPauseReason   String?
+  reviews                 CampaignReview[]
+  updates                 CampaignUpdate[]
+  updateSubscriptions     CampaignUpdateSubscription[]
+  id                      String                       @id @default(cuid())
   /// Public URL segment: slugified title + random suffix, fixed at creation
-  slug                String                       @unique
-  ownerId             String
-  owner               User                         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  categoryId          String
-  category            Category                     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  title               String
+  slug                    String                       @unique
+  ownerId                 String
+  owner                   User                         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  categoryId              String
+  category                Category                     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  title                   String
   /// One or two sentences for cards and link previews
-  summary             String                       @default("")
-  videoUrl            String?
-  story               String                       @default("")
+  summary                 String                       @default("")
+  videoUrl                String?
+  story                   String                       @default("")
   /// Minor units of `currency`
-  goalAmount          BigInt
+  goalAmount              BigInt
   /// ISO code, one of SUPPORTED_CURRENCIES; fixed once submitted
-  currency            String
-  beneficiaryName     String?
-  location            String?
-  endsAt              DateTime?                    @db.Timestamptz
-  status              CampaignStatus               @default(DRAFT)
+  currency                String
+  beneficiaryName         String?
+  location                String?
+  endsAt                  DateTime?                    @db.Timestamptz
+  status                  CampaignStatus               @default(DRAFT)
   /// Why an admin rejected it; cleared on resubmit
-  rejectionReason     String?
-  featured            Boolean                      @default(false)
-  submittedAt         DateTime?                    @db.Timestamptz
-  publishedAt         DateTime?                    @db.Timestamptz
-  endedAt             DateTime?                    @db.Timestamptz
-  createdAt           DateTime                     @default(now()) @db.Timestamptz
-  updatedAt           DateTime                     @updatedAt @db.Timestamptz
-  donations           Donation[]
-  images              CampaignImage[]
-  ledgerAccounts      LedgerAccount[]
-  withdrawals         Withdrawal[]
-  payoutFreezeEvents  PayoutFreezeEvent[]
-  payoutsFrozen       Boolean                      @default(false)
-  payoutFreezeReason  String?
+  rejectionReason         String?
+  featured                Boolean                      @default(false)
+  submittedAt             DateTime?                    @db.Timestamptz
+  publishedAt             DateTime?                    @db.Timestamptz
+  endedAt                 DateTime?                    @db.Timestamptz
+  createdAt               DateTime                     @default(now()) @db.Timestamptz
+  updatedAt               DateTime                     @updatedAt @db.Timestamptz
+  donations               Donation[]
+  images                  CampaignImage[]
+  ledgerAccounts          LedgerAccount[]
+  withdrawals             Withdrawal[]
+  payoutFreezeEvents      PayoutFreezeEvent[]
+  payoutsFrozen           Boolean                      @default(false)
+  payoutFreezeReason      String?
   /// Generated by Postgres from title, summary, location and story (see the
   /// campaign_search migration); never written by the app. The dbgenerated
   /// text is the expression exactly as Postgres stores it, so Prisma sees no
   /// drift; change both together.
-  searchVector        Unsupported("tsvector")?     @default(dbgenerated("((((setweight(to_tsvector('english'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(summary, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(location, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(story, ''::text)), 'C'::\"char\"))"))
+  searchVector            Unsupported("tsvector")?     @default(dbgenerated("((((setweight(to_tsvector('english'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\") || setweight(to_tsvector('simple'::regconfig, COALESCE(title, ''::text)), 'A'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(summary, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('simple'::regconfig, COALESCE(location, ''::text)), 'B'::\"char\")) || setweight(to_tsvector('english'::regconfig, COALESCE(story, ''::text)), 'C'::\"char\"))"))
 
   @@index([status, publishedAt])
   @@index([categoryId, status])
@@ -529,5 +534,38 @@ model CampaignReview {
   reviewedVersion DateTime  @db.Timestamptz
   createdAt       DateTime  @default(now()) @db.Timestamptz
 
+  @@index([campaignId, createdAt])
+}
+
+model CampaignReport {
+  id                 String                   @id @default(cuid())
+  campaignId         String
+  campaign           Campaign                 @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  category           String
+  details            String
+  status             String                   @default("OPEN")
+  idempotencyKeyHash String                   @unique
+  createdAt          DateTime                 @default(now()) @db.Timestamptz
+  updatedAt          DateTime                 @updatedAt @db.Timestamptz
+  closedAt           DateTime?                @db.Timestamptz
+  actions            ReportModerationAction[]
+
+  @@index([status, createdAt])
+  @@index([campaignId])
+}
+
+model ReportModerationAction {
+  id         String         @id @default(cuid())
+  reportId   String
+  report     CampaignReport @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  campaignId String
+  campaign   Campaign       @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  actorId    String
+  actor      User           @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action     String
+  reason     String
+  createdAt  DateTime       @default(now()) @db.Timestamptz
+
+  @@index([reportId, createdAt])
   @@index([campaignId, createdAt])
 }

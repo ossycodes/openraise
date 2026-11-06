@@ -374,3 +374,29 @@ campaign; another decision cannot duplicate the committed transition.
 The legacy `/campaigns/:id/approve` and `/reject` routes now also record reviewer
 history and reject self-review. Their existing payloads remain compatible; the
 new review endpoint is required for browser submission-version protection.
+
+## Campaign reports and moderation
+
+| Method | Path | Auth | Input | Returns |
+|---|---|---|---|---|
+| POST | `/campaigns/:slug/reports` | Guest allowed | UUID v4 `Idempotency-Key`; `{ category, details }` | 202 `{ received: true }`; no report ID or private read capability |
+| GET | `/admin/reports` | Admin | `status=OPEN\|RESOLVED\|DISMISSED`, `q` campaign title ≤100 chars, `page` 1–1000 | `{ items, total, open, page, limit: 20 }`, oldest first; detail excerpts ≤160 chars |
+| GET | `/admin/reports/:id` | Admin | — | `{ report, campaign, controls, actions }`; latest 50 actions and current restriction/version snapshots |
+| POST | `/admin/reports/:id/actions` | Admin | `{ action, reason, expectedReportUpdatedAt, expectedCampaignUpdatedAt }` | 200 `{ recorded: true }`; 409 stale/no-op/invalid state, 403 self-moderation |
+
+Report categories: `FRAUD`, `MISLEADING`, `OFFENSIVE`, `OTHER`. Trimmed detail
+must have 20–2,000 characters. Only public `ACTIVE`, `PAUSED`, `ENDED` campaigns
+accept reports. Repeated keys with identical input return the same acknowledgement;
+changed input returns 409. General abuse throttling is separate planned work.
+
+Actions: `PAUSE`, `LIFT_PAUSE`, `FREEZE`, `UNFREEZE`, `RESOLVE`, `DISMISS`.
+Reasons are 5–500 trimmed characters. Version timestamps must match the latest
+inspected report and campaign. Every action is recorded atomically with its
+state changes. Missing/lost responses require reload before another action.
+Resolving/dismissing applies only to open reports; restrictions can be lifted
+explicitly even after closure. Lifting an admin pause does not resume donations.
+Freeze operations prevent new reservations, not transfers already in progress.
+
+All reads/responses are no-store. Reports and notes are private to admins;
+public and organiser campaign reads never contain report details or action
+history. Owners receive only the relevant pause/freeze restriction reason.

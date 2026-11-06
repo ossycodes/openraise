@@ -1,3 +1,4 @@
+import { ReportsModule } from './reports/reports.module.js';
 import { WithdrawalsModule } from './withdrawals/withdrawals.module.js';
 import { CampaignUpdatesModule } from './campaign-updates/campaign-updates.module.js';
 import { Module } from '@nestjs/common';
@@ -35,6 +36,7 @@ import { UsersModule } from './users/users.module.js';
     UsersModule,
     CategoriesModule,
     CampaignsModule,
+    ReportsModule,
     CampaignUpdatesModule,
     BankAccountsModule,
     WithdrawalsModule,

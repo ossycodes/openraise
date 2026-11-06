@@ -74,6 +74,8 @@ export interface PublicCampaign {
   status: CampaignRow['status'];
   /** Only shown to the owner and admins */
   rejectionReason?: string | null;
+  moderationPaused?: boolean;
+  moderationPauseReason?: string | null;
   featured: boolean;
   submittedAt: Date | null;
   publishedAt: Date | null;
@@ -121,7 +123,13 @@ function toPublic(
     images,
     coverImageUrl: images[0]?.url ?? null,
     status: c.status,
-    ...(privileged ? { rejectionReason: c.rejectionReason } : {}),
+    ...(privileged
+      ? {
+          rejectionReason: c.rejectionReason,
+          moderationPaused: c.moderationPaused,
+          moderationPauseReason: c.moderationPauseReason,
+        }
+      : {}),
     featured: c.featured,
     submittedAt: c.submittedAt,
     publishedAt: c.publishedAt,
@@ -351,6 +359,10 @@ export class CampaignsService {
   ): Promise<PublicCampaign> {
     const row = await this.owned(user, id);
     if (action === 'submit') this.assertReadyToSubmit(user, row);
+    if (action === 'resume' && row.moderationPaused)
+      throw new ConflictException(
+        'An administrator has paused this campaign. Wait for the moderation restriction to be lifted.',
+      );
 
     const now = new Date();
     const extra: Prisma.CampaignUpdateManyMutationInput =
@@ -538,7 +550,11 @@ export class CampaignsService {
   ): Promise<PublicCampaign> {
     const { from, to } = TRANSITIONS[action];
     const result = await this.prisma.campaign.updateMany({
-      where: { id, status: { in: [...from] } },
+      where: {
+        id,
+        status: { in: [...from] },
+        ...(action === 'resume' ? { moderationPaused: false } : {}),
+      },
       data: { ...extra, status: to },
     });
     if (result.count === 0) {

@@ -1,0 +1,68 @@
+{
+  "contract": "design-contract.md: private visitor reporting and attributable moderation in the existing OpenRaise review workspace, explicit restrictions and no automatic accusation-based decisions.",
+  "targetViewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "axe WCAG2 A/AA and 2.1 AA: zero violations on moderation detail and public reporting form; labelled controls, confirmation and status/error feedback reviewed."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "Desktop and 390px queue/detail/form use the expected grid and mobile stack, no document overflow. Private concern text wraps."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "pass",
+      "evidence": "Delayed moderation response shows Recording action\u2026 and disabled controls."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "No-match report search shows No matching reports with clear search."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "Simulated stale 409 retains reason and offers reload; unavailable API shows retry state. Public unknown outcome keeps exact retry snapshot."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Failed campaign photo shows shared gallery fallback without hiding allegation or controls."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Fixture report receipt, pause, freeze and resolution all succeed; resolution preserves restrictions."
+    },
+    "permission": {
+      "status": "pass",
+      "evidence": "Non-admin denial and signed-out signin redirect checked in browser; API tests cover privacy and current role enforcement."
+    }
+  },
+  "renderedEvidence": [
+    {
+      "viewport": "1440x1000",
+      "artifact": "queue-desktop.png",
+      "observation": "Searchable reports queue, status filters and open count."
+    },
+    {
+      "viewport": "1440x1000",
+      "artifact": "detail-desktop.png",
+      "observation": "Private allegation separated from campaign context and current restrictions."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "queue-mobile.png",
+      "observation": "Report rows and workspace tabs fit mobile width."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "public-form-mobile.png",
+      "observation": "Visitor category/detail fields, privacy explanation and private submit action."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "moderation-mobile.png",
+      "observation": "Explicit action impact, reason and required acknowledgement."
+    }
+  ]
+}

@@ -11,8 +11,19 @@ const FIELD_LABEL: Record<string, string> = {
 };
 
 /** The buttons that move a campaign through its lifecycle. */
-export function StatusActions({ id, status }: { id: string; status: CampaignStatus }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(changeStatus, {});
+export function StatusActions({
+  id,
+  status,
+  moderationPaused = false,
+}: {
+  id: string;
+  status: CampaignStatus;
+  moderationPaused?: boolean;
+}) {
+  const [state, action, pending] = useActionState<FormState, FormData>(
+    changeStatus,
+    {},
+  );
   const button = (name: string, label: string, primary = false) => (
     <button
       type="submit"
@@ -33,7 +44,9 @@ export function StatusActions({ id, status }: { id: string; status: CampaignStat
           {(status === 'DRAFT' || status === 'REJECTED') &&
             button('submit', 'Submit for review', true)}
           {status === 'ACTIVE' && button('pause', 'Pause donations')}
-          {status === 'PAUSED' && button('resume', 'Resume donations', true)}
+          {status === 'PAUSED' &&
+            !moderationPaused &&
+            button('resume', 'Resume donations', true)}
         </div>
         {(state.message || errors.length > 0) && (
           <div className="status-problems" role="alert">
@@ -42,7 +55,8 @@ export function StatusActions({ id, status }: { id: string; status: CampaignStat
               <ul>
                 {errors.map(([field, message]) => (
                   <li key={field}>
-                    <a href={`#${field}`}>{FIELD_LABEL[field] ?? field}</a>: {message}
+                    <a href={`#${field}`}>{FIELD_LABEL[field] ?? field}</a>:{' '}
+                    {message}
                   </li>
                 ))}
               </ul>
