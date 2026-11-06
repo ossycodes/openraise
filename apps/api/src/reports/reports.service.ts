@@ -1,3 +1,4 @@
+import { auditActor } from '../audit/actor.js';
 import {
   BadRequestException,
   ConflictException,
@@ -147,6 +148,7 @@ export class ReportsService {
   }
   async moderate(user: AuthUser, id: string, body: ModerationInput) {
     return this.prisma.$transaction(async (tx) => {
+      await auditActor(tx, user.id);
       const reference = await tx.campaignReport.findUnique({
         where: { id },
         select: { campaignId: true },

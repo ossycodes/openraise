@@ -1,3 +1,4 @@
+import { AuditModule } from './audit/audit.module.js';
 import { MoneyTrailModule } from './money-trail/money-trail.module.js';
 import { AdminMoneyModule } from './admin-money/admin-money.module.js';
 import { RateLimitModule } from './rate-limit/rate-limit.module.js';
@@ -29,6 +30,7 @@ import { KycModule } from './kyc/kyc.module.js';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
+    AuditModule,
     MailModule,
     StorageModule,
     LedgerModule,

@@ -1,0 +1,24 @@
+{
+  "contract": "design-contract.md: admin operations journal with exact ID/action/date filtering, atomic redacted state comparisons and explicit unattributed actors.",
+  "targetViewports": ["1440x1000", "390x844"],
+  "accessibility": { "status": "pass", "evidence": "Zero axe WCAG2 A/AA and WCAG2.1 AA violations on desktop and mobile with comparison open. Enter toggles native details; keyboard focus has a visible 3px solid outline. Reduced motion enabled." },
+  "responsive": { "status": "pass", "evidence": "Desktop and mobile rendered checks show no document overflow. Filters stack; IDs wrap; before/after labels remain readable on mobile." },
+  "contentStates": {
+    "loading": { "status": "pass", "evidence": "A delayed loopback fixture visibly rendered Loading recorded changes before the result arrived; loading-mobile.png." },
+    "empty": { "status": "pass", "evidence": "No matching changes and View all history are visible for an empty filtered page." },
+    "error": { "status": "pass", "evidence": "Fixture 503 renders The audit history couldn’t load with Reload history; no invented empty data." },
+    "partial": { "status": "not-applicable", "reason": "Each page reads one event query, with no independent summary or optional data source. Failed reads show the explicit error state." },
+    "success": { "status": "pass", "evidence": "25 event rows, six action categories, before/after disclosure, exact ID links, role filter and page 2/newer navigation exercised." },
+    "permission": { "status": "pass", "evidence": "Viewer session shows administrator access boundary. Endpoint tests deny anonymous, ordinary and demoted users. Fixture endpoint denial also renders access-needed feedback." }
+  },
+  "renderedEvidence": [
+    { "viewport": "1440x1000", "artifact": "desktop.png", "observation": "Admin navigation, title, scoped privacy message, labelled filters and first event." },
+    { "viewport": "1440x1000", "artifact": "comparison-desktop.png", "observation": "Actor/target/subject references and redacted three-column state comparison." },
+    { "viewport": "390x844", "artifact": "mobile.png", "observation": "Navigation and filter controls fit a mobile viewport." },
+    { "viewport": "390x844", "artifact": "comparison-mobile.png", "observation": "Stacked identity references and labelled before/after comparisons fit the narrow card." },
+    { "viewport": "390x844", "artifact": "loading-mobile.png", "observation": "Route loading state during delayed server response." },
+    { "viewport": "390x844", "artifact": "empty-mobile.png", "observation": "Empty results explain filtering and offer full history." },
+    { "viewport": "390x844", "artifact": "error-mobile.png", "observation": "Unavailable API has a reload action." },
+    { "viewport": "390x844", "artifact": "permission-mobile.png", "observation": "Non-admin session sees access-needed boundary and dashboard return." }
+  ]
+}

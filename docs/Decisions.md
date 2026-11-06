@@ -472,3 +472,23 @@ source of the balance. A visible other-changes line accounts for refunds or
 adjustments rather than silently forcing the balance to an incomplete formula.
 Wallet balance is not an eligibility promise, spending receipt or external cash
 statement. On an API failure, the page shows unavailable data rather than zero.
+
+## Audit changes atomically, with redacted database snapshots
+
+AuditEvent is populated by row triggers rather than an after-request logger.
+A rolled-back mutation rolls back its event, and ordinary direct database changes
+to the covered controls are visible too. Application workflows set actor ID from
+the authenticated user using transaction-local PostgreSQL context. Connection
+reuse cannot carry that actor into the next transaction. Maintenance operations
+without that context stay unattributed; the subject is never guessed as actor.
+
+Allowlist control fields while constructing JSON in SQL. Do not copy whole rows,
+free-text reasons, account suffixes, document metadata or names into a permanent
+journal. IDs let administrators correlate the private source record without
+replicating its sensitive contents. Reasons stay in the existing review records.
+The log begins at migration installation; there is no inferred historical backfill.
+
+Append-only triggers reject UPDATE/DELETE/TRUNCATE, including statement-level
+truncation. This protects ordinary application writes, not a privileged database
+owner who can disable the guard. No role-management endpoint is introduced;
+existing manual role updates are recorded without invented application actors.

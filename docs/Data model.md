@@ -8,7 +8,7 @@ tags:
 
 PostgreSQL via Prisma 7. The schema lives in `apps/api/prisma/schema.prisma`;
 migrations in `apps/api/prisma/migrations/`. Every timestamp is `timestamptz`.
-IDs are cuids except withdrawal IDs (UUID v4). Money columns (from M2) are `BigInt` minor units with a
+IDs are cuids except withdrawal IDs (UUID v4) and audit event IDs (PostgreSQL UUIDs). Money columns (from M2) are `BigInt` minor units with a
 currency code beside them; see [[Decisions#Money as BigInt minor units]].
 
 ## Campaigns
@@ -344,3 +344,25 @@ creator-facing `reason`, `reviewerId` and `decidedAt`.
   as associated data. Declining deletes the document and clears the key.
 - A person is verified when they have a `VERIFIED` row; the latest one's
   `verifiedName` is what payout accounts must match. Rows are kept as history.
+
+## AuditEvent
+
+Append-only redacted journal created by database triggers in the same transaction
+as source changes. UUID text `id` defaults to PostgreSQL `gen_random_uuid()`;
+`createdAt` is a timestamptz. `actorId` and `subjectId` are nullable historical
+identifiers, not joined to mutable profiles or cascade-deleted. `targetType` and
+`targetId` identify the changed row; `action` describes its change category.
+`before` and `after` are nullable JSON objects built from explicit control fields.
+No personal names, banking numbers, document metadata or free text is copied.
+
+Indexed by timestamp/id, actor/time, subject/time, target type/id/time and
+action/time. Source triggers cover Campaign status/restrictions, CampaignReport
+status, IdentityVerification status updates, BankAccount insertion/default/soft
+removal and User role updates. Initial KYC submissions, ordinary profile edits,
+unchanged control fields and rejected transactions do not add events. Existing
+campaign-review, moderation and payout-freeze records remain authoritative for
+their reasons and operational detail.
+
+Statement triggers reject event UPDATE, DELETE and TRUNCATE. A database owner can
+still disable triggers or change schema; this is not an external tamper-proof
+archive. No automatic retention deletion is performed.

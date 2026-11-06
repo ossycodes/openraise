@@ -1,3 +1,4 @@
+import { auditActor, withAuditActor } from '../audit/actor.js';
 import {
   BadRequestException,
   ConflictException,
@@ -379,7 +380,7 @@ export class CampaignsService {
         : action === 'end'
           ? { endedAt: now }
           : {};
-    return this.transition(row.id, action, extra);
+    return this.transition(row.id, action, extra, user.id);
   }
 
   async reviewQueue(query: ReviewQueueQuery) {
@@ -485,6 +486,7 @@ export class CampaignsService {
     expectedUpdatedAt?: string,
   ) {
     const row = await this.prisma.$transaction(async (tx) => {
+      await auditActor(tx, user.id);
       const current = await tx.campaign.findUnique({ where: { id } });
       if (!current) throw new NotFoundException(NOT_FOUND);
       if (current.ownerId === user.id)
@@ -569,16 +571,19 @@ export class CampaignsService {
     id: string,
     action: CampaignAction,
     extra: Prisma.CampaignUpdateManyMutationInput,
+    actorId: string,
   ): Promise<PublicCampaign> {
     const { from, to } = TRANSITIONS[action];
-    const result = await this.prisma.campaign.updateMany({
-      where: {
-        id,
-        status: { in: [...from] },
-        ...(action === 'resume' ? { moderationPaused: false } : {}),
-      },
-      data: { ...extra, status: to },
-    });
+    const result = await withAuditActor(this.prisma, actorId, async (tx) =>
+      tx.campaign.updateMany({
+        where: {
+          id,
+          status: { in: [...from] },
+          ...(action === 'resume' ? { moderationPaused: false } : {}),
+        },
+        data: { ...extra, status: to },
+      }),
+    );
     if (result.count === 0) {
       const exists = await this.prisma.campaign.findUnique({
         where: { id },
