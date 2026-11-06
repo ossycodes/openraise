@@ -528,3 +528,26 @@ The accounting identity is `raised - platformFeesDeducted + otherWalletChanges =
 walletBalance + reserved + paidOut + withdrawalFeesPaid`. Returned reservations
 are not subtracted a second time. Processing charges paid by donors do not enter
 the campaign raised total. This is a ledger view, not proof of how money was spent.
+
+## Admin audit log
+
+`GET /admin/audit` requires a current administrator session and returns
+`Cache-Control: no-store`. Filters: `page` (1–1000, 25 events per page),
+`action` (`CAMPAIGN_CHANGED`, `REPORT_CHANGED`, `IDENTITY_DECIDED`,
+`BANK_ACCOUNT_ADDED`, `BANK_ACCOUNT_CHANGED`, `ROLE_CHANGED`), `q` (exact actor,
+subject, target or event ID; at most 100 characters), `from` and `to` (valid
+YYYY-MM-DD dates, inclusive UTC days). Invalid or reversed date ranges return 400.
+
+Response: `{items, page, hasMore}`. Each item has `id`, `createdAt`, nullable
+`actorId`, `action`, `targetType`, `targetId`, nullable `subjectId`, and nullable
+`before`/`after` objects. Snapshots contain only allowlisted control fields:
+status, moderationPaused, payoutsFrozen, isDefault, removed and role.
+Ordering is timestamp descending then event ID descending. Pagination is a live
+history; newly committed records can shift page boundaries between requests.
+There are no create, edit, delete or export endpoints for these events.
+
+Logging starts with the audit migration. Existing source histories remain in
+place; they are not backfilled with invented actors or before-states. Direct
+maintenance writes without transaction-local application actor context have a
+null actor. No names, emails, bank details, identity documents, provider IDs,
+credentials, review notes or report allegations appear in the event snapshots.

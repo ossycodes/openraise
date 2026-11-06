@@ -1,7 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardCheck, Flag, IdCard, BookOpenCheck } from 'lucide-react';
+import {
+  ClipboardCheck,
+  Flag,
+  IdCard,
+  BookOpenCheck,
+  History,
+} from 'lucide-react';
 export function WorkspaceNav() {
   const path = usePathname();
   return (
@@ -35,6 +41,13 @@ export function WorkspaceNav() {
       >
         <BookOpenCheck size={16} aria-hidden="true" />
         Money operations
+      </Link>
+      <Link
+        href="/admin/audit"
+        aria-current={path.startsWith('/admin/audit') ? 'page' : undefined}
+      >
+        <History size={16} aria-hidden="true" />
+        Audit log
       </Link>
     </nav>
   );

@@ -1,3 +1,4 @@
+import { auditActor } from '../audit/actor.js';
 import { withdrawalReviewWhere } from './withdrawal-review.js';
 import {
   BadRequestException,
@@ -429,6 +430,7 @@ export class WithdrawalsService {
   ) {
     return this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT "id" FROM "Campaign" WHERE "id"=${campaignId} FOR UPDATE`;
+      await auditActor(tx, user.id);
       if (!(await tx.campaign.findUnique({ where: { id: campaignId } })))
         throw new NotFoundException('Campaign not found');
       await tx.payoutFreezeEvent.create({

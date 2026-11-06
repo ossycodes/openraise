@@ -1,3 +1,4 @@
+import { auditActor } from '../audit/actor.js';
 import {
   BadRequestException,
   ConflictException,
@@ -212,8 +213,7 @@ export class KycService {
           idNumberLast4: input.idNumber.slice(-4),
           legalName: input.legalName,
           dateOfBirth: new Date(`${input.dateOfBirth}T00:00:00Z`),
-          verifiedName:
-            check.status === 'VERIFIED' ? check.verifiedName : null,
+          verifiedName: check.status === 'VERIFIED' ? check.verifiedName : null,
           reason: check.status === 'REJECTED' ? check.reason : null,
           documentKey: this.provider.needsDocument ? input.documentKey! : null,
           documentContentType,
@@ -340,28 +340,29 @@ export class KycService {
         'Another administrator must review your own identity',
       );
     if (row.status !== 'PENDING')
-      throw new ConflictException(
-        'This verification has already been decided',
-      );
+      throw new ConflictException('This verification has already been decided');
 
     const approve = input.decision === 'APPROVE';
     // Conditional on the version the reviewer saw, so two reviewers can't
     // both decide and nobody decides on details that changed underneath them.
-    const claimed = await this.prisma.identityVerification.updateMany({
-      where: {
-        id,
-        status: 'PENDING',
-        updatedAt: new Date(input.expectedUpdatedAt),
-      },
-      data: {
-        status: approve ? 'VERIFIED' : 'REJECTED',
-        verifiedName: approve ? (input.verifiedName ?? row.legalName) : null,
-        reason: approve ? null : input.reason!,
-        reviewerId: admin.id,
-        decidedAt: new Date(),
-        // A rejected document has no further use; the creator uploads anew.
-        ...(approve ? {} : { documentKey: null, documentContentType: null }),
-      },
+    const claimed = await this.prisma.$transaction(async (tx) => {
+      await auditActor(tx, admin.id);
+      return tx.identityVerification.updateMany({
+        where: {
+          id,
+          status: 'PENDING',
+          updatedAt: new Date(input.expectedUpdatedAt),
+        },
+        data: {
+          status: approve ? 'VERIFIED' : 'REJECTED',
+          verifiedName: approve ? (input.verifiedName ?? row.legalName) : null,
+          reason: approve ? null : input.reason!,
+          reviewerId: admin.id,
+          decidedAt: new Date(),
+          // A rejected document has no further use; the creator uploads anew.
+          ...(approve ? {} : { documentKey: null, documentContentType: null }),
+        },
+      });
     });
     if (claimed.count === 0)
       throw new ConflictException(

@@ -1,3 +1,4 @@
+import { withAuditActor } from '../audit/actor.js';
 import {
   BadGatewayException,
   BadRequestException,
@@ -81,7 +82,10 @@ export class BankAccountsService {
     const provider = this.requireProvider();
     if (!this.banks || Date.now() - this.banks.at > BANK_LIST_TTL_MS) {
       const list = await this.call(() => provider.listBanks('NG'));
-      this.banks = { at: Date.now(), list: [...list].sort((a, b) => a.name.localeCompare(b.name)) };
+      this.banks = {
+        at: Date.now(),
+        list: [...list].sort((a, b) => a.name.localeCompare(b.name)),
+      };
     }
     return this.banks.list;
   }
@@ -93,7 +97,9 @@ export class BankAccountsService {
       this.requireProvider().resolveAccount({ ...input, country: 'NG' }),
     );
     if (!resolved.resolved) {
-      throw new BadRequestException("We couldn't find that account. Check the number and the bank.");
+      throw new BadRequestException(
+        "We couldn't find that account. Check the number and the bank.",
+      );
     }
     return {
       bankCode: bank.code,
@@ -105,17 +111,27 @@ export class BankAccountsService {
 
   async add(user: AuthUser, input: AccountLookup): Promise<PublicBankAccount> {
     if (!user.emailVerified) {
-      throw new ForbiddenException('Verify your email before adding a payout account');
+      throw new ForbiddenException(
+        'Verify your email before adding a payout account',
+      );
     }
     const active = await this.prisma.bankAccount.findMany({
       where: { userId: user.id, removedAt: null },
       select: { bankCode: true, accountNumber: true },
     });
-    if (active.some((a) => a.bankCode === input.bankCode && a.accountNumber === input.accountNumber)) {
+    if (
+      active.some(
+        (a) =>
+          a.bankCode === input.bankCode &&
+          a.accountNumber === input.accountNumber,
+      )
+    ) {
       throw new ConflictException('This account is already on your profile');
     }
     if (active.length >= MAX_BANK_ACCOUNTS) {
-      throw new ConflictException(`You can have at most ${MAX_BANK_ACCOUNTS} payout accounts`);
+      throw new ConflictException(
+        `You can have at most ${MAX_BANK_ACCOUNTS} payout accounts`,
+      );
     }
 
     const looked = await this.resolve(input);
@@ -135,25 +151,27 @@ export class BankAccountsService {
       select: { name: true, email: true },
     });
 
-    const account = await this.prisma.bankAccount.create({
-      data: {
-        userId: user.id,
-        bankCode: looked.bankCode,
-        bankName: looked.bankName,
-        accountNumber: input.accountNumber,
-        accountName: looked.accountName,
-        provider: provider.name,
-        recipientId: recipient.id,
-        recipientUsable: recipient.usable,
-        // Against the verified legal name once there is one.
-        nameMatchesProfile: namesMatch(
-          (await this.kyc.verifiedName(user.id)) ?? profile.name,
-          looked.accountName,
-        ),
-        isDefault: active.length === 0,
-        payoutsAvailableAt: new Date(Date.now() + PAYOUT_HOLD_MS),
-      },
-    });
+    const account = await withAuditActor(this.prisma, user.id, async (tx) =>
+      tx.bankAccount.create({
+        data: {
+          userId: user.id,
+          bankCode: looked.bankCode,
+          bankName: looked.bankName,
+          accountNumber: input.accountNumber,
+          accountName: looked.accountName,
+          provider: provider.name,
+          recipientId: recipient.id,
+          recipientUsable: recipient.usable,
+          // Against the verified legal name once there is one.
+          nameMatchesProfile: namesMatch(
+            (await this.kyc.verifiedName(user.id)) ?? profile.name,
+            looked.accountName,
+          ),
+          isDefault: active.length === 0,
+          payoutsAvailableAt: new Date(Date.now() + PAYOUT_HOLD_MS),
+        },
+      }),
+    );
 
     // Tell the owner, so a stolen login can't quietly redirect payouts.
     this.mail
@@ -165,7 +183,9 @@ export class BankAccountsService {
           new URL('/dashboard/payouts', this.config.get('WEB_URL')).toString(),
         ),
       )
-      .catch((error: unknown) => this.logger.error(`Payout account email failed: ${String(error)}`));
+      .catch((error: unknown) =>
+        this.logger.error(`Payout account email failed: ${String(error)}`),
+      );
 
     return toPublic(account);
   }
@@ -180,30 +200,39 @@ export class BankAccountsService {
 
   async setDefault(user: AuthUser, id: string): Promise<PublicBankAccount[]> {
     await this.owned(user, id);
-    await this.prisma.$transaction([
-      this.prisma.bankAccount.updateMany({
+    await withAuditActor(this.prisma, user.id, async (tx) => {
+      await tx.bankAccount.updateMany({
         where: { userId: user.id, isDefault: true, NOT: { id } },
         data: { isDefault: false },
-      }),
-      this.prisma.bankAccount.update({ where: { id }, data: { isDefault: true } }),
-    ]);
+      });
+      await tx.bankAccount.update({ where: { id }, data: { isDefault: true } });
+    });
     return this.list(user);
   }
 
   /** Kept for withdrawal history; the next oldest account becomes the default. */
   async remove(user: AuthUser, id: string): Promise<PublicBankAccount[]> {
-    const account = await this.owned(user, id);
-    await this.prisma.bankAccount.update({
-      where: { id },
-      data: { removedAt: new Date(), isDefault: false },
-    });
-    if (account.isDefault) {
-      const next = await this.prisma.bankAccount.findFirst({
-        where: { userId: user.id, removedAt: null },
-        orderBy: { createdAt: 'asc' },
+    await withAuditActor(this.prisma, user.id, async (tx) => {
+      const account = await tx.bankAccount.findFirst({
+        where: { id, userId: user.id, removedAt: null },
       });
-      if (next) await this.prisma.bankAccount.update({ where: { id: next.id }, data: { isDefault: true } });
-    }
+      if (!account) throw new NotFoundException('Payout account not found');
+      await tx.bankAccount.update({
+        where: { id },
+        data: { removedAt: new Date(), isDefault: false },
+      });
+      if (account.isDefault) {
+        const next = await tx.bankAccount.findFirst({
+          where: { userId: user.id, removedAt: null },
+          orderBy: { createdAt: 'asc' },
+        });
+        if (next)
+          await tx.bankAccount.update({
+            where: { id: next.id },
+            data: { isDefault: true },
+          });
+      }
+    });
     return this.list(user);
   }
 
@@ -223,7 +252,9 @@ export class BankAccountsService {
 
   private requireProvider(): PaymentProvider {
     if (!this.provider) {
-      throw new ServiceUnavailableException('Payouts are not set up on this deployment');
+      throw new ServiceUnavailableException(
+        'Payouts are not set up on this deployment',
+      );
     }
     return this.provider;
   }
@@ -234,8 +265,12 @@ export class BankAccountsService {
       return await fn();
     } catch (error) {
       if (error instanceof PaymentProviderError) {
-        this.logger.warn(`Payment provider ${error.code}${error.status ? ` (${error.status})` : ''}`);
-        throw new BadGatewayException('The bank lookup service is unavailable. Try again shortly.');
+        this.logger.warn(
+          `Payment provider ${error.code}${error.status ? ` (${error.status})` : ''}`,
+        );
+        throw new BadGatewayException(
+          'The bank lookup service is unavailable. Try again shortly.',
+        );
       }
       throw error;
     }
