@@ -23,9 +23,9 @@ settings, audit log.
 Still to build: user management, featuring campaigns, payout retry and
 reconciliation actions, categories and deployment settings.
 
-## Money workspace in review
+## Read-only money workspace
 
-[[Admin money dashboard]] adds read-only balances, ledger inspection, campaign
+[[Admin money dashboard]] shipped in #44 and adds read-only balances, ledger inspection, campaign
 wallet views and payment/withdrawal/event reconciliation queues. Operator
 resolutions, transfer retry, adjustments and their action workflow are separate
 work. Manual identity review already shipped in #39; see [[Identity verification]].

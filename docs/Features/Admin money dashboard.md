@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 44
+shipped: 2026-11-06
 branch: feat/admin-money-dashboard
 type: feature
 area: web
