@@ -40,6 +40,8 @@ export interface DonationSession extends DonationQuote {
   checkoutUrl: string | null;
 }
 export interface Supporter {
+  displayName?: string;
+  message?: string | null;
   id: string;
   amount: string;
   currency: Currency;

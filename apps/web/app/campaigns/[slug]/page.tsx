@@ -202,8 +202,8 @@ export default async function CampaignPage({
               </div>
               <Contributors recent={supporters} top={topSupporters} />
               <p className="privacy-note">
-                Only confirmed donations appear here. Supporter identities stay
-                private.
+                Only confirmed donations appear here. Names are shown only when
+                supporters choose to share them; rankings remain anonymous.
               </p>
             </section>
             <section id="giving-details" className="giving-details">

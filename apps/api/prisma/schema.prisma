@@ -297,6 +297,9 @@ model Donation {
   campaign               Campaign                     @relation(fields: [campaignId], references: [id], onDelete: Restrict)
   donorUserId            String?
   donor                  User?                        @relation(fields: [donorUserId], references: [id], onDelete: SetNull)
+  donorName              String?
+  donorMessage           String?
+  isAnonymous            Boolean                      @default(true)
   donorEmail             String
   idempotencyKeyHash     String                       @unique
   reference              String                       @unique

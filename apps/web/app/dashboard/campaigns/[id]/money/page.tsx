@@ -44,7 +44,10 @@ export default async function CampaignMoneyPage({
 }) {
   const { id } = await params;
   const pageParam = Number((await searchParams).page ?? 1);
-  const page = Number.isInteger(pageParam) && pageParam > 0 ? Math.min(pageParam, 10_000) : 1;
+  const page =
+    Number.isInteger(pageParam) && pageParam > 0
+      ? Math.min(pageParam, 10_000)
+      : 1;
   const returnTo = `/dashboard/campaigns/${id}/money`;
   const base = `/campaigns/${encodeURIComponent(id)}`;
 
@@ -52,7 +55,10 @@ export default async function CampaignMoneyPage({
   if (!campaign) notFound();
   const [summary, withdrawals, donations, accounts] = await Promise.all([
     apiAs<MoneySummary>(`${base}/money`, { returnTo }),
-    apiAs<{ items: Withdrawal[]; hasMore: boolean }>(`${base}/withdrawals?page=1`, { returnTo }),
+    apiAs<{ items: Withdrawal[]; hasMore: boolean }>(
+      `${base}/withdrawals?page=1`,
+      { returnTo },
+    ),
     apiAs<{ items: ReceivedDonation[]; hasMore: boolean }>(
       `${base}/donations/received?page=${page}`,
       { returnTo },
@@ -61,7 +67,9 @@ export default async function CampaignMoneyPage({
   ]);
   const money = (minor: string) => formatMoney(BigInt(minor), summary.currency);
   const canWithdraw =
-    summary.payoutsSupported && !summary.payoutsFrozen && BigInt(summary.available) > 0n;
+    summary.payoutsSupported &&
+    !summary.payoutsFrozen &&
+    BigInt(summary.available) > 0n;
 
   return (
     <>
@@ -85,7 +93,8 @@ export default async function CampaignMoneyPage({
           <span>Raised</span>
           <strong>{money(summary.raised)}</strong>
           <small>
-            {summary.donationCount} {summary.donationCount === 1 ? 'donation' : 'donations'}
+            {summary.donationCount}{' '}
+            {summary.donationCount === 1 ? 'donation' : 'donations'}
           </small>
         </div>
         <div className="money-stat">
@@ -104,7 +113,10 @@ export default async function CampaignMoneyPage({
 
       <div className="dashboard-columns">
         <div className="dashboard-main">
-          <section className="dashboard-panel" aria-labelledby="donations-title">
+          <section
+            className="dashboard-panel"
+            aria-labelledby="donations-title"
+          >
             <div className="panel-heading">
               <h2 id="donations-title">Donations</h2>
               {summary.donationCount > 0 && (
@@ -123,11 +135,17 @@ export default async function CampaignMoneyPage({
                 provider confirms them.
               </p>
             ) : (
-              <div className="table-wrap" role="region" aria-label="Donations" tabIndex={0}>
+              <div
+                className="table-wrap"
+                role="region"
+                aria-label="Donations"
+                tabIndex={0}
+              >
                 <table className="money-table">
                   <thead>
                     <tr>
                       <th scope="col">Date</th>
+                      <th scope="col">Supporter</th>
                       <th scope="col">Donation</th>
                       <th scope="col">Platform fee</th>
                       <th scope="col">To your campaign</th>
@@ -137,9 +155,24 @@ export default async function CampaignMoneyPage({
                     {donations.items.map((d) => (
                       <tr key={d.id}>
                         <td>{dateTime.format(new Date(d.confirmedAt))}</td>
+                        <td>
+                          <strong>{d.donorName ?? 'Name not provided'}</strong>
+                          <small className="donor-visibility">
+                            {d.isAnonymous
+                              ? 'Anonymous publicly'
+                              : 'Name shared publicly'}
+                          </small>
+                          {d.donorMessage && (
+                            <p className="supporter-message">
+                              {d.donorMessage}
+                            </p>
+                          )}
+                        </td>
                         <td>{money(d.amount)}</td>
                         <td>
-                          {d.donorCoveredPlatformFee ? 'Covered by donor' : money(d.platformFee)}
+                          {d.donorCoveredPlatformFee
+                            ? 'Covered by donor'
+                            : money(d.platformFee)}
                         </td>
                         <td>{money(d.netToCampaign)}</td>
                       </tr>
@@ -152,7 +185,9 @@ export default async function CampaignMoneyPage({
               <nav className="pager" aria-label="Donation pages">
                 {page > 1 && <Link href={`?page=${page - 1}`}>Newer</Link>}
                 <span>Page {page}</span>
-                {donations.hasMore && <Link href={`?page=${page + 1}`}>Older</Link>}
+                {donations.hasMore && (
+                  <Link href={`?page=${page + 1}`}>Older</Link>
+                )}
               </nav>
             )}
             <p className="field-hint privacy-line">
@@ -161,7 +196,10 @@ export default async function CampaignMoneyPage({
             </p>
           </section>
 
-          <section className="dashboard-panel" aria-labelledby="withdrawals-title">
+          <section
+            className="dashboard-panel"
+            aria-labelledby="withdrawals-title"
+          >
             <h2 id="withdrawals-title">Withdrawals</h2>
             {withdrawals.items.length === 0 ? (
               <p className="field-hint">No withdrawals yet.</p>
@@ -180,7 +218,9 @@ export default async function CampaignMoneyPage({
                         <small>We’re confirming this one with the bank.</small>
                       )}
                     </div>
-                    <span className={`status-pill withdrawal-${w.status.toLowerCase()}`}>
+                    <span
+                      className={`status-pill withdrawal-${w.status.toLowerCase()}`}
+                    >
                       {WITHDRAWAL_LABEL[w.status]}
                     </span>
                   </li>
@@ -204,7 +244,10 @@ export default async function CampaignMoneyPage({
                 <Lock size={18} aria-hidden="true" />
                 <div>
                   <strong>Withdrawals are paused</strong>
-                  <p>{summary.payoutFreezeReason ?? 'Contact support to find out more.'}</p>
+                  <p>
+                    {summary.payoutFreezeReason ??
+                      'Contact support to find out more.'}
+                  </p>
                 </div>
               </div>
             ) : !canWithdraw ? (
@@ -218,8 +261,8 @@ export default async function CampaignMoneyPage({
               />
             )}
             <p className="field-hint withdraw-fee-note">
-              Each withdrawal has a {money(summary.withdrawalFee)} fee, taken from
-              the amount you withdraw.
+              Each withdrawal has a {money(summary.withdrawalFee)} fee, taken
+              from the amount you withdraw.
             </p>
           </section>
         </aside>

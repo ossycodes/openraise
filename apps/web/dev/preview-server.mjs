@@ -61,6 +61,13 @@ const supporters = [2500000, 1000000, 500000, 2000000].map((amount, index) => ({
   amount: String(amount),
   currency: 'NGN',
   confirmedAt: `2026-11-0${5 - index}T10:00:00Z`,
+  displayName: index === 0 ? 'Amaka' : 'Anonymous',
+  message:
+    index === 0
+      ? 'One step closer. We are cheering you on!'
+      : index === 1
+        ? 'Wishing you every success.'
+        : null,
 }));
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
