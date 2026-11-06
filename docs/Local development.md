@@ -1,3 +1,14 @@
+---
+title: Local development
+tags:
+  - development
+---
+
+# Local development
+
+See the [README](../README.md#development) for installation and the compose-based
+local stack. Copy API settings to `apps/api/.env`; web settings belong in
+`apps/web/.env.local` (see its `.env.example`).
 
 ## Request throttling
 
