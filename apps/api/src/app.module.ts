@@ -1,3 +1,4 @@
+import { MoneyTrailModule } from './money-trail/money-trail.module.js';
 import { AdminMoneyModule } from './admin-money/admin-money.module.js';
 import { RateLimitModule } from './rate-limit/rate-limit.module.js';
 import { ReportsModule } from './reports/reports.module.js';
@@ -41,6 +42,7 @@ import { KycModule } from './kyc/kyc.module.js';
     UsersModule,
     CategoriesModule,
     CampaignsModule,
+    MoneyTrailModule,
     ReportsModule,
     CampaignUpdatesModule,
     BankAccountsModule,

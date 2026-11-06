@@ -398,6 +398,117 @@ createServer(async (req, res) => {
     req.method === 'POST'
   )
     return send(200, { unsubscribed: true });
+  const trailMatch = url.pathname.match(/^\/campaigns\/([^/]+)\/money-trail$/);
+  if (trailMatch) {
+    const resource = trailMatch[1];
+    if (resource === 'unavailable-trail') return send(503, {});
+    const page = Number(url.searchParams.get('page') || 1);
+    let trail = {
+      currency: 'NGN',
+      asOf: '2026-11-06T14:00:00Z',
+      raised: '324500000',
+      platformFeesDeducted: '8125000',
+      donorCoveredPlatformFees: '3232500',
+      received: '316375000',
+      donationCount: 64,
+      walletBalance: '146375000',
+      reserved: '50000000',
+      paidOut: '119995000',
+      withdrawalFeesPaid: '5000',
+      returned: '25000000',
+      otherWalletChanges: '0',
+    };
+    let items = [
+      {
+        id: 'trail-held',
+        amount: '50000000',
+        fee: '5000',
+        netPaidOut: '49995000',
+        state: 'IN_PROGRESS',
+        requestedAt: '2026-11-06T10:00:00Z',
+        recordedAt: '2026-11-06T10:00:00Z',
+      },
+      {
+        id: 'trail-paid',
+        amount: '120000000',
+        fee: '5000',
+        netPaidOut: '119995000',
+        state: 'PAID',
+        requestedAt: '2026-11-04T10:00:00Z',
+        recordedAt: '2026-11-05T10:00:00Z',
+      },
+      {
+        id: 'trail-returned',
+        amount: '25000000',
+        fee: '5000',
+        netPaidOut: '24995000',
+        state: 'RETURNED',
+        requestedAt: '2026-11-02T10:00:00Z',
+        recordedAt: '2026-11-03T10:00:00Z',
+      },
+    ];
+    if (resource === 'empty-campaign') {
+      for (const key of [
+        'raised',
+        'platformFeesDeducted',
+        'donorCoveredPlatformFees',
+        'received',
+        'walletBalance',
+        'reserved',
+        'paidOut',
+        'withdrawalFeesPaid',
+        'returned',
+        'otherWalletChanges',
+      ])
+        trail[key] = '0';
+      trail.donationCount = 0;
+      items = [];
+    }
+    if (resource === 'adjusted-trail') {
+      trail.otherWalletChanges = '-1000000';
+      trail.walletBalance = '145375000';
+    }
+    if (resource === 'large-money-trail') {
+      for (const key of [
+        'platformFeesDeducted',
+        'donorCoveredPlatformFees',
+        'reserved',
+        'paidOut',
+        'withdrawalFeesPaid',
+        'returned',
+      ])
+        trail[key] = '0';
+      trail.raised = '9007199254740993';
+      trail.received = trail.raised;
+      trail.walletBalance = trail.raised;
+      items = [];
+    }
+    if (resource === 'paged-trail') {
+      items = Array.from({ length: 21 }, (_, i) => ({
+        id: `page-withdrawal-${i}`,
+        amount: '1000000',
+        fee: '5000',
+        netPaidOut: '995000',
+        state: 'RETURNED',
+        requestedAt: new Date(Date.UTC(2026, 10, 6, 12 - i)).toISOString(),
+        recordedAt: new Date(Date.UTC(2026, 10, 6, 12 - i)).toISOString(),
+      }));
+      trail.walletBalance = trail.received;
+      trail.reserved = '0';
+      trail.paidOut = '0';
+      trail.withdrawalFeesPaid = '0';
+      trail.returned = '21000000';
+    }
+    return send(200, {
+      ...trail,
+      withdrawals: {
+        items: items.slice((page - 1) * 20, page * 20),
+        page,
+        hasMore: items.length > page * 20,
+        total: items.length,
+      },
+    });
+  }
   const statusMatch = url.pathname.match(/^\/donations\/([^/]+)$/);
   if (statusMatch) {
     const session = sessions.get(statusMatch[1]);

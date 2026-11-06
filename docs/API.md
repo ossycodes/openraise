@@ -487,3 +487,44 @@ Provider-event amounts may lack a known currency; clients must not infer one.
 Donor identities, checkout URLs, request hashes, raw event bytes, full account
 numbers and payout-recipient IDs are never returned by these endpoints.
 No mutation or reconciliation-resolution endpoints are added by this feature.
+
+## Public campaign money trail
+
+`GET /campaigns/:slug/money-trail?page=1` is public, no-store and limited to
+ACTIVE/PAUSED/ENDED campaigns. Page is an integer 1–1000; 20 withdrawal records
+per page. One repeatable-read snapshot supplies summary and history.
+
+Money is returned as minor-unit strings, all in the campaign's `currency`:
+
+| Field | Meaning |
+|---|---|
+| raised, donationCount | Confirmed gifts with matching DONATION postings and campaign-wallet credits |
+| platformFeesDeducted | The amount actually deducted from gifts (`amount - netToCampaign`) |
+| donorCoveredPlatformFees | Platform fees paid separately by donors; not deducted from the raised total |
+| received | Confirmed gifts' campaign-wallet credits |
+| walletBalance | Normal-sign balance of this campaign/currency's wallet postings, after reservations |
+| reserved | Gross amounts in posted reservations without a valid settlement or return |
+| paidOut | Net completed payouts not subsequently returned |
+| withdrawalFeesPaid | Fees retained on those completed payouts |
+| returned | Gross withdrawal reservations returned to the wallet; already included in walletBalance |
+| otherWalletChanges | Wallet changes outside the included gifts/withdrawal flows (e.g. adjustments/refunds) |
+| asOf | Snapshot response timestamp |
+| withdrawals | `{ items, page, hasMore, total }`, newest requested first |
+
+Each history item contains only `id`, `amount`, `fee`, `netPaidOut`, `state`,
+`requestedAt` and `recordedAt`. State is IN_PROGRESS, PAID or RETURNED, based on
+posted ledger steps. `fee` and `netPaidOut` are request snapshots; only PAID means
+the net was paid and fee retained. RETURNED means the full reservation returned.
+Recorded time follows the relevant posting, not an admin's latest status edit.
+
+Reservation postings must debit the campaign wallet by the gross request;
+settlement postings must match gross pending-payout debit, net provider-clearing
+credit and retained-fee credit; returns must restore the campaign wallet. Kind,
+currency and wallet association are checked. Status flags alone do not establish
+a public paid/returned outcome. No donor data, bank/account identifiers, provider
+references, reconciliation flags, hashes or raw event payloads are returned.
+
+The accounting identity is `raised - platformFeesDeducted + otherWalletChanges =
+walletBalance + reserved + paidOut + withdrawalFeesPaid`. Returned reservations
+are not subtracted a second time. Processing charges paid by donors do not enter
+the campaign raised total. This is a ledger view, not proof of how money was spent.
