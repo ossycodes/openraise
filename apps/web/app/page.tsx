@@ -414,7 +414,7 @@ export default async function HomePage({
                 minutes.
               </p>
             </div>
-            <Link className="primary-button" href="/signin">
+            <Link className="primary-button" href="/dashboard/campaigns/new">
               Start a campaign <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>

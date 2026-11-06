@@ -26,7 +26,7 @@ rotate on every refresh. See [[Email and password auth]].
 | POST | `/auth/signup` | — | `{ name, email, password }` | 201 `AuthResult`; emails a confirm link. 409 if the email is taken |
 | POST | `/auth/signin` | — | `{ email, password }` | 200 `AuthResult`; 401 with the same message for unknown email and wrong password |
 | POST | `/auth/google` | — | `{ credential }` (a Google ID token) | 200 `AuthResult`; creates or links the account by verified email. 401 if the token fails verification, 409 if the email is linked to another Google account, 503 if `GOOGLE_CLIENT_ID` is unset. See [[Google sign-in]] |
-| POST | `/auth/refresh` | — | `{ refreshToken }` | 200 `AuthResult` (new pair); 401 if spent, expired or revoked |
+| POST | `/auth/refresh` | — | `{ refreshToken }` | 200 `AuthResult` (new pair); 401 if spent, expired or revoked. A token spent in the last 30 seconds while its sign-in is live gets 401 `{ code: "REFRESH_RACE" }` (retry with the newer token) and the sign-in survives; any other reuse revokes it |
 | POST | `/auth/signout` | — | `{ refreshToken }` | 204; revokes every token from that sign-in |
 | POST | `/auth/verify-email` | — | `{ token }` | 204; 400 if the link is invalid, used or expired |
 | POST | `/auth/verify-email/resend` | Bearer | — | 202; replaces any earlier link |
