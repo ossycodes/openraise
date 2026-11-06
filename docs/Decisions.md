@@ -388,3 +388,29 @@ Moderation is atomic and versioned against both report and campaign, with an
 attributable action record. Admins cannot moderate their own campaign. Unknown
 responses must be reconciled by reloading current state rather than assuming
 failure or blindly creating another action.
+
+## Identity verification gates going live and getting paid
+
+There is no "disabled" KYC setting. The default provider, `manual`, needs only
+the storage every deployment already has: the creator uploads a photo of their
+ID and an administrator compares it with what they entered. Vendor adapters
+(QoreID, Dojah, Smile ID) slot in behind `KycProvider` later.
+
+Verification is required to submit a campaign and checked again when an admin
+approves one, so a campaign can't go live for someone unverified. Campaigns
+already live stay up, but every withdrawal needs a verified identity and a
+payout account whose bank-resolved name matches the verified name (the same
+`namesMatch` rule as before, now against the reviewed name instead of the
+profile name). An admin override for genuine mismatches is not built yet.
+
+The reviewer confirms the name as printed on the ID; that, not what the creator
+typed, is what payouts must match. Admins can't decide their own check.
+
+Only the last four characters of an ID number are stored. Storage buckets
+usually serve files publicly (campaign photos live there), so ID photos are
+encrypted with AES-256-GCM before they are written, with the storage key bound
+in so a file can't be moved to another person. The API streams decrypted bytes
+to admins only, uncached. The key comes from `KYC_ENCRYPTION_KEY`, or is
+derived from `JWT_SECRET` so existing installs keep working; deployments
+should set their own. Declined photos are deleted; verified ones are kept as
+evidence for fraud investigations until a retention policy is decided.

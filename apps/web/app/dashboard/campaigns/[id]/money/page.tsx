@@ -5,7 +5,8 @@ import { ArrowLeft, Download, Lock } from 'lucide-react';
 import { ApiError, apiAs } from '../../../../_lib/api';
 import { CampaignTabs } from '../../../_components/dashboard-nav';
 import { WithdrawForm } from '../../../_components/withdraw-form';
-import { myCampaigns } from '../../../_lib/data';
+import { IdentityCallout } from '../../../_components/identity-callout';
+import { identity, myCampaigns } from '../../../_lib/data';
 import {
   WITHDRAWAL_LABEL,
   type BankAccount,
@@ -53,7 +54,7 @@ export default async function CampaignMoneyPage({
 
   const campaign = (await myCampaigns(returnTo)).find((c) => c.id === id);
   if (!campaign) notFound();
-  const [summary, withdrawals, donations, accounts] = await Promise.all([
+  const [summary, withdrawals, donations, accounts, kyc] = await Promise.all([
     apiAs<MoneySummary>(`${base}/money`, { returnTo }),
     apiAs<{ items: Withdrawal[]; hasMore: boolean }>(
       `${base}/withdrawals?page=1`,
@@ -64,6 +65,7 @@ export default async function CampaignMoneyPage({
       { returnTo },
     ),
     payoutAccounts(returnTo),
+    identity(returnTo),
   ]);
   const money = (minor: string) => formatMoney(BigInt(minor), summary.currency);
   const canWithdraw =
@@ -252,6 +254,8 @@ export default async function CampaignMoneyPage({
               </div>
             ) : !canWithdraw ? (
               <p className="field-hint">Nothing to withdraw yet.</p>
+            ) : kyc.status !== 'VERIFIED' ? (
+              <IdentityCallout status={kyc.status} purpose="withdraw" />
             ) : (
               <WithdrawForm
                 campaignId={id}

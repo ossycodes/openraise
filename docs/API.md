@@ -400,3 +400,36 @@ Freeze operations prevent new reservations, not transfers already in progress.
 All reads/responses are no-store. Reports and notes are private to admins;
 public and organiser campaign reads never contain report details or action
 history. Owners receive only the relevant pause/freeze restriction reason.
+
+## Identity verification
+
+| Method | Path | Auth | Input | Returns |
+|---|---|---|---|---|
+| GET | `/kyc` | Signed in | — | `{ status: NONE\|PENDING\|VERIFIED\|REJECTED, provider, documentRequired, verification }` |
+| POST | `/kyc/document` | Verified email | Raw image body (`Content-Type: image/jpeg\|png\|webp`), ≤5 MB | 201 `{ documentKey, contentType, size }`; 400 not an image, 413 too large, 415 not `image/*`, 409 already pending/verified |
+| POST | `/kyc` | Verified email | `{ documentType, idNumber, legalName, dateOfBirth, documentKey }` | 201 own verification (status `PENDING` with `manual`); 400 field `errors`, 409 already pending/verified |
+| GET | `/admin/kyc` | Admin | `status=PENDING\|VERIFIED\|REJECTED`, `q` name/email ≤100, `page` 1–1000 | `{ items, total, pending, page, limit: 20 }`; waiting oldest first, decided newest first |
+| GET | `/admin/kyc/:id` | Admin | — | `{ verification, user, history }`; `hasDocument`, never the storage key |
+| GET | `/admin/kyc/:id/document` | Admin | — | The decrypted ID photo; `private, no-store`, `nosniff`, `default-src 'none'` |
+| POST | `/admin/kyc/:id/decision` | Admin | `{ decision: APPROVE\|REJECT, reason?, verifiedName?, expectedUpdatedAt }` | 200 detail; 400 reject without a reason, 403 own check, 409 stale or already decided |
+
+`documentType`: `NIN_SLIP` (11-digit NIN), `PASSPORT`, `DRIVERS_LICENCE`,
+`VOTERS_CARD` (5–20 letters and digits). Spaces and dashes are removed. Only the
+last four characters are stored; the full number goes to the provider adapter
+and nowhere else. `legalName` needs at least two names; people under 18 are
+refused. The document key must be one this user uploaded.
+
+Approving sets `verifiedName` (defaults to the entered name, corrected by the
+reviewer if the ID differs). Declining needs a 5–500 character reason, which
+the creator sees, and deletes the photo. Both email the creator.
+
+Verification gates other endpoints, with `code: 'IDENTITY_UNVERIFIED'`:
+
+- `POST /campaigns/:id/submit`: 403 until the owner is verified.
+- `POST /admin/campaigns/:id/review` approving: 409 until the organiser is
+  verified. The review detail's `organiser` has `identityVerified` and
+  `verifiedName`.
+- `POST /campaigns/:id/withdrawals`: 403 until verified, and 409
+  `code: 'ACCOUNT_NAME_MISMATCH'` when the payout account's name doesn't match
+  the verified name. New payout accounts' `nameMatchesProfile` uses the
+  verified name once there is one.

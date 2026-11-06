@@ -131,6 +131,41 @@ export interface Bank {
   name: string;
 }
 
+export type IdentityStatus = 'NONE' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type DocumentType =
+  | 'NIN_SLIP'
+  | 'PASSPORT'
+  | 'DRIVERS_LICENCE'
+  | 'VOTERS_CARD';
+
+export const DOCUMENT_LABEL: Record<DocumentType, string> = {
+  NIN_SLIP: 'NIN slip or card',
+  PASSPORT: 'International passport',
+  DRIVERS_LICENCE: 'Driver’s licence',
+  VOTERS_CARD: 'Voter’s card',
+};
+
+export interface IdentityVerification {
+  id: string;
+  status: Exclude<IdentityStatus, 'NONE'>;
+  documentType: DocumentType;
+  idNumberLast4: string;
+  legalName: string;
+  dateOfBirth: string;
+  verifiedName: string | null;
+  reason: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+/** GET /kyc */
+export interface IdentityState {
+  status: IdentityStatus;
+  provider: string;
+  documentRequired: boolean;
+  verification: IdentityVerification | null;
+}
+
 /** Same rules as the API's EDITABLE_STATUSES and CURRENCY_EDITABLE_STATUSES */
 export const canEdit = (s: CampaignStatus) =>
   s === 'DRAFT' || s === 'REJECTED' || s === 'ACTIVE' || s === 'PAUSED';

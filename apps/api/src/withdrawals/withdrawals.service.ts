@@ -10,6 +10,8 @@ import {
 import { createHash, randomUUID } from 'node:crypto';
 import type { AuthUser } from '../auth/auth.types.js';
 import { FeesService } from '../fees/fees.service.js';
+import { namesMatch } from '../bank-accounts/name-match.js';
+import { KycService } from '../kyc/kyc.service.js';
 import type { Prisma, Withdrawal } from '../generated/prisma/client.js';
 import { LedgerService } from '../ledger/ledger.service.js';
 import { accountKey } from '../ledger/ledger.entries.js';
@@ -31,6 +33,7 @@ export class WithdrawalsService {
     private readonly ledger: LedgerService,
     private readonly fees: FeesService,
     private readonly settlement: WithdrawalSettlement,
+    private readonly kyc: KycService,
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider | null,
   ) {}
   private public(w: Withdrawal) {
@@ -179,6 +182,10 @@ export class WithdrawalsService {
     if (existing) return replay(existing);
     if (!user.emailVerified)
       throw new ForbiddenException('Verify your email before withdrawing');
+    const verifiedName = await this.kyc.requireVerified(
+      user.id,
+      'Verify your identity before withdrawing',
+    );
     const provider = this.provider;
     if (!provider)
       throw new ServiceUnavailableException('Payouts are not configured');
@@ -234,6 +241,13 @@ export class WithdrawalsService {
             throw new ConflictException(
               'Payout account is not eligible for this provider and currency',
             );
+          // Money only goes to an account in the verified person's name.
+          if (!namesMatch(verifiedName, bank.accountName))
+            throw new ConflictException({
+              message:
+                "This payout account's name doesn't match your verified name",
+              code: 'ACCOUNT_NAME_MISMATCH',
+            });
           if (bank.payoutsAvailableAt.getTime() > Date.now())
             throw new ConflictException(
               'New payout accounts have a 24-hour withdrawal hold',

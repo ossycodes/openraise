@@ -169,10 +169,14 @@ export interface TestUser {
   refreshToken: string;
 }
 
-/** Sign up a fresh user over HTTP; `admin` promotes them in the database. */
+/**
+ * Sign up a fresh user over HTTP; `admin` promotes them in the database.
+ * `verified` confirms their email and, unless `identity: false`, records a
+ * verified identity named "Test User", so they can submit and withdraw.
+ */
 export async function signUpUser(
   t: TestApp,
-  options: { admin?: boolean; verified?: boolean } = {},
+  options: { admin?: boolean; verified?: boolean; identity?: boolean } = {},
 ): Promise<TestUser> {
   const email = uniqueEmail();
   const res = await t
@@ -192,6 +196,21 @@ export async function signUpUser(
       data: {
         ...(options.admin ? { role: 'ADMIN' as const } : {}),
         ...(options.verified ? { emailVerifiedAt: new Date() } : {}),
+      },
+    });
+  }
+  if (options.verified && options.identity !== false) {
+    await t.prisma.identityVerification.create({
+      data: {
+        userId: user.id,
+        provider: 'manual',
+        status: 'VERIFIED',
+        documentType: 'NIN_SLIP',
+        idNumberLast4: '1234',
+        legalName: 'Test User',
+        dateOfBirth: new Date('1990-01-01T00:00:00Z'),
+        verifiedName: 'Test User',
+        decidedAt: new Date(),
       },
     });
   }

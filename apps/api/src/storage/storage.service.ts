@@ -125,6 +125,31 @@ export class StorageService implements OnModuleInit {
       }),
     );
   }
+  /** Server-side write, for files the API itself produces (e.g. encrypted documents). */
+  async put(key: string, body: Uint8Array, contentType: string): Promise<void> {
+    await this.s3.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: body,
+        ContentType: contentType,
+      }),
+    );
+  }
+
+  /** A whole object, or null if it doesn't exist. Only for small private files. */
+  async read(key: string): Promise<Uint8Array | null> {
+    try {
+      const res = await this.s3.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+      );
+      return res.Body ? res.Body.transformToByteArray() : new Uint8Array();
+    } catch (error) {
+      if (isNotFound(error)) return null;
+      throw error;
+    }
+  }
+
   async delete(key: string): Promise<void> {
     await this.s3.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),

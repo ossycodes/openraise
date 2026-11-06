@@ -22,6 +22,7 @@ import {
 } from '../payments/payment-provider.js';
 import { PaymentProviderError } from '../payments/provider-http.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { KycService } from '../kyc/kyc.service.js';
 import { namesMatch } from './name-match.js';
 
 export const PAYOUT_HOLD_MS = 24 * 60 * 60 * 1000;
@@ -72,6 +73,7 @@ export class BankAccountsService {
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider | null,
     private readonly mail: MailService,
     private readonly config: ConfigService<Env, true>,
+    private readonly kyc: KycService,
   ) {}
 
   /** Nigerian banks the provider can pay out to, cached for a day. */
@@ -143,7 +145,11 @@ export class BankAccountsService {
         provider: provider.name,
         recipientId: recipient.id,
         recipientUsable: recipient.usable,
-        nameMatchesProfile: namesMatch(profile.name, looked.accountName),
+        // Against the verified legal name once there is one.
+        nameMatchesProfile: namesMatch(
+          (await this.kyc.verifiedName(user.id)) ?? profile.name,
+          looked.accountName,
+        ),
         isDefault: active.length === 0,
         payoutsAvailableAt: new Date(Date.now() + PAYOUT_HOLD_MS),
       },

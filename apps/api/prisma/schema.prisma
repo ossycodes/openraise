@@ -39,6 +39,56 @@ model User {
   bankAccounts            BankAccount[]
   withdrawals             Withdrawal[]
   payoutFreezeEvents      PayoutFreezeEvent[]
+  identityVerifications   IdentityVerification[]   @relation("IdentitySubject")
+  identityDecisions       IdentityVerification[]   @relation("IdentityReviewer")
+}
+
+enum IdentityVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum IdentityDocumentType {
+  NIN_SLIP
+  PASSPORT
+  DRIVERS_LICENCE
+  VOTERS_CARD
+}
+
+/// One attempt to verify who a creator is. Verification gates campaign
+/// submission, approval and withdrawals. At most one PENDING row per user
+/// (partial unique index in the migration).
+model IdentityVerification {
+  id                  String                     @id @default(cuid())
+  userId              String
+  user                User                       @relation("IdentitySubject", fields: [userId], references: [id], onDelete: Restrict)
+  /// KYC_PROVIDER that handled it: "manual", later vendor adapters
+  provider            String
+  providerReference   String?
+  status              IdentityVerificationStatus @default(PENDING)
+  documentType        IdentityDocumentType
+  /// Last 4 characters of the ID number. The full number is never stored.
+  idNumberLast4       String
+  /// Name and date of birth as the creator entered them
+  legalName           String
+  dateOfBirth         DateTime                   @db.Date
+  /// The name confirmed against the document; set when VERIFIED and used for
+  /// payout account name matching
+  verifiedName        String?
+  /// Storage key of the AES-256-GCM encrypted document image; null once deleted
+  documentKey         String?
+  documentContentType String?
+  /// Rejection reason shown to the creator
+  reason              String?
+  reviewerId          String?
+  reviewer            User?                      @relation("IdentityReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  decidedAt           DateTime?                  @db.Timestamptz
+  createdAt           DateTime                   @default(now()) @db.Timestamptz
+  updatedAt           DateTime                   @updatedAt @db.Timestamptz
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
 }
 
 /// Where a user's withdrawals are paid. Removed accounts are kept for history.

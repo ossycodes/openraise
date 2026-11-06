@@ -135,7 +135,19 @@ export default async function CampaignReviewPage({
               {organiser.emailVerified
                 ? 'Email address verified'
                 : 'Email not verified'}
-              <small>Email verification is not identity verification.</small>
+            </p>
+            <p
+              className={`review-email-status${organiser.identityVerified ? '' : ' is-missing'}`}
+            >
+              <ShieldCheck size={17} aria-hidden="true" />
+              {organiser.identityVerified
+                ? `Identity verified as ${organiser.verifiedName}`
+                : 'Identity not verified'}
+              <small>
+                {organiser.identityVerified
+                  ? 'Check the name matches the beneficiary or story.'
+                  : 'Approval waits until the organiser’s identity is verified.'}
+              </small>
             </p>
           </section>
           {c.status === 'PENDING_REVIEW' ? (

@@ -4,7 +4,8 @@ import { formatMoney } from '@openraise/shared';
 import { ArrowUpRight, HandHeart, Plus, Sprout } from 'lucide-react';
 import { progressPercent } from '../_lib/campaign';
 import { getViewer } from '../_lib/session';
-import { myCampaigns } from './_lib/data';
+import { IdentityCallout } from './_components/identity-callout';
+import { identity, myCampaigns } from './_lib/data';
 import { STATUS_LABEL } from './_lib/types';
 
 export const metadata = { title: 'Your campaigns' };
@@ -14,10 +15,11 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ deleted?: string }>;
 }) {
-  const [campaigns, viewer, params] = await Promise.all([
+  const [campaigns, viewer, params, id] = await Promise.all([
     myCampaigns(),
     getViewer(),
     searchParams,
+    identity(),
   ]);
   return (
     <>
@@ -32,6 +34,7 @@ export default async function DashboardPage({
           <Plus size={18} aria-hidden="true" /> New campaign
         </Link>
       </div>
+      <IdentityCallout status={id.status} purpose="start" />
       {params.deleted && (
         <p className="dashboard-notice" role="status">
           Draft deleted.

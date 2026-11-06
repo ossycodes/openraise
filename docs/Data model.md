@@ -326,3 +326,21 @@ restriction from a creator pause. Owner resume uses a conditional update requiri
 the restriction to be false. Admin report actions lock campaign then report,
 compare inspected versions and commit action history with restriction/state
 changes. There are no new ledger movements or changes to held payouts.
+
+## Identity verification
+
+`IdentityVerification` is one attempt to verify a person: `userId`, `provider`
+(`manual` for now) and optional `providerReference`, `status`
+(`PENDING`/`VERIFIED`/`REJECTED`), `documentType`, `idNumberLast4`, the
+entered `legalName` and `dateOfBirth` (a date), `verifiedName` once verified,
+the encrypted document's `documentKey` and `documentContentType`, the
+creator-facing `reason`, `reviewerId` and `decidedAt`.
+
+- A partial unique index allows one `PENDING` row per user.
+- Checks: `idNumberLast4` is 1–4 characters; a decided row has `decidedAt`
+  and a pending one doesn't; a `VERIFIED` row has `verifiedName`.
+- The full ID number is never stored. Documents live in storage at
+  `kyc/<userId>/<random>.<ext>.enc`, AES-256-GCM encrypted with the key bound
+  as associated data. Declining deletes the document and clears the key.
+- A person is verified when they have a `VERIFIED` row; the latest one's
+  `verifiedName` is what payout accounts must match. Rows are kept as history.

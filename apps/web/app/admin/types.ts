@@ -23,7 +23,13 @@ export interface ReviewQueue {
 }
 export interface ReviewDetail {
   campaign: OwnerCampaign & { updatedAt: string; owner: { name: string } };
-  organiser: { name: string; emailVerified: boolean; createdAt: string };
+  organiser: {
+    name: string;
+    emailVerified: boolean;
+    identityVerified: boolean;
+    verifiedName: string | null;
+    createdAt: string;
+  };
   reviews: {
     id: string;
     decision: string;

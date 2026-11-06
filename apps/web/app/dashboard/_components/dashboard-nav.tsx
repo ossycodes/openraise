@@ -6,14 +6,14 @@ import { usePathname } from 'next/navigation';
 const LINKS = [
   { href: '/dashboard', label: 'Campaigns' },
   { href: '/dashboard/payouts', label: 'Payout accounts' },
+  { href: '/dashboard/verification', label: 'Verification' },
 ];
 
 /** Top-level dashboard sections. */
 export function DashboardNav() {
   const path = usePathname();
-  const current = path.startsWith('/dashboard/payouts')
-    ? '/dashboard/payouts'
-    : '/dashboard';
+  const current =
+    LINKS.slice(1).find((l) => path.startsWith(l.href))?.href ?? '/dashboard';
   return (
     <nav className="dashboard-nav" aria-label="Dashboard">
       {LINKS.map((l) => (
