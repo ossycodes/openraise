@@ -10,7 +10,12 @@ export async function Brand() {
       <Link href="/" className="brand" aria-label={`${site.name} home`}>
         {site.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- any deployment-hosted logo URL
-          <img src={site.logoUrl} alt="" height={34} style={{ height: 34, width: 'auto' }} />
+          <img
+            src={site.logoUrl}
+            alt=""
+            height={34}
+            style={{ height: 34, width: 'auto' }}
+          />
         ) : null}
         <span>{site.name}</span>
       </Link>
@@ -47,7 +52,7 @@ export async function Brand() {
  */
 export async function SiteHeader({
   preview = false,
-  oneTap = true,
+  oneTap = process.env.NODE_ENV === 'production',
 }: {
   preview?: boolean;
   oneTap?: boolean;
@@ -71,7 +76,11 @@ export async function SiteHeader({
             <a href="#giving-details">How giving works</a>
           </nav>
           {viewer ? (
-            <form className="header-account" action="/api/auth/signout" method="post">
+            <form
+              className="header-account"
+              action="/api/auth/signout"
+              method="post"
+            >
               <span className="account-avatar" aria-hidden="true">
                 {initials(viewer.name)}
               </span>
@@ -97,7 +106,11 @@ export async function SiteHeader({
 }
 function initials(name: string) {
   const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts.at(-1)![0] : '')).toUpperCase() || '·';
+  return (
+    (
+      (parts[0]?.[0] ?? '') + (parts.length > 1 ? parts.at(-1)![0] : '')
+    ).toUpperCase() || '·'
+  );
 }
 export function SiteFooter() {
   return (
