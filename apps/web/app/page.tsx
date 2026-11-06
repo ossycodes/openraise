@@ -100,10 +100,18 @@ export default async function HomePage({
               Big dreams. Difficult moments. New beginnings. Help a community
               turn “one day” into something real.
             </p>
-            <a className="primary-button" href="#campaigns">
-              Find a cause to support{' '}
-              <ArrowRight size={18} aria-hidden="true" />
-            </a>
+            <div className="hero-actions">
+              <a className="primary-button" href="#campaigns">
+                Find a cause to support{' '}
+                <ArrowRight size={18} aria-hidden="true" />
+              </a>
+              <Link
+                className="secondary-button"
+                href="/dashboard/campaigns/new"
+              >
+                Start a campaign <ArrowUpRight size={18} aria-hidden="true" />
+              </Link>
+            </div>
             <div className="hero-assurances">
               <span>
                 <ShieldCheck size={16} aria-hidden="true" /> Fees shown upfront

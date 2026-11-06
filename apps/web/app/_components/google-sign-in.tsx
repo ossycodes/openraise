@@ -2,7 +2,7 @@
 
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface GoogleIdentity {
   initialize(options: Record<string, unknown>): void;
@@ -16,6 +16,13 @@ declare global {
     google?: { accounts: { id: GoogleIdentity } };
   }
 }
+
+// GIS is page-global, even when Next.js mounts separate sign-in components.
+let configuredClientId: string | null = null;
+let credentialHandler: ((response: { credential: string }) => void) | null =
+  null;
+let prompted = false;
+let credentialOwner: symbol | null = null;
 
 /**
  * Google Identity Services: the One Tap prompt, the "Sign in with Google"
@@ -37,6 +44,27 @@ export function GoogleSignIn({
   const buttonRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const renderedButton = useRef<HTMLElement | null>(null);
+  const owner = useRef(Symbol('google-sign-in'));
+  const mounted = useRef(false);
+  const handler = useRef<(response: { credential: string }) => void>(() => {});
+  useEffect(() => {
+    handler.current = (response) => {
+      void exchange(response);
+    };
+  });
+  useEffect(() => {
+    const currentOwner = owner.current;
+    mounted.current = true;
+    start();
+    return () => {
+      mounted.current = false;
+      if (credentialOwner !== currentOwner) return;
+      credentialOwner = null;
+      credentialHandler = null;
+      if (oneTap) window.google?.accounts.id.cancel();
+    };
+  }, [clientId, button, oneTap]);
 
   async function exchange({ credential }: { credential: string }) {
     setBusy(true);
@@ -54,23 +82,37 @@ export function GoogleSignIn({
       router.replace(next);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Google sign-in failed. Try again.');
+      setError(
+        e instanceof Error ? e.message : 'Google sign-in failed. Try again.',
+      );
       setBusy(false);
     }
   }
 
   function start() {
+    if (!mounted.current) return;
     const id = window.google?.accounts.id;
     if (!id) return;
-    id.initialize({
-      client_id: clientId,
-      callback: exchange,
-      context: 'signin',
-      cancel_on_tap_outside: true,
-      itp_support: true,
-      use_fedcm_for_prompt: true,
-    });
-    if (button && buttonRef.current) {
+    credentialOwner = owner.current;
+    credentialHandler = (response) => handler.current(response);
+    if (configuredClientId !== clientId) {
+      id.initialize({
+        client_id: clientId,
+        callback: (response: { credential: string }) =>
+          credentialHandler?.(response),
+        context: 'signin',
+        cancel_on_tap_outside: true,
+        itp_support: true,
+      });
+      configuredClientId = clientId;
+      prompted = false;
+    }
+    if (
+      button &&
+      buttonRef.current &&
+      renderedButton.current !== buttonRef.current
+    ) {
+      renderedButton.current = buttonRef.current;
       id.renderButton(buttonRef.current, {
         type: 'standard',
         theme: 'outline',
@@ -81,7 +123,10 @@ export function GoogleSignIn({
         width: Math.min(buttonRef.current.clientWidth || 320, 400),
       });
     }
-    if (oneTap) id.prompt();
+    if (oneTap && !prompted && process.env.NODE_ENV === 'production') {
+      prompted = true;
+      id.prompt();
+    }
   }
 
   return (
@@ -90,6 +135,11 @@ export function GoogleSignIn({
         src="https://accounts.google.com/gsi/client"
         strategy="afterInteractive"
         onReady={start}
+        onError={() =>
+          setError(
+            'Google sign-in could not load. Check your connection and reload the page.',
+          )
+        }
       />
       {button && (
         <div className="google-sign-in">
@@ -98,7 +148,10 @@ export function GoogleSignIn({
         </div>
       )}
       {error && (
-        <p className={oneTap && !button ? 'google-toast' : 'google-error'} role="alert">
+        <p
+          className={oneTap && !button ? 'google-toast' : 'google-error'}
+          role="alert"
+        >
           {error}
         </p>
       )}
