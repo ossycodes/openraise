@@ -1,6 +1,8 @@
 ---
-status: in-progress
-branch: feat/creator-dashboard
+status: shipped
+branch: feat/creator-dashboard, feat/creator-money
+pr: 26
+shipped: 2026-11-06
 type: feature
 area: web
 milestone: 5
