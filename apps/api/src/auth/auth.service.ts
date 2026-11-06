@@ -12,6 +12,7 @@ import type { Env } from '../config/env.js';
 import { randomToken, sha256 } from '../common/tokens.js';
 import {
   EmailTokenPurpose,
+  type Prisma,
   type User,
 } from '../generated/prisma/client.js';
 import { MailService } from '../mail/mail.service.js';
@@ -96,15 +97,22 @@ export class AuthService {
     if (existing.revokedAt) {
       await this.rejectReuse(existing.familyId, existing.revokedAt, now);
     }
-    // Claim it atomically so two concurrent refreshes can't both succeed.
-    const claimed = await this.prisma.refreshToken.updateMany({
-      where: { id: existing.id, revokedAt: null },
-      data: { revokedAt: now },
+    // Claim it and issue its replacement in one transaction, so two concurrent
+    // refreshes can't both succeed. The loser's claim waits on the row lock
+    // until the winner commits, so by the time it checks for a live token in
+    // the sign-in, the winner's new one exists; otherwise it would mistake an
+    // ordinary race for theft and revoke the sign-in.
+    const issued = await this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.refreshToken.updateMany({
+        where: { id: existing.id, revokedAt: null },
+        data: { revokedAt: now },
+      });
+      return claimed.count === 0
+        ? null
+        : this.issueTokens(existing.user, existing.familyId, tx);
     });
-    if (claimed.count === 0) {
-      await this.rejectReuse(existing.familyId, now, now);
-    }
-    return this.issueTokens(existing.user, existing.familyId);
+    if (!issued) return this.rejectReuse(existing.familyId, now, now);
+    return issued;
   }
 
   /**
@@ -201,7 +209,11 @@ export class AuthService {
     ]);
   }
 
-  private async issueTokens(user: User, familyId: string): Promise<AuthResult> {
+  private async issueTokens(
+    user: User,
+    familyId: string,
+    db: Prisma.TransactionClient = this.prisma,
+  ): Promise<AuthResult> {
     const payload: AccessTokenPayload = {
       sub: user.id,
       role: user.role,
@@ -210,7 +222,7 @@ export class AuthService {
     const accessToken = await this.jwt.signAsync(payload);
     const refreshToken = randomToken();
     const ttlDays = this.config.get('REFRESH_TOKEN_TTL_DAYS', { infer: true });
-    await this.prisma.refreshToken.create({
+    await db.refreshToken.create({
       data: {
         userId: user.id,
         tokenHash: sha256(refreshToken),
