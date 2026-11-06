@@ -1,3 +1,4 @@
+import { ReportForm } from '../../_components/report-form';
 import { UpdatesFeed } from '../../_components/updates-feed';
 import { getUpdates } from '../../_lib/campaign-server';
 import type { Metadata } from 'next';
@@ -186,6 +187,7 @@ export default async function CampaignPage({
                 <Sprout size={30} strokeWidth={1.3} aria-hidden="true" />
               </div>
             </section>
+            <ReportForm slug={campaign.slug} />
             <UpdatesFeed updates={updates} />
             <section id="supporters" className="supporters-section">
               <div className="section-title-row">

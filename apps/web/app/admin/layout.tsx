@@ -1,3 +1,4 @@
+import { WorkspaceNav } from './_components/workspace-nav';
 import Link from 'next/link';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -31,6 +32,7 @@ export default async function AdminLayout({
       </header>
       {user.role === 'ADMIN' ? (
         <main id="main" className="review-workspace">
+          <WorkspaceNav />
           {children}
         </main>
       ) : (

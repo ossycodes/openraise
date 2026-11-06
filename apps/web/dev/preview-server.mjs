@@ -88,6 +88,38 @@ const reviewCampaigns = [
   },
 ];
 const reviewHistory = new Map();
+const reportCampaign = {
+  ...campaign,
+  updatedAt: '2026-11-06T10:00:00.000Z',
+  moderationPaused: false,
+  moderationPauseReason: null,
+  payoutsFrozen: false,
+  payoutFreezeReason: null,
+};
+const previewReports = [
+  {
+    id: 'report-budget',
+    campaignId: campaign.id,
+    category: 'MISLEADING',
+    details:
+      'The tuition figures in the story appear to add up to a different amount from the fundraising goal. Please ask the organiser for a breakdown before more donations are collected.',
+    status: 'OPEN',
+    createdAt: '2026-11-06T09:15:00Z',
+    updatedAt: '2026-11-06T09:15:00.000Z',
+  },
+  {
+    id: 'report-photo',
+    campaignId: campaign.id,
+    category: 'OTHER',
+    details:
+      'Could the organiser clarify when the campaign photo was taken and how the money will be used?',
+    status: 'OPEN',
+    createdAt: '2026-11-06T09:40:00Z',
+    updatedAt: '2026-11-06T09:40:00.000Z',
+  },
+];
+const reportActions = new Map();
+const reportKeys = new Set();
 const sessions = new Map();
 const keys = new Map();
 const serialize = (data) =>
@@ -143,6 +175,109 @@ createServer(async (req, res) => {
         name: 'Review team',
         role: isAdmin ? 'ADMIN' : 'USER',
       });
+    if (
+      url.pathname.match(/^\/campaigns\/[^/]+\/reports$/) &&
+      req.method === 'POST'
+    ) {
+      const key = req.headers['idempotency-key'];
+      if (!reportKeys.has(key)) {
+        reportKeys.add(key);
+        previewReports.push({
+          id: randomUUID(),
+          campaignId: campaign.id,
+          ...body,
+          status: 'OPEN',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      return send(202, { received: true });
+    }
+    if (url.pathname === '/campaigns/mine') return send(200, [reportCampaign]);
+    if (
+      url.pathname === '/admin/reports' ||
+      url.pathname.startsWith('/admin/reports/')
+    ) {
+      if (!isAdmin)
+        return send(403, { message: 'Administrator access needed' });
+      if (url.pathname === '/admin/reports') {
+        const q = url.searchParams.get('q') || '';
+        if (q === 'unavailable')
+          return send(503, { message: 'Preview outage' });
+        const items = previewReports
+          .filter(
+            (r) =>
+              r.status === (url.searchParams.get('status') || 'OPEN') &&
+              campaign.title.toLowerCase().includes(q.toLowerCase()),
+          )
+          .map((r) => ({
+            ...r,
+            details: r.details.slice(0, 160),
+            campaign: reportCampaign,
+          }));
+        return send(200, {
+          items,
+          total: items.length,
+          open: previewReports.filter((r) => r.status === 'OPEN').length,
+          page: 1,
+          limit: 20,
+        });
+      }
+      const match = url.pathname.match(
+        /^\/admin\/reports\/([^/]+)(\/actions)?$/,
+      );
+      const report = previewReports.find((r) => r.id === match?.[1]);
+      if (!report) return send(404, { message: 'Report not found' });
+      if (req.method === 'POST') {
+        if (
+          report.updatedAt !== body.expectedReportUpdatedAt ||
+          reportCampaign.updatedAt !== body.expectedCampaignUpdatedAt
+        )
+          return send(409, {
+            message:
+              'This report or campaign has changed. Reload before taking action.',
+          });
+        const { action, reason } = body;
+        if (action === 'PAUSE') {
+          reportCampaign.status = 'PAUSED';
+          reportCampaign.moderationPaused = true;
+          reportCampaign.moderationPauseReason = reason;
+        }
+        if (action === 'LIFT_PAUSE') {
+          reportCampaign.moderationPaused = false;
+          reportCampaign.moderationPauseReason = null;
+        }
+        if (action === 'FREEZE') {
+          reportCampaign.payoutsFrozen = true;
+          reportCampaign.payoutFreezeReason = reason;
+        }
+        if (action === 'UNFREEZE') {
+          reportCampaign.payoutsFrozen = false;
+          reportCampaign.payoutFreezeReason = null;
+        }
+        if (action === 'RESOLVE') report.status = 'RESOLVED';
+        if (action === 'DISMISS') report.status = 'DISMISSED';
+        report.updatedAt = new Date().toISOString();
+        reportCampaign.updatedAt = new Date().toISOString();
+        reportActions.set(report.id, [
+          {
+            id: randomUUID(),
+            action,
+            reason,
+            createdAt: new Date().toISOString(),
+            actor: { name: 'Review team' },
+          },
+          ...(reportActions.get(report.id) || []),
+        ]);
+        return send(200, { recorded: true });
+      }
+      return send(200, {
+        report,
+        campaign: reportCampaign,
+        controls: reportCampaign,
+        actions: reportActions.get(report.id) || [],
+      });
+    }
     if (url.pathname.startsWith('/admin/')) {
       if (!isAdmin)
         return send(403, { message: 'Administrator access needed' });

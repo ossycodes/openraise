@@ -23,6 +23,8 @@ export interface OwnerCampaign {
   coverImageUrl: string | null;
   status: CampaignStatus;
   rejectionReason?: string | null;
+  moderationPaused?: boolean;
+  moderationPauseReason?: string | null;
   submittedAt: string | null;
   publishedAt: string | null;
   createdAt: string;

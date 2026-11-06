@@ -309,3 +309,20 @@ Database checks enforce decision values and a non-empty rejection reason.
 Pre-existing decisions are not backfilled because their actor/version cannot be
 reliably inferred. An empty history on an older campaign does not mean it has
 never been reviewed. This is a focused review history, not the general audit log.
+
+## Reports and moderation
+
+`CampaignReport` stores its campaign, category, bounded plain-text detail,
+OPEN/RESOLVED/DISMISSED status, unique request hash and creation/update/closure
+timestamps. No reporter account, email or IP is stored in this model.
+
+`ReportModerationAction` records report/campaign/actor references, action,
+reason and timestamp. Restrictive foreign keys retain investigation history.
+Database checks bound report text, category, state/closure consistency and
+action/reason values. Existing `PayoutFreezeEvent` also records freezes/releases.
+
+`Campaign.moderationPaused` and `moderationPauseReason` distinguish an admin
+restriction from a creator pause. Owner resume uses a conditional update requiring
+the restriction to be false. Admin report actions lock campaign then report,
+compare inspected versions and commit action history with restriction/state
+changes. There are no new ledger movements or changes to held payouts.

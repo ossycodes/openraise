@@ -368,3 +368,23 @@ be corrected before approval. Returning a campaign uses the existing REJECTED
 state and creator-visible reason rather than adding a second changes-requested
 state. Reviewers see email verification separately from identity verification;
 this dashboard does not introduce KYC or automatic publication.
+
+## Reports are private allegations; restrictions require a recorded decision
+
+Reporting needs no account or email. Store only category/details and a request
+hash, expose no public report lookup, and do not auto-pause based on volume.
+An admin records a reasoned action after inspecting campaign context. Notes are
+plain text, and the reporter's full allegation is not sent to the organiser.
+Pause/freeze reasons are deliberately shared with the organiser and the UI warns
+the reviewer not to copy private report details into them.
+
+An admin pause is separate from the creator's PAUSED status. Owners cannot
+resume through it; lifting the restriction keeps donations paused until the
+creator resumes. Closing a report does not lift restrictions. Payout freezes
+share the reservation campaign lock and existing freeze-event history, preserving
+the existing rule that already-held/dispatched payouts may complete.
+
+Moderation is atomic and versioned against both report and campaign, with an
+attributable action record. Admins cannot moderate their own campaign. Unknown
+responses must be reconciled by reloading current state rather than assuming
+failure or blindly creating another action.

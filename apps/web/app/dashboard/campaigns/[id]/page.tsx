@@ -10,18 +10,27 @@ import { categories, myCampaigns } from '../../_lib/data';
 import { canEdit, STATUS_LABEL, type CampaignStatus } from '../../_lib/types';
 
 const STATUS_HELP: Record<CampaignStatus, string> = {
-  DRAFT: 'Only you can see this draft. Submit it when the story, goal and photos are ready.',
+  DRAFT:
+    'Only you can see this draft. Submit it when the story, goal and photos are ready.',
   PENDING_REVIEW:
     'We’re checking your campaign. You can’t edit it during review; we’ll email you when it’s live.',
   ACTIVE: 'Your campaign is live and taking donations.',
-  PAUSED: 'Donations are paused. Your page is still visible; resume whenever you’re ready.',
+  PAUSED:
+    'Donations are paused. Your page is still visible; resume whenever you’re ready.',
   ENDED: 'This campaign has ended and no longer takes donations.',
-  REJECTED: 'Your campaign needs changes before it can go live. Edit it and submit again.',
+  REJECTED:
+    'Your campaign needs changes before it can go live. Edit it and submit again.',
 };
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
-  const campaign = (await myCampaigns(`/dashboard/campaigns/${id}`)).find((c) => c.id === id);
+  const campaign = (await myCampaigns(`/dashboard/campaigns/${id}`)).find(
+    (c) => c.id === id,
+  );
   return { title: campaign ? campaign.title : 'Campaign' };
 }
 
@@ -49,18 +58,25 @@ export default async function EditCampaignPage({
       </Link>
       <div className="dashboard-heading">
         <div>
-          <span className={`status-pill status-${campaign.status.toLowerCase()}`}>
+          <span
+            className={`status-pill status-${campaign.status.toLowerCase()}`}
+          >
             {STATUS_LABEL[campaign.status]}
           </span>
           <h1>{campaign.title}</h1>
           <p className="dashboard-lede">
-            {formatMoney(BigInt(campaign.raisedAmount), campaign.currency)} raised of{' '}
+            {formatMoney(BigInt(campaign.raisedAmount), campaign.currency)}{' '}
+            raised of{' '}
             {formatMoney(BigInt(campaign.goalAmount), campaign.currency)} from{' '}
-            {campaign.donorCount} {campaign.donorCount === 1 ? 'supporter' : 'supporters'}
+            {campaign.donorCount}{' '}
+            {campaign.donorCount === 1 ? 'supporter' : 'supporters'}
           </p>
         </div>
         {isPublic && (
-          <Link className="secondary-button" href={`/campaigns/${campaign.slug}`}>
+          <Link
+            className="secondary-button"
+            href={`/campaigns/${campaign.slug}`}
+          >
             View public page <ArrowUpRight size={16} aria-hidden="true" />
           </Link>
         )}
@@ -107,8 +123,16 @@ export default async function EditCampaignPage({
                 <p>Submitted for review.</p>
               </div>
             )}
-            <p className="field-hint">{STATUS_HELP[campaign.status]}</p>
-            <StatusActions id={campaign.id} status={campaign.status} />
+            <p className="field-hint">
+              {campaign.moderationPaused
+                ? `An administrator has paused this campaign: ${campaign.moderationPauseReason ?? 'Under review'}. You can resume after the restriction is lifted.`
+                : STATUS_HELP[campaign.status]}
+            </p>
+            <StatusActions
+              id={campaign.id}
+              status={campaign.status}
+              moderationPaused={campaign.moderationPaused}
+            />
           </section>
         </aside>
       </div>
