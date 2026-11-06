@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 42
+shipped: 2026-11-06
 branch: feat/rate-limiting
 type: feature
 area: ops

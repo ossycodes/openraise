@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #42 | Shared Redis request limits for auth, checkout, reports and uploads; signed visitor relay, explicit trusted proxies, Retry-After responses and outage handling with webhook/status exemptions ([[Rate limiting]]) |
 | #40 | Concurrent refreshes no longer risk signing the person out: the spent token is claimed and its replacement issued in one transaction, so a losing request always sees the new token and answers `REFRESH_RACE` |
 | #39 | Identity verification, part 1: `KycProvider` with a manual adapter; creators send ID details and a photo (encrypted at rest, last four ID characters only), admins verify or decline from an Identity checks queue; verification required to submit, approve and withdraw, and payout accounts must match the verified name ([[Identity verification]]) |
 | #37 | Donation panel when payments are off: the unavailable message shows once, the donate buttons are disabled, and focus wraps the whole amount field ([[Campaign page]]) |
