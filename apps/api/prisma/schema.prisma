@@ -15,6 +15,7 @@ enum Role {
 }
 
 model User {
+  campaignReviews    CampaignReview[]
   campaignUpdates    CampaignUpdate[]
   id                 String              @id @default(cuid())
   /// Always stored lower-cased and trimmed
@@ -117,6 +118,7 @@ enum CampaignStatus {
 }
 
 model Campaign {
+  reviews             CampaignReview[]
   updates             CampaignUpdate[]
   updateSubscriptions CampaignUpdateSubscription[]
   id                  String                       @id @default(cuid())
@@ -513,4 +515,19 @@ model CampaignUpdateSubscription {
 
   @@unique([campaignId, email])
   @@index([campaignId, id])
+}
+
+model CampaignReview {
+  id              String    @id @default(cuid())
+  campaignId      String
+  campaign        Campaign  @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  reviewerId      String
+  reviewer        User      @relation(fields: [reviewerId], references: [id], onDelete: Restrict)
+  decision        String
+  reason          String?
+  submittedAt     DateTime? @db.Timestamptz
+  reviewedVersion DateTime  @db.Timestamptz
+  createdAt       DateTime  @default(now()) @db.Timestamptz
+
+  @@index([campaignId, createdAt])
 }

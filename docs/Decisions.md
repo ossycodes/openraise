@@ -353,3 +353,18 @@ A still-valid upload URL must not modify a published photo. Publication copies
 uploads into separate server-owned keys, checks the copy's actual size and magic
 bytes, and attaches only those immutable keys. The existing orphan-upload cleanup
 follow-up also applies to unused update uploads.
+
+## Publishing decisions are versioned and attributable
+
+The admin browser sends the exact campaign version it inspected. A conditional
+status/version update and a review-history insert share one transaction. This
+prevents two reviewers from both deciding and prevents an old browser tab from
+approving a later resubmission. Unknown responses require a reload rather than
+assuming failure. Legacy API routes remain compatible and share the audit path,
+but only the new endpoint requires a browser version snapshot.
+
+Administrators cannot review their own campaign. A passed campaign end date must
+be corrected before approval. Returning a campaign uses the existing REJECTED
+state and creator-visible reason rather than adding a second changes-requested
+state. Reviewers see email verification separately from identity verification;
+this dashboard does not introduce KYC or automatic publication.

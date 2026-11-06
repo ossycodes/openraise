@@ -88,5 +88,5 @@ function signedOut(request: NextRequest, isApi: boolean, clear = false) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/api/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/api/dashboard/:path*', '/admin/:path*', '/api/admin/:path*'],
 };

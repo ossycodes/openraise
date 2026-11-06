@@ -296,3 +296,16 @@ All three preferences are immutable checkout snapshots. Confirmed public gifts
 map the chosen name or “Anonymous” plus the message, never private identity
 fields. Owners/admins can review supplied preferences, but email is excluded.
 Messages are public even when a name is anonymous; the checkout explains this.
+
+## Campaign review decisions
+
+`CampaignReview` retains `campaignId`, `reviewerId`, `decision` (`APPROVE` or
+`REJECT`), optional rejection `reason`, the submission's `submittedAt` and
+`reviewedVersion` (`Campaign.updatedAt`), plus its own `createdAt`. The write is
+atomic with the campaign status change. Foreign keys restrict deletion of the
+reviewed campaign and reviewer; history is not exposed by public campaign reads.
+Database checks enforce decision values and a non-empty rejection reason.
+
+Pre-existing decisions are not backfilled because their actor/version cannot be
+reliably inferred. An empty history on an older campaign does not mean it has
+never been reviewed. This is a focused review history, not the general audit log.

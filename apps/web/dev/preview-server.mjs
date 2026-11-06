@@ -47,6 +47,47 @@ const previewUpdates = [
     images: [],
   },
 ];
+const reviewCampaigns = [
+  {
+    ...campaign,
+    id: 'review-ada',
+    status: 'PENDING_REVIEW',
+    raisedAmount: '0',
+    donorCount: 0,
+    publishedAt: null,
+    submittedAt: '2026-11-04T10:00:00Z',
+    updatedAt: '2026-11-04T10:00:00.000Z',
+  },
+  {
+    ...campaign,
+    id: 'review-library',
+    title: 'A reading room for our neighbourhood',
+    summary: 'Help us put books and possibility within reach.',
+    owner: { name: 'Tomi Adeyemi' },
+    location: 'Yaba, Lagos',
+    goalAmount: '180000000',
+    coverImageUrl: null,
+    images: [],
+    status: 'PENDING_REVIEW',
+    submittedAt: '2026-11-05T10:00:00Z',
+    updatedAt: '2026-11-05T10:00:00.000Z',
+  },
+  {
+    ...campaign,
+    id: 'review-water',
+    title: 'Clean water. A healthier beginning.',
+    owner: { name: 'Amina Yusuf' },
+    category: { slug: 'community', name: 'Community' },
+    location: 'Kaduna, Nigeria',
+    goalAmount: '320000000',
+    coverImageUrl: null,
+    images: [],
+    status: 'PENDING_REVIEW',
+    submittedAt: '2026-11-06T10:00:00Z',
+    updatedAt: '2026-11-06T10:00:00.000Z',
+  },
+];
+const reviewHistory = new Map();
 const sessions = new Map();
 const keys = new Map();
 const serialize = (data) =>
@@ -93,6 +134,76 @@ createServer(async (req, res) => {
     if (!session) return send(404, {});
     session.status = body.status ?? 'SUCCEEDED';
     return send(200, session);
+  }
+  // Optional loopback-only admin fixtures. Never used by the deployed API.
+  if (process.env.REVIEW_PREVIEW === 'true') {
+    const isAdmin = req.headers.authorization === 'Bearer fictional-admin';
+    if (url.pathname === '/users/me')
+      return send(200, {
+        name: 'Review team',
+        role: isAdmin ? 'ADMIN' : 'USER',
+      });
+    if (url.pathname.startsWith('/admin/')) {
+      if (!isAdmin)
+        return send(403, { message: 'Administrator access needed' });
+      if (url.pathname === '/admin/campaigns') {
+        const q = url.searchParams.get('q') || '';
+        if (q === 'unavailable')
+          return send(503, { message: 'Preview outage' });
+        const items = reviewCampaigns.filter(
+          (c) =>
+            c.status === (url.searchParams.get('status') || 'PENDING_REVIEW') &&
+            (c.title + ' ' + c.owner.name)
+              .toLowerCase()
+              .includes(q.toLowerCase()),
+        );
+        return send(200, {
+          items,
+          total: items.length,
+          pending: reviewCampaigns.filter((c) => c.status === 'PENDING_REVIEW')
+            .length,
+          page: 1,
+          limit: 20,
+        });
+      }
+      const match = url.pathname.match(
+        /^\/admin\/campaigns\/([^/]+)(\/review)?$/,
+      );
+      const c = reviewCampaigns.find((c) => c.id === match?.[1]);
+      if (!c) return send(404, { message: 'Campaign not found' });
+      if (req.method === 'POST') {
+        if (
+          c.status !== 'PENDING_REVIEW' ||
+          c.updatedAt !== body.expectedUpdatedAt
+        )
+          return send(409, {
+            message:
+              'This submission has changed or was already reviewed. Reload it before deciding.',
+          });
+        c.status = body.decision === 'APPROVE' ? 'ACTIVE' : 'REJECTED';
+        c.rejectionReason = body.reason ?? null;
+        c.updatedAt = new Date().toISOString();
+        reviewHistory.set(c.id, [
+          {
+            id: randomUUID(),
+            decision: body.decision,
+            reason: body.reason ?? null,
+            createdAt: new Date().toISOString(),
+            reviewer: { name: 'Review team' },
+          },
+        ]);
+        return send(200, c);
+      }
+      return send(200, {
+        campaign: c,
+        organiser: {
+          name: c.owner.name,
+          emailVerified: true,
+          createdAt: '2026-10-20T12:00:00Z',
+        },
+        reviews: reviewHistory.get(c.id) ?? [],
+      });
+    }
   }
   if (url.pathname === '/config/fees')
     return send(200, {

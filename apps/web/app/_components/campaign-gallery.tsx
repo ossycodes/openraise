@@ -3,7 +3,11 @@ import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Expand, X, ImageIcon } from 'lucide-react';
 import type { Campaign } from '../_lib/campaign';
-export function CampaignGallery({ campaign }: { campaign: Campaign }) {
+export function CampaignGallery({
+  campaign,
+}: {
+  campaign: Pick<Campaign, 'id' | 'title' | 'coverImageUrl' | 'images'>;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [index, setIndex] = useState(0);
   const [failed, setFailed] = useState(false);

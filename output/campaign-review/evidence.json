@@ -1,0 +1,63 @@
+{
+  "contract": "design-contract.md: admin queue and deliberate publishing decisions in the existing OpenRaise visual system; inspect story/media before acting, with private admin permissions and recoverable stale state.",
+  "targetViewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "accessibility": {
+    "status": "pass",
+    "evidence": "Styled desktop queue and mobile rejection form: axe WCAG2 A/AA and WCAG2.1 AA report zero violations; explicit labels, acknowledgement, feedback and keyboard controls."
+  },
+  "responsive": {
+    "status": "pass",
+    "evidence": "Queue and detail have no document overflow at 390px; computed desktop row display is grid and review header is flex. Mobile rows stack and decision controls fit."
+  },
+  "contentStates": {
+    "loading": {
+      "status": "pass",
+      "evidence": "A delayed decision POST shows Recording decision\u2026 with disabled controls until its response."
+    },
+    "empty": {
+      "status": "pass",
+      "evidence": "Unmatched search shows No matching campaigns and a clear-search link."
+    },
+    "error": {
+      "status": "pass",
+      "evidence": "Fixture API 503 renders retry state; stale 409 retains reason and offers reload."
+    },
+    "partial": {
+      "status": "pass",
+      "evidence": "Failed photo request triggers the existing gallery fallback while story and decision remain readable."
+    },
+    "success": {
+      "status": "pass",
+      "evidence": "Fixture approve and return update campaign state and show review history after refresh."
+    },
+    "permission": {
+      "status": "pass",
+      "evidence": "Non-admin sees Administrator access needed; signed-out admin URL redirects to signin. Real API tests assert role checks and unpublished privacy."
+    }
+  },
+  "renderedEvidence": [
+    {
+      "viewport": "1440x1000",
+      "artifact": "queue-desktop.png",
+      "observation": "Oldest-first queue with search, state filters, pending count, restrained row layout and campaign thumbnails."
+    },
+    {
+      "viewport": "1440x1000",
+      "artifact": "detail-desktop.png",
+      "observation": "Media/story column and separate decision sidebar; organiser and goal facts are visible."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "queue-mobile.png",
+      "observation": "Stacked review rows, wrapping title and compact pending count without horizontal overflow."
+    },
+    {
+      "viewport": "390x844",
+      "artifact": "decision-mobile.png",
+      "observation": "Full rejection form, clear reason, required acknowledgement and full-width action."
+    }
+  ]
+}
