@@ -4283,9 +4283,9 @@ h3 {
   align-items: center;
   gap: 2px 14px;
   padding: 18px 24px;
-  border-left: 2px solid #b78948;
+  border: 1px solid #e2d6bd;
   background: #f4eee2;
-  border-radius: 0 12px 12px 0;
+  border-radius: 12px;
 }
 .review-count strong {
   font-size: 32px;
@@ -5132,8 +5132,7 @@ h3 {
   padding: 28px;
   background: #fffaf0;
   border: 1px solid #e2d6bd;
-  border-left: 3px solid #a88248;
-  border-radius: 0 12px 12px 0;
+  border-radius: 12px;
   margin-bottom: 32px;
 }
 .report-allegation h2 {
