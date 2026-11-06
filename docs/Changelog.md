@@ -10,6 +10,9 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #37 | Donation panel when payments are off: the unavailable message shows once, the donate buttons are disabled, and focus wraps the whole amount field ([[Campaign page]]) |
+| #35 | Admin review count and report allegation cards use a full thin border instead of a thick left accent |
+| #34 | Private campaign reports without an account, idempotent submissions; admin Reports & moderation queue with reasoned pause, lift, payout freeze/unfreeze, resolve and dismiss, version-checked and audited; a moderation pause blocks creator resume ([[Reports and flags]]) |
 | #32 | Admin campaign review dashboard: searchable queue, private previews, approve/return decisions, atomic reviewer history and stale-submission protection; repaired engagement CSS nesting ([[Campaign review queue]]) |
 | #30 | Organiser updates with validated photos, public timelines, explicit opt-in supporter emails, durable fan-out, confirmed unsubscribe and audited removal ([[Campaign updates]]) |
 | #29 | Donor messages, anonymous-by-default giving, private organiser disclosure, confirmed public supporter messages and admin review ([[Donor messages and anonymous giving]]) |
