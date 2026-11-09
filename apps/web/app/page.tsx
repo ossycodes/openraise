@@ -18,10 +18,11 @@ import {
   Wallet,
 } from 'lucide-react';
 import { formatMoney } from '@openraise/shared';
+import { CampaignTile } from './_components/campaign-tile';
 import { SiteFooter, SiteHeader } from './_components/site-header';
 import { apiOrigin, previewEnabled } from './_lib/campaign-server';
 import { getSite } from './_lib/site';
-import { progressPercent, type Campaign } from './_lib/campaign';
+import type { Campaign } from './_lib/campaign';
 
 interface Category {
   slug: string;
@@ -283,70 +284,9 @@ export default async function HomePage({
             </span>
           </div>
           <div className="campaign-grid">
-            {campaigns?.map((campaign) => {
-              const percent = progressPercent(
-                campaign.raisedAmount,
-                campaign.goalAmount,
-              );
-              return (
-                <Link
-                  key={campaign.id}
-                  className="campaign-tile"
-                  href={`/campaigns/${campaign.slug}`}
-                >
-                  <div className="tile-image">
-                    {campaign.coverImageUrl ? (
-                      <Image
-                        src={campaign.coverImageUrl}
-                        alt={`Cover for ${campaign.title}`}
-                        fill
-                        sizes="(max-width: 540px) 100vw, 400px"
-                      />
-                    ) : (
-                      <HandHeart
-                        size={45}
-                        strokeWidth={1.2}
-                        aria-hidden="true"
-                      />
-                    )}
-                    <span className="tile-category">
-                      {campaign.category.name}
-                    </span>
-                  </div>
-                  <div className="tile-content">
-                    <h3>{campaign.title}</h3>
-                    <p>{campaign.summary}</p>
-                    <div
-                      className="tile-progress"
-                      role="progressbar"
-                      aria-label={`${campaign.title} fundraising progress`}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={Math.min(100, percent)}
-                    >
-                      <span style={{ width: `${Math.min(100, percent)}%` }} />
-                    </div>
-                    <div className="tile-meta">
-                      <strong>
-                        {formatMoney(
-                          BigInt(campaign.raisedAmount),
-                          campaign.currency,
-                        )}{' '}
-                        <span>raised</span>
-                      </strong>
-                      <span>{Math.round(percent)}%</span>
-                    </div>
-                    <div className="tile-bottom">
-                      <span>
-                        <Heart size={14} aria-hidden="true" />{' '}
-                        {campaign.donorCount} supporters
-                      </span>
-                      <ArrowUpRight size={19} aria-hidden="true" />
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {campaigns?.map((campaign) => (
+              <CampaignTile key={campaign.id} campaign={campaign} />
+            ))}
           </div>
           {campaigns === null && (
             <div className="discovery-empty">
