@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 55
+shipped: 2026-11-09
 branch: feat/qr-posters
 type: feature
 area: growth
