@@ -1783,6 +1783,100 @@ h3 {
   padding-block: 80px;
   scroll-margin-top: 25px;
 }
+/* Recently funded: a compact strip, so it reads as proof, not a second directory */
+.funded-section {
+  padding-bottom: 80px;
+}
+.funded-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.funded-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  height: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.funded-card:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+@media (hover: hover) {
+  .funded-card:hover {
+    border-color: #c9d3c5;
+    box-shadow: var(--shadow);
+  }
+}
+.funded-thumb {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--soft);
+  color: var(--accent);
+}
+.funded-thumb img {
+  object-fit: cover;
+}
+.funded-body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.funded-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-self: start;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.funded-body h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+.funded-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.funded-body p strong {
+  color: var(--text);
+  font-weight: 600;
+}
+@media (max-width: 540px) {
+  /* Three is proof enough on a phone; six becomes a second scroll. */
+  .funded-list li:nth-child(n + 4) {
+    display: none;
+  }
+}
 .discovery-section-heading {
   display: flex;
   justify-content: space-between;

@@ -75,6 +75,7 @@ ids and slugs can't be probed. See [[Campaigns]].
 |---|---|---|---|---|
 | POST | `/campaigns` | Bearer | `{ title, categorySlug, goalAmount, currency?, summary?, story?, beneficiaryName?, location?, endsAt? }` | 201, a `DRAFT` |
 | GET | `/campaigns` | — | `?category=&featured=&page=&limit=` (limit ≤ 50) | `{ items, page, limit, total }`; `ACTIVE` only, newest first |
+| GET | `/campaigns/recently-funded` | — | `?limit=` (1–12, default 6) | `{ items }`: public campaigns (`ACTIVE` or `ENDED`) whose ledger-confirmed donations reached the goal, each with `fundedAt` (when the running total first reached it), most recently funded first |
 | GET | `/campaigns/mine` | Bearer | — | Every campaign you own, any status |
 | GET | `/campaigns/:slug` | Optional | — | Public if `ACTIVE`, `PAUSED` or `ENDED`; otherwise owner and admins only |
 | PATCH | `/campaigns/:id` | Owner | Any create field; `null` clears optional ones | 200; 409 while in review or once ended, or when changing currency after submit |

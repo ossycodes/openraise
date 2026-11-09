@@ -291,6 +291,56 @@ export class CampaignsService {
     };
   }
 
+  /**
+   * Public campaigns (live or ended) whose confirmed donations reached the
+   * goal, most recently funded first. `fundedAt` is when the running total of
+   * ledger-backed donations first reached the goal. It's derived from the
+   * donations on every read, never stored, so it can't drift from the ledger.
+   */
+  async listRecentlyFunded(
+    limit: number,
+  ): Promise<{ items: (PublicCampaign & { fundedAt: Date })[] }> {
+    const funded = await this.prisma.$queryRaw<
+      { id: string; fundedAt: Date }[]
+    >`
+      WITH confirmed AS (
+        -- When the payment succeeded, or else when the ledger posted it: a
+        -- confirmed gift always has a posting, so this is never null.
+        SELECT d."id", d."campaignId", d."amount",
+          COALESCE(d."succeededAt", l."createdAt") AS "at"
+        FROM "Donation" d JOIN "LedgerTransaction" l ON l."id" = d."ledgerTransactionId"
+        WHERE d."status" = 'SUCCEEDED' AND l."kind" = 'DONATION' AND l."currency" = d."currency"
+      ),
+      running AS (
+        SELECT "campaignId", "at",
+          SUM("amount") OVER (
+            PARTITION BY "campaignId" ORDER BY "at", "id"
+            ROWS UNBOUNDED PRECEDING
+          ) AS "total"
+        FROM confirmed
+      )
+      SELECT c."id", MIN(r."at") AS "fundedAt"
+      FROM running r JOIN "Campaign" c ON c."id" = r."campaignId"
+      WHERE r."total" >= c."goalAmount" AND c."status" IN ('ACTIVE', 'ENDED')
+      GROUP BY c."id"
+      ORDER BY "fundedAt" DESC, c."id" DESC
+      LIMIT ${limit}`;
+    if (!funded.length) return { items: [] };
+    const rows = await this.prisma.campaign.findMany({
+      where: { id: { in: funded.map((f) => f.id) } },
+      include,
+    });
+    const byId = new Map(
+      (await this.present(rows, false)).map((c) => [c.id, c]),
+    );
+    return {
+      items: funded.flatMap((f) => {
+        const campaign = byId.get(f.id);
+        return campaign ? [{ ...campaign, fundedAt: f.fundedAt }] : [];
+      }),
+    };
+  }
+
   async listMine(user: AuthUser): Promise<PublicCampaign[]> {
     const rows = await this.prisma.campaign.findMany({
       where: { ownerId: user.id },

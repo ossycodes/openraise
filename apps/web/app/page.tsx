@@ -38,6 +38,12 @@ async function read<T>(path: string): Promise<T | null> {
     return null;
   }
 }
+const fundedDate = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'Africa/Lagos',
+});
 const SORTS = [
   { value: '', label: 'Best match / newest' },
   { value: 'trending', label: 'Trending' },
@@ -71,11 +77,15 @@ export default async function HomePage({
     const qs = next.toString();
     return `/${qs ? `?${qs}` : ''}#campaigns`;
   };
-  const [listing, categories, fees] = await Promise.all([
+  const [listing, categories, fees, recentlyFunded] = await Promise.all([
     read<{ items: Campaign[]; total: number }>(`/campaigns?${listQuery}`),
     read<Category[]>('/categories'),
     read<{ platformFeeBps: number }>('/config/fees'),
+    read<{ items: (Campaign & { fundedAt: string })[] }>(
+      '/campaigns/recently-funded?limit=6',
+    ),
   ]);
+  const funded = recentlyFunded?.items ?? [];
   const campaigns = listing?.items ?? null;
   const featured = campaigns?.[0];
   const platformFee = fees
@@ -372,6 +382,76 @@ export default async function HomePage({
             </div>
           )}
         </section>
+        {funded.length > 0 && (
+          <section
+            className="funded-section"
+            aria-labelledby="funded-title"
+          >
+            <div className="discovery-section-heading">
+              <div>
+                <div className="section-eyebrow">Goals reached</div>
+                <h2 id="funded-title">
+                  Recently funded. <em>Together.</em>
+                </h2>
+              </div>
+              <p>
+                These campaigns reached their goal here, one gift at a time.
+              </p>
+            </div>
+            <ul className="funded-list">
+              {funded.map((campaign) => (
+                <li key={campaign.id}>
+                  <Link
+                    className="funded-card"
+                    href={`/campaigns/${campaign.slug}`}
+                  >
+                    <div className="funded-thumb">
+                      {campaign.coverImageUrl ? (
+                        <Image
+                          src={campaign.coverImageUrl}
+                          alt=""
+                          fill
+                          sizes="88px"
+                        />
+                      ) : (
+                        <HandHeart
+                          size={30}
+                          strokeWidth={1.3}
+                          aria-hidden="true"
+                        />
+                      )}
+                    </div>
+                    <div className="funded-body">
+                      <span className="funded-date">
+                        <Check size={13} strokeWidth={2.4} aria-hidden="true" />
+                        Funded{' '}
+                        <time dateTime={campaign.fundedAt}>
+                          {fundedDate.format(new Date(campaign.fundedAt))}
+                        </time>
+                      </span>
+                      <h3>{campaign.title}</h3>
+                      <p>
+                        <strong>
+                          {formatMoney(
+                            BigInt(campaign.raisedAmount),
+                            campaign.currency,
+                          )}
+                        </strong>{' '}
+                        raised of{' '}
+                        {formatMoney(
+                          BigInt(campaign.goalAmount),
+                          campaign.currency,
+                        )}{' '}
+                        · {campaign.donorCount}{' '}
+                        {campaign.donorCount === 1 ? 'supporter' : 'supporters'}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <section className="giving-steps" id="giving-details">
           <div>
             <div className="section-eyebrow">

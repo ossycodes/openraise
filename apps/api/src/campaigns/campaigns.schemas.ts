@@ -96,6 +96,11 @@ export const listCampaignsSchema = z.object({
 });
 export type ListCampaignsQuery = z.infer<typeof listCampaignsSchema>;
 
+export const recentlyFundedSchema = z.object({
+  limit: z.coerce.number().int().min(1).max(12).default(6),
+});
+export type RecentlyFundedQuery = z.infer<typeof recentlyFundedSchema>;
+
 /** What a campaign needs before it can go to review. */
 export const SUBMIT_REQUIREMENTS = {
   summaryMin: 10,

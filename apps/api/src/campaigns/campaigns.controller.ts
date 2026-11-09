@@ -23,10 +23,12 @@ import { ZodValidationPipe } from '../common/zod-validation.pipe.js';
 import {
   createCampaignSchema,
   listCampaignsSchema,
+  recentlyFundedSchema,
   rejectCampaignSchema,
   updateCampaignSchema,
   type CreateCampaignInput,
   type ListCampaignsQuery,
+  type RecentlyFundedQuery,
   type UpdateCampaignInput,
 } from './campaigns.schemas.js';
 import {
@@ -59,6 +61,18 @@ export class CampaignsController {
     query: ListCampaignsQuery,
   ): Promise<CampaignPage> {
     return this.campaigns.listPublic(query);
+  }
+
+  /**
+   * Campaigns that recently reached their goal, for the homepage. Every real
+   * slug ends in a 5-character suffix, so this path never shadows one.
+   */
+  @Get('recently-funded')
+  recentlyFunded(
+    @Query(new ZodValidationPipe(recentlyFundedSchema))
+    query: RecentlyFundedQuery,
+  ) {
+    return this.campaigns.listRecentlyFunded(query.limit);
   }
 
   // Declared before ':slug' so "mine" isn't read as a slug.
