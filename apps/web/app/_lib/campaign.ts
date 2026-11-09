@@ -2,6 +2,8 @@ import type { Currency } from '@openraise/shared';
 export interface Campaign {
   id: string;
   slug: string;
+  /** Short link code: /c/<shortCode> */
+  shortCode: string;
   title: string;
   summary: string;
   story: string;

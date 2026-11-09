@@ -6,6 +6,7 @@ import { CampaignImagesController } from './campaign-images.controller.js';
 import { CampaignImagesService } from './campaign-images.service.js';
 import { CampaignsController } from './campaigns.controller.js';
 import { CampaignsService } from './campaigns.service.js';
+import { ShortLinksController } from './short-links.controller.js';
 import { KycModule } from '../kyc/kyc.module.js';
 
 @Module({
@@ -14,6 +15,7 @@ import { KycModule } from '../kyc/kyc.module.js';
     CampaignReviewController,
     CampaignsController,
     CampaignImagesController,
+    ShortLinksController,
   ],
   providers: [
     CampaignsService,

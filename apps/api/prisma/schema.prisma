@@ -235,6 +235,9 @@ model Campaign {
   id                      String                       @id @default(cuid())
   /// Public URL segment: slugified title + random suffix, fixed at creation
   slug                    String                       @unique
+  /// Five-character code for the short link /c/<code> printed on posters and
+  /// QR codes; the slug's suffix for new campaigns, fixed at creation
+  shortCode               String                       @unique @default(dbgenerated("campaign_short_code()"))
   ownerId                 String
   owner                   User                         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   categoryId              String

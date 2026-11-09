@@ -120,7 +120,11 @@ export default async function CampaignPage({
             <ArrowLeft size={15} aria-hidden="true" />
             All campaigns
           </a>
-          <ShareButton title={campaign.title} compact />
+          <ShareButton
+            title={campaign.title}
+            shortCode={campaign.shortCode}
+            compact
+          />
         </div>
         <div className="campaign-layout">
           <div className="campaign-content">
@@ -292,7 +296,7 @@ export default async function CampaignPage({
             <h2>Some stories just need a few more people.</h2>
             <p>If this one moved you, help it find its next supporter.</p>
           </div>
-          <ShareButton title={campaign.title} />
+          <ShareButton title={campaign.title} shortCode={campaign.shortCode} />
         </div>
       </main>
       <SiteFooter />
