@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { categoryPage } from '../_lib/category-pages';
+import { GUIDES } from '../_lib/guides';
 import { getViewer } from '../_lib/session';
 import { getSite } from '../_lib/site';
 import { GoogleSignIn } from './google-sign-in';
@@ -126,25 +128,63 @@ function initials(name: string) {
     ).toUpperCase() || '·'
   );
 }
+/** The causes linked from every footer: the most searched-for first. */
+const FOOTER_CAUSES = [
+  'medical',
+  'education',
+  'emergencies',
+  'community',
+  'funerals',
+  'business',
+] as const;
+
 export function SiteFooter() {
   return (
-    <footer className="site-footer">
-      <div>
-        <Brand />
-        <p>More possibility, together.</p>
+    <footer>
+      <nav className="footer-links" aria-label="Fundraising help">
+        <div>
+          <h2>Raise money for</h2>
+          <ul>
+            {FOOTER_CAUSES.map((slug) => (
+              <li key={slug}>
+                <Link href={`/raise-money-for/${slug}`}>
+                  {categoryPage(slug, slug, '').phrase.replace(/^./, (c) =>
+                    c.toUpperCase(),
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h2>Guides</h2>
+          <ul>
+            {GUIDES.map((g) => (
+              <li key={g.slug}>
+                <Link href={`/guides/${g.slug}`}>{g.title}</Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
+      <div className="site-footer">
+        <div>
+          <Brand />
+          <p>More possibility, together.</p>
+        </div>
+        <p>
+          Community-powered fundraising.
+          <br />
+          Open source. Open possibilities.
+        </p>
+        <a
+          href="https://github.com/ossycodes/openraise"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Built in the open <ArrowUpRight size={15} aria-hidden="true" />
+        </a>
       </div>
-      <p>
-        Community-powered fundraising.
-        <br />
-        Open source. Open possibilities.
-      </p>
-      <a
-        href="https://github.com/ossycodes/openraise"
-        target="_blank"
-        rel="noreferrer"
-      >
-        Built in the open <ArrowUpRight size={15} aria-hidden="true" />
-      </a>
     </footer>
   );
 }
