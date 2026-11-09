@@ -171,3 +171,32 @@ export async function manageBankAccount(form: FormData): Promise<void> {
   }
   revalidatePath(returnTo);
 }
+
+/**
+ * Ask an administrator to approve a payout account whose name differs from
+ * the verified name. The outcome comes back on the payouts page.
+ */
+export async function requestNameReview(form: FormData): Promise<void> {
+  const id = encodeURIComponent(String(form.get('id') ?? ''));
+  const explanation = String(form.get('explanation') ?? '').trim();
+  const returnTo = '/dashboard/payouts';
+  try {
+    await apiAs(`/bank-accounts/${id}/name-review`, {
+      method: 'POST',
+      body: { explanation },
+      returnTo,
+    });
+  } catch (error) {
+    if (error instanceof ApiError)
+      redirect(
+        `${returnTo}?error=${encodeURIComponent(
+          error.status === 400
+            ? 'Explain in 10 to 500 characters why the names differ.'
+            : error.message,
+        )}`,
+      );
+    throw error;
+  }
+  revalidatePath(returnTo);
+  redirect(`${returnTo}?asked=1`);
+}

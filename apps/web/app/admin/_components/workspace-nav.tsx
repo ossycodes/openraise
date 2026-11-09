@@ -7,6 +7,7 @@ import {
   IdCard,
   BookOpenCheck,
   History,
+  Landmark,
 } from 'lucide-react';
 export function WorkspaceNav() {
   const path = usePathname();
@@ -34,6 +35,15 @@ export function WorkspaceNav() {
       >
         <IdCard size={16} aria-hidden="true" />
         Identity checks
+      </Link>
+      <Link
+        href="/admin/payout-names"
+        aria-current={
+          path.startsWith('/admin/payout-names') ? 'page' : undefined
+        }
+      >
+        <Landmark size={16} aria-hidden="true" />
+        Payout names
       </Link>
       <Link
         href="/admin/money"

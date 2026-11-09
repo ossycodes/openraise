@@ -122,8 +122,21 @@ export interface BankAccount {
   isDefault: boolean;
   recipientUsable: boolean;
   nameMatchesProfile: boolean;
+  /** MATCHES and APPROVED can be paid; MISMATCH needs a review */
+  nameCheck: 'MATCHES' | 'APPROVED' | 'MISMATCH' | 'UNVERIFIED';
+  nameReview: NameReview | null;
   payoutsAvailableAt: string;
   createdAt: string;
+}
+
+/** A request to withdraw to an account whose name differs from the verified one. */
+export interface NameReview {
+  id: string;
+  status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'CANCELLED';
+  explanation: string;
+  reason: string | null;
+  createdAt: string;
+  decidedAt: string | null;
 }
 
 export interface Bank {

@@ -1,7 +1,8 @@
+import Link from 'next/link';
 import { Landmark, ShieldCheck } from 'lucide-react';
 import { ApiError, apiAs } from '../../_lib/api';
 import { AddAccountForm } from '../_components/add-account-form';
-import { manageBankAccount } from '../money-actions';
+import { manageBankAccount, requestNameReview } from '../money-actions';
 import type { Bank, BankAccount } from '../_lib/types';
 
 export const metadata = { title: 'Payout accounts' };
@@ -17,10 +18,10 @@ const date = new Intl.DateTimeFormat('en-GB', {
 export default async function PayoutsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; asked?: string }>;
 }) {
   const returnTo = '/dashboard/payouts';
-  const { error } = await searchParams;
+  const { error, asked } = await searchParams;
   let accounts: BankAccount[] = [];
   let banks: Bank[] = [];
   let unavailable = false;
@@ -49,6 +50,18 @@ export default async function PayoutsPage({
       {error && (
         <p className="dashboard-notice error" role="alert">
           {error}
+        </p>
+      )}
+      {asked === '1' && !error && (
+        <p className="dashboard-notice" role="status">
+          Review requested. We’ll email you when an administrator decides.
+        </p>
+      )}
+      {accounts.some((a) => a.nameCheck === 'UNVERIFIED') && (
+        <p className="dashboard-notice" role="status">
+          Withdrawals only go to accounts in your verified name.{' '}
+          <Link href="/dashboard/verification">Verify your identity</Link> to
+          withdraw.
         </p>
       )}
       {unavailable ? (
@@ -89,6 +102,7 @@ export default async function PayoutsPage({
                               This account can’t receive payouts. Remove it and add it again.
                             </small>
                           )}
+                          <NameStanding account={a} />
                         </div>
                         <form action={manageBankAccount} className="account-actions">
                           <input type="hidden" name="id" value={a.id} />
@@ -131,5 +145,68 @@ export default async function PayoutsPage({
         </div>
       )}
     </>
+  );
+}
+
+const day = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'Africa/Lagos',
+});
+
+/**
+ * Whether withdrawals can go to this account by name, and the way to ask an
+ * administrator when the bank's name genuinely differs from the verified one.
+ */
+function NameStanding({ account: a }: { account: BankAccount }) {
+  if (a.nameCheck === 'APPROVED')
+    return (
+      <small className="name-standing approved">
+        <ShieldCheck size={13} aria-hidden="true" /> Approved for withdrawals by
+        an administrator
+      </small>
+    );
+  if (a.nameCheck !== 'MISMATCH') return null;
+  const review = a.nameReview;
+  if (review?.status === 'PENDING')
+    return (
+      <small className="name-standing">
+        The name differs from your verified name. Review requested{' '}
+        {day.format(new Date(review.createdAt))}; we’ll email you the decision.
+      </small>
+    );
+  return (
+    <div className="name-standing mismatch">
+      <small>
+        This name doesn’t match your verified name, so withdrawals can’t go
+        here.
+      </small>
+      {review?.status === 'DECLINED' && review.reason && (
+        <small>
+          Not approved: <em>{review.reason}</em>
+        </small>
+      )}
+      <details>
+        <summary>
+          {review?.status === 'DECLINED' ? 'Ask again' : 'Ask for a review'}
+        </summary>
+        <form action={requestNameReview}>
+          <input type="hidden" name="id" value={a.id} />
+          <label htmlFor={`why-${a.id}`}>Why are the names different?</label>
+          <textarea
+            id={`why-${a.id}`}
+            name="explanation"
+            required
+            minLength={10}
+            maxLength={500}
+            rows={3}
+            placeholder="For example: the account is in my married name; my ID still has my maiden name."
+          />
+          <button type="submit" className="secondary-button">
+            Send for review
+          </button>
+        </form>
+      </details>
+    </div>
   );
 }

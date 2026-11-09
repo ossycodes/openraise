@@ -25,6 +25,11 @@ import { PaymentProviderError } from '../payments/provider-http.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { KycService } from '../kyc/kyc.service.js';
 import { namesMatch } from './name-match.js';
+import {
+  NameReviewService,
+  type NameCheck,
+  type presentOwnReview,
+} from './name-review.js';
 
 export const PAYOUT_HOLD_MS = 24 * 60 * 60 * 1000;
 export const MAX_BANK_ACCOUNTS = 5;
@@ -45,12 +50,20 @@ export interface PublicBankAccount {
   isDefault: boolean;
   recipientUsable: boolean;
   nameMatchesProfile: boolean;
+  /** Live standing against the verified name; see NameCheck */
+  nameCheck: NameCheck;
+  /** The latest request to approve this account despite the name */
+  nameReview: ReturnType<typeof presentOwnReview> | null;
   payoutsAvailableAt: Date;
   createdAt: Date;
 }
 
-function toPublic(a: BankAccount): PublicBankAccount {
+function toPublic(
+  a: BankAccount,
+  name: Pick<PublicBankAccount, 'nameCheck' | 'nameReview'>,
+): PublicBankAccount {
   return {
+    ...name,
     id: a.id,
     bankCode: a.bankCode,
     bankName: a.bankName,
@@ -75,7 +88,13 @@ export class BankAccountsService {
     private readonly mail: MailService,
     private readonly config: ConfigService<Env, true>,
     private readonly kyc: KycService,
+    private readonly nameReviews: NameReviewService,
   ) {}
+
+  private async present(userId: string, rows: BankAccount[]) {
+    const checks = await this.nameReviews.checks(userId, rows);
+    return rows.map((r) => toPublic(r, checks.get(r.id)!));
+  }
 
   /** Nigerian banks the provider can pay out to, cached for a day. */
   async listBanks(): Promise<Bank[]> {
@@ -187,7 +206,7 @@ export class BankAccountsService {
         this.logger.error(`Payout account email failed: ${String(error)}`),
       );
 
-    return toPublic(account);
+    return (await this.present(user.id, [account]))[0]!;
   }
 
   async list(user: AuthUser): Promise<PublicBankAccount[]> {
@@ -195,7 +214,7 @@ export class BankAccountsService {
       where: { userId: user.id, removedAt: null },
       orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
     });
-    return rows.map(toPublic);
+    return this.present(user.id, rows);
   }
 
   async setDefault(user: AuthUser, id: string): Promise<PublicBankAccount[]> {
@@ -221,6 +240,7 @@ export class BankAccountsService {
         where: { id },
         data: { removedAt: new Date(), isDefault: false },
       });
+      await this.nameReviews.cancelForAccount(tx, id);
       if (account.isDefault) {
         const next = await tx.bankAccount.findFirst({
           where: { userId: user.id, removedAt: null },

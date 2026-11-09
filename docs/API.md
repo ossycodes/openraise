@@ -121,7 +121,8 @@ See [[Bank accounts]].
 | POST | `/bank-accounts` | `{ bankCode, accountNumber }` | 201 account; 403 unverified email; 409 duplicate or more than 5 |
 | GET | `/bank-accounts` | — | Active accounts, default first |
 | PUT | `/bank-accounts/:id/default` | — | Account list |
-| DELETE | `/bank-accounts/:id` | — | Account list (removed accounts are kept for history) |
+| DELETE | `/bank-accounts/:id` | — | Account list (removed accounts are kept for history); cancels a waiting name review |
+| POST | `/bank-accounts/:id/name-review` | `{ explanation }` (10–500) | 201 own review; 403 `IDENTITY_UNVERIFIED`; 404 not yours; 409 already payable or a review already waiting |
 
 An account:
 
@@ -129,10 +130,27 @@ An account:
 {
   "id": "…", "bankCode": "058", "bankName": "GTBank", "accountName": "OBI ADA CHIOMA",
   "maskedAccountNumber": "******6789", "isDefault": true, "recipientUsable": true,
-  "nameMatchesProfile": true, "payoutsAvailableAt": "2026-11-06T14:15:00.000Z",
+  "nameMatchesProfile": true, "nameCheck": "MATCHES", "nameReview": null,
+  "payoutsAvailableAt": "2026-11-06T14:15:00.000Z",
   "createdAt": "2026-11-05T14:15:00.000Z"
 }
 ```
+
+`nameCheck` is live against the verified name: `MATCHES`, `APPROVED` (an
+administrator approved this account for the current verified name),
+`MISMATCH` (withdrawals refused; ask for a review) or `UNVERIFIED`.
+`nameReview` is the latest non-cancelled `{ id, status, explanation, reason,
+createdAt, decidedAt }`.
+
+### Payout name reviews (admin)
+
+| Method | Path | Input | Returns |
+|---|---|---|---|
+| GET | `/admin/payout-names` | `status=PENDING\|APPROVED\|DECLINED\|CANCELLED`, `page` 1–1000 | `{ items, total, pending, page, limit: 20 }`; waiting oldest first |
+| GET | `/admin/payout-names/:id` | — | `{ review, user, account, currentVerifiedName, history }`; masked number only |
+| POST | `/admin/payout-names/:id/decision` | `{ decision: APPROVE\|DECLINE, reason?, expectedUpdatedAt }` | 200 detail; 400 decline without a reason; 403 own account; 409 stale, decided, account removed or verified name changed |
+
+Both decisions email the creator.
 
 ## Config
 
@@ -431,8 +449,14 @@ Verification gates other endpoints, with `code: 'IDENTITY_UNVERIFIED'`:
   `verifiedName`.
 - `POST /campaigns/:id/withdrawals`: 403 until verified, and 409
   `code: 'ACCOUNT_NAME_MISMATCH'` when the payout account's name doesn't match
-  the verified name. New payout accounts' `nameMatchesProfile` uses the
-  verified name once there is one.
+  the verified name and no administrator approved it (see
+  [[#Payout name reviews (admin)]]). New payout accounts'
+  `nameMatchesProfile` uses the verified name once there is one.
+
+The admin detail also has `documentDeletedAt` when the retention policy
+(`KYC_DOCUMENT_RETENTION_DAYS`) deleted a verified person's photo. An uploaded
+photo must be submitted within a day; after that `POST /kyc` answers 400 on
+`documentKey` ("Upload the photo of your ID again").
 
 ## Request limits
 

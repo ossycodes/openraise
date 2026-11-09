@@ -405,7 +405,7 @@ approves one, so a campaign can't go live for someone unverified. Campaigns
 already live stay up, but every withdrawal needs a verified identity and a
 payout account whose bank-resolved name matches the verified name (the same
 `namesMatch` rule as before, now against the reviewed name instead of the
-profile name). An admin override for genuine mismatches is not built yet.
+profile name). Genuine mismatches go through a payout name review (below).
 
 The reviewer confirms the name as printed on the ID; that, not what the creator
 typed, is what payouts must match. Admins can't decide their own check.
@@ -417,7 +417,38 @@ in so a file can't be moved to another person. The API streams decrypted bytes
 to admins only, uncached. The key comes from `KYC_ENCRYPTION_KEY`, or is
 derived from `JWT_SECRET` so existing installs keep working; deployments
 should set their own. Declined photos are deleted; verified ones are kept as
-evidence for fraud investigations until a retention policy is decided.
+evidence for fraud investigations for `KYC_DOCUMENT_RETENTION_DAYS` (below).
+
+## Payout name overrides are per account and per verified name
+
+Names on bank accounts legitimately differ from IDs: married names, a dropped
+middle name, a reordered or abbreviated name. Rather than loosening
+`namesMatch` for everyone, the creator explains one account and another
+administrator approves or declines it. An approval covers that account only,
+and only while the verified name and the bank-resolved name are the ones the
+administrator compared; a new verification or a different account needs a new
+review. Explanations are text only: asking for marriage certificates would
+mean storing more sensitive documents, and the reviewer can decline with a
+request instead. Admins can't approve their own accounts, decisions are
+conditional on the version reviewed, and removing an account cancels its
+waiting review.
+
+## ID photos are deleted on a schedule, tracked by the database
+
+A verified person's photo is kept `KYC_DOCUMENT_RETENTION_DAYS` (default 365)
+after the decision, then deleted by an hourly sweep in the API; the
+verification and its last four ID characters stay. The default is a year
+because fraud reports tend to arrive within months of a payout; operators
+should set what their data protection and AML rules require, which is why it
+is configuration rather than a constant. Declined photos are still deleted at
+decision time.
+
+Abandoned uploads (uploaded, never submitted) are deleted after a day. They
+are found through `IdentityDocumentUpload` rows written at upload time, not by
+listing the bucket: a bucket shared between environments (local dev and e2e
+share one by default) would otherwise look full of "unreferenced" photos that
+belong to another database. Submitting and sweeping both claim the row with a
+delete, so exactly one of them owns the file.
 
 ## Limits follow verified ingress identity and share atomic Redis counters
 

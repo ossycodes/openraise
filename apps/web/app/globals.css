@@ -6618,3 +6618,121 @@ h3 {
     padding: 10px;
   }
 }
+
+/* Payout accounts whose name differs from the verified name */
+.account-details .name-standing {
+  max-width: 46ch;
+  line-height: 1.5;
+}
+.account-details .name-standing.approved {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent);
+}
+.account-details div.name-standing {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--warm);
+}
+.account-details div.name-standing small {
+  color: var(--warm-text);
+}
+.name-standing details {
+  width: 100%;
+}
+.name-standing summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 4px 0;
+}
+.name-standing form {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.name-standing label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.name-standing textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 10px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+}
+.name-standing textarea:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.name-standing .secondary-button {
+  justify-self: start;
+}
+
+/* Admin payout name review */
+.name-review-versus {
+  font-family: var(--font-body);
+  font-size: 0.8em;
+  color: var(--muted);
+}
+.name-compare,
+.name-explanation {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.name-explanation {
+  margin-top: 16px;
+}
+.name-compare h2,
+.name-explanation h2 {
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+.name-compare dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.name-compare dl div {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--soft);
+}
+.name-compare dt {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.name-compare dd {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.name-compare .field-error {
+  margin: 12px 0 0;
+}
+.name-explanation blockquote {
+  margin: 0;
+  border-left: 2px solid #b78948;
+  padding-left: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

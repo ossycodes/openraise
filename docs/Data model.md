@@ -344,6 +344,28 @@ creator-facing `reason`, `reviewerId` and `decidedAt`.
   as associated data. Declining deletes the document and clears the key.
 - A person is verified when they have a `VERIFIED` row; the latest one's
   `verifiedName` is what payout accounts must match. Rows are kept as history.
+- `documentDeletedAt` is set when the retention sweep deletes a verified
+  person's photo (`KYC_DOCUMENT_RETENTION_DAYS` after the decision); a check
+  requires `documentKey` to be null then.
+
+`IdentityDocumentUpload` tracks a photo uploaded but not yet submitted: `key`
+(primary key), `userId`, `createdAt`. Submitting deletes the row in the same
+transaction as creating the verification; the hourly sweep deletes the file
+behind any row older than a day. Only keys recorded here are ever deleted, so a
+bucket shared with another environment is safe.
+
+`PayoutNameReview` is a creator's request to withdraw to an account whose
+bank name differs from their verified name: `bankAccountId`, `userId`,
+`status` (`PENDING`/`APPROVED`/`DECLINED`/`CANCELLED`), the creator's
+`explanation` (10–500), snapshots of `accountName` and `verifiedName`,
+`reviewerId`, `reason` (required to decline), `decidedAt`, `updatedAt`.
+
+- A partial unique index allows one `PENDING` review per account.
+- Checks: a pending row has no decision fields; `APPROVED`/`DECLINED` have a
+  reviewer and time; `CANCELLED` (the owner removed the account) has a time and
+  no reviewer.
+- Withdrawals accept a mismatched account only with an `APPROVED` review whose
+  `verifiedName` and `accountName` equal the current ones.
 
 ## AuditEvent
 
@@ -357,8 +379,11 @@ No personal names, banking numbers, document metadata or free text is copied.
 
 Indexed by timestamp/id, actor/time, subject/time, target type/id/time and
 action/time. Source triggers cover Campaign status/restrictions, CampaignReport
-status, IdentityVerification status updates, BankAccount insertion/default/soft
-removal and User role updates. Initial KYC submissions, ordinary profile edits,
+status, IdentityVerification status updates and ID photo deletions
+(`IDENTITY_DOCUMENT_DELETED`), BankAccount insertion/default/soft removal,
+PayoutNameReview requests and decisions (`PAYOUT_NAME_REVIEW_REQUESTED`,
+`PAYOUT_NAME_REVIEWED`) and User role updates. Automatic jobs record a
+`system:` actor (the retention sweep is `system:id-photo-retention`). Initial KYC submissions, ordinary profile edits,
 unchanged control fields and rejected transactions do not add events. Existing
 campaign-review, moderation and payout-freeze records remain authoritative for
 their reasons and operational detail.

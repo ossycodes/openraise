@@ -149,6 +149,10 @@ export const envSchema = z
       .string()
       .min(32, 'Use at least 32 random characters')
       .optional(),
+    // Days a verified person's ID photo is kept after the decision, for
+    // follow-up fraud checks; then it's deleted (the verification stands).
+    // Set it to what your data protection and AML rules require.
+    KYC_DOCUMENT_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(365),
 
     // Fees (see docs/Features/Fee engine.md). Amounts are minor units.
     DEFAULT_CURRENCY: z.enum(SUPPORTED_CURRENCIES).default('NGN'),

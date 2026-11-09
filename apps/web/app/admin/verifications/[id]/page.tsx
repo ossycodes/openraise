@@ -87,9 +87,11 @@ export default async function VerificationPage({
             ) : (
               <p className="identity-no-document">
                 <ImageOff size={20} aria-hidden="true" />
-                {v.status === 'REJECTED'
-                  ? 'The photo was deleted when this check was declined.'
-                  : 'No photo was sent with this check.'}
+                {v.documentDeletedAt
+                  ? `The photo was deleted on ${reviewDate(v.documentDeletedAt)} under the ID photo retention policy. The verification still stands.`
+                  : v.status === 'REJECTED'
+                    ? 'The photo was deleted when this check was declined.'
+                    : 'No photo was sent with this check.'}
               </p>
             )}
             <small>

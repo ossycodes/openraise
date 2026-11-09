@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { History, ShieldCheck, ArrowRight } from 'lucide-react';
 import { ApiError, apiAs } from '../../_lib/api';
-import { ACTIONS, type AuditPage } from './types';
+import { ACTIONS, SYSTEM_ACTORS, type AuditPage } from './types';
 export const metadata = { title: 'Audit log' };
 const fieldLabel: Record<string, string> = {
   status: 'Status',
@@ -195,7 +195,7 @@ export default async function AuditLog({
                               <Link
                                 href={`?q=${encodeURIComponent(event.actorId)}`}
                               >
-                                {event.actorId}
+                                {SYSTEM_ACTORS[event.actorId] ?? event.actorId}
                               </Link>
                             ) : (
                               <span className="audit-unattributed">
