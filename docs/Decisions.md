@@ -523,3 +523,16 @@ Append-only triggers reject UPDATE/DELETE/TRUNCATE, including statement-level
 truncation. This protects ordinary application writes, not a privileged database
 owner who can disable the guard. No role-management endpoint is introduced;
 existing manual role updates are recorded without invented application actors.
+
+## "Funded" is derived from the donations, not stored
+
+A campaign's funded date is when the running total of its ledger-backed
+donations first reached the goal, computed with a window function on each
+read. Storing a `fundedAt` column would need every settlement path to keep it
+in step and would go stale if a goal were ever edited; deriving it keeps one
+source of truth, the same confirmed-donation rule the progress bars use. Each
+gift is dated by when the payment succeeded, or by its ledger posting when that
+time is missing, so the date is never null. Paused campaigns are left out: a
+pause may be a moderation decision. The query scans confirmed donations, which
+is fine at current volume; if the homepage ever needs it cheaper, cache the
+response rather than denormalise.
