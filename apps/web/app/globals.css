@@ -2588,6 +2588,37 @@ h3 {
   gap: 12px;
   margin-top: 15px;
 }
+.share-offline {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.share-offline h3 {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  margin: 0 0 6px;
+}
+.share-offline p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.share-offline p strong {
+  color: var(--text);
+}
+.share-offline > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.share-offline .secondary-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
 .contributor-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -6829,4 +6860,198 @@ h3 {
   line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* Printable campaign poster: an A4 sheet previewed on screen */
+.poster-screen {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+.poster-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.poster-toolbar > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.poster-toolbar .primary-button,
+.poster-toolbar .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.poster-hint {
+  margin: 14px 0 24px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.poster {
+  /* A4 proportions; on paper it fills the printable area */
+  aspect-ratio: 210 / 297;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 7%;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  color: #14251b;
+  overflow: hidden;
+}
+.poster-brand {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+.poster-brand span {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warm-text);
+}
+.poster-cover {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--soft);
+  color: var(--accent);
+}
+.poster-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.poster h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.poster-summary {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #3b4a40;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.poster-progress {
+  display: grid;
+  gap: 8px;
+  font-size: 1rem;
+}
+.poster-progress strong {
+  font-size: 1.3rem;
+}
+.poster-progress small {
+  color: #4d5c52;
+}
+.poster-bar {
+  height: 10px;
+  border-radius: 10px;
+  background: var(--soft);
+  overflow: hidden;
+  /* Keep the bar's colour when browsers drop backgrounds to save ink */
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.poster-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+.poster-give {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-top: 18px;
+  border-top: 2px solid #14251b;
+}
+.poster-qr {
+  flex: none;
+  width: 34%;
+  aspect-ratio: 1;
+}
+.poster-qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.poster-give h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2.3rem);
+  margin: 0 0 6px;
+}
+.poster-give p {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: #3b4a40;
+}
+.poster-link {
+  display: block;
+  font-size: clamp(1.05rem, 3vw, 1.5rem);
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+  margin-bottom: 10px;
+}
+.poster-give small {
+  color: #4d5c52;
+}
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+  body {
+    background: #fff;
+  }
+  .poster-toolbar,
+  .poster-hint,
+  nextjs-portal {
+    display: none !important;
+  }
+  .poster-screen {
+    max-width: none;
+    padding: 0;
+  }
+  .poster {
+    /* 297mm − 2 × 12mm margins: exactly one sheet */
+    aspect-ratio: auto;
+    height: 273mm;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  .poster h1 {
+    font-size: 30pt;
+  }
+  .poster-give h2 {
+    font-size: 24pt;
+  }
+  .poster-link {
+    font-size: 17pt;
+  }
 }

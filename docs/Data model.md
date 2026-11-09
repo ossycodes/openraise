@@ -33,6 +33,7 @@ Sixteen categories are inserted by the `categories` migration; see
 |---|---|---|
 | `id` | cuid | Used in write endpoints |
 | `slug` | text, unique | `slugified-title-k7m2q`; fixed at creation, used in public URLs |
+| `shortCode` | text, unique | 5 characters (`abcdefghjkmnpqrstuvwxyz23456789`) for the short link `/c/<code>` on posters and QR codes; the slug's suffix for campaigns created through the API, `campaign_short_code()` by default otherwise; fixed at creation |
 | `ownerId` | → User | Restrict delete |
 | `categoryId` | → Category | Restrict delete |
 | `title` | text | 5–100 characters |

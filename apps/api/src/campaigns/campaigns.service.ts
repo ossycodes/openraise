@@ -27,7 +27,7 @@ import {
   type UpdateCampaignInput,
 } from './campaigns.schemas.js';
 import type { ReviewQueueQuery } from './review.schemas.js';
-import { campaignSlug } from './slug.js';
+import { campaignSlug, randomSuffix } from './slug.js';
 
 const include = {
   category: { select: { slug: true, name: true } },
@@ -49,6 +49,8 @@ type CampaignRow = Prisma.CampaignGetPayload<{ include: typeof include }>;
 export interface PublicCampaign {
   id: string;
   slug: string;
+  /** For the short link /c/<shortCode> on posters and QR codes */
+  shortCode: string;
   title: string;
   summary: string;
   story: string;
@@ -109,6 +111,7 @@ function toPublic(
   return {
     id: c.id,
     slug: c.slug,
+    shortCode: c.shortCode,
     title: c.title,
     summary: c.summary,
     story: c.story,
@@ -170,11 +173,17 @@ export class CampaignsService {
       location: input.location ?? null,
       endsAt: input.endsAt ?? null,
     };
-    // The 5-character suffix makes collisions rare; retry the odd one.
+    // The 5-character suffix makes collisions rare; retry the odd one. It is
+    // also the short link code, so a clash on either slug or code retries.
     for (let attempt = 0; ; attempt++) {
       try {
+        const suffix = randomSuffix();
         const row = await this.prisma.campaign.create({
-          data: { ...data, slug: campaignSlug(input.title) },
+          data: {
+            ...data,
+            slug: campaignSlug(input.title, suffix),
+            shortCode: suffix,
+          },
           include,
         });
         return this.presentOne(row, true);
@@ -182,6 +191,20 @@ export class CampaignsService {
         if (!isUniqueViolation(error) || attempt >= 4) throw error;
       }
     }
+  }
+
+  /**
+   * Where a short link points: the slug of a public campaign. Unpublished,
+   * rejected or unknown codes are all "not found", like slugs.
+   */
+  async slugForShortCode(code: string): Promise<{ slug: string }> {
+    const row = await this.prisma.campaign.findUnique({
+      where: { shortCode: code.toLowerCase() },
+      select: { slug: true, status: true },
+    });
+    if (!row || !PUBLIC_STATUSES.includes(row.status))
+      throw new NotFoundException(NOT_FOUND);
+    return { slug: row.slug };
   }
 
   async listPublic(query: ListCampaignsQuery): Promise<CampaignPage> {

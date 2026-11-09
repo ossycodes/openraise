@@ -13,12 +13,14 @@ bachs.createCheckout = async (data: CheckoutInput) => ({
   url: `https://checkout.bachs.io/${data.reference}`,
 });
 
-const HOUR = 60 * 60 * 1000;
 /**
- * Donation times are set in the future, so these campaigns are the most
- * recently funded in the shared e2e database whatever else ran before.
+ * Donation times are set 30 days ahead, one second apart, so these campaigns
+ * are the most recently funded in the shared e2e database: later than any
+ * other suite's data, and later than every earlier run of this one (whose
+ * "now" was earlier, and whose steps span only seconds).
  */
-const base = Date.now() + 24 * HOUR;
+const STEP = 1000;
+const base = Date.now() + 30 * 24 * 60 * 60 * 1000;
 
 describe('recently funded campaigns', () => {
   let t: TestApp;
@@ -98,18 +100,18 @@ describe('recently funded campaigns', () => {
 
   it('lists live and ended campaigns that reached their goal, most recently funded first', async () => {
     const two = await campaign('Two gifts to goal', 200_000n);
-    await donate(two.slug, base + 1 * HOUR);
-    await donate(two.slug, base + 2 * HOUR); // reaches the goal here
-    await donate(two.slug, base + 5 * HOUR); // past the goal: doesn't move the date
+    await donate(two.slug, base + 1 * STEP);
+    await donate(two.slug, base + 2 * STEP); // reaches the goal here
+    await donate(two.slug, base + 5 * STEP); // past the goal: doesn't move the date
     const one = await campaign('One gift to goal', 100_000n);
-    await donate(one.slug, base + 3 * HOUR);
+    await donate(one.slug, base + 3 * STEP);
     const ended = await campaign('Ended after funding', 100_000n);
-    await donate(ended.slug, base + 4 * HOUR);
+    await donate(ended.slug, base + 4 * STEP);
     await t.prisma.campaign.update({ where: { id: ended.id }, data: { status: 'ENDED' } });
     const short = await campaign('Still raising', 500_000n);
-    await donate(short.slug, base + 6 * HOUR);
+    await donate(short.slug, base + 6 * STEP);
     const paused = await campaign('Funded but paused', 100_000n);
-    await donate(paused.slug, base + 7 * HOUR);
+    await donate(paused.slug, base + 7 * STEP);
     await t.prisma.campaign.update({ where: { id: paused.id }, data: { status: 'PAUSED' } });
 
     const items = await funded('?limit=12');
@@ -117,14 +119,14 @@ describe('recently funded campaigns', () => {
     // Other suites share this database, so check the order among ours only.
     expect(ours.map((c) => c.id)).toEqual([ended.id, one.id, two.id]);
     const first = ours.find((c) => c.id === two.id)!;
-    expect(new Date(first.fundedAt).getTime()).toBe(base + 2 * HOUR);
+    expect(new Date(first.fundedAt).getTime()).toBe(base + 2 * STEP);
     expect(first).toMatchObject({ raisedAmount: '300000', goalAmount: '200000' });
     expect(first).not.toHaveProperty('ownerId');
   });
 
   it('dates a gift without a success time by its ledger posting, never null', async () => {
     const undated = await campaign('Funded without a success time', 100_000n);
-    await donate(undated.slug, base + 8 * HOUR);
+    await donate(undated.slug, base + 8 * STEP);
     const donation = await t.prisma.donation.findFirstOrThrow({
       where: { campaignId: undated.id },
       include: { ledgerTransaction: true },

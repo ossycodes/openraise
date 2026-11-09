@@ -7,19 +7,26 @@ import {
   Download,
   ExternalLink,
   MessageCircle,
+  Printer,
+  QrCode,
   Share2,
   X,
 } from 'lucide-react';
 export function ShareButton({
   title,
+  shortCode,
   compact = false,
 }: {
   title: string;
+  /** Enables the offline options: short link, QR code and poster */
+  shortCode?: string;
   compact?: boolean;
 }) {
   const id = useId();
   const [copied, setCopied] = useState(false);
   const [url, setUrl] = useState('');
+  const [path, setPath] = useState('');
+  const [short, setShort] = useState('');
   const [image, setImage] = useState('');
   const [message, setMessage] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
@@ -27,6 +34,8 @@ export function ShareButton({
   function open() {
     const path = window.location.pathname;
     setUrl(`${window.location.origin}${path}`);
+    setPath(path);
+    setShort(shortCode ? `${window.location.host}/c/${shortCode}` : '');
     setImage(`${path}/opengraph-image`);
     setMessage('');
     setCopied(false);
@@ -188,6 +197,30 @@ export function ShareButton({
             More sharing options <ExternalLink size={15} aria-hidden="true" />
           </button>
         }
+        {short && (
+          <section
+            className="share-offline"
+            aria-labelledby={`${id}-offline`}
+          >
+            <h3 id={`${id}-offline`}>Share it offline</h3>
+            <p>
+              For noticeboards and announcements. Short link:{' '}
+              <strong>{short}</strong>
+            </p>
+            <div>
+              <a className="secondary-button" href={`${path}/poster`}>
+                <Printer size={16} aria-hidden="true" /> Printable poster
+              </a>
+              <a
+                className="secondary-button"
+                href={`${path}/qr?format=png&download=1`}
+                download
+              >
+                <QrCode size={16} aria-hidden="true" /> QR code
+              </a>
+            </div>
+          </section>
+        )}
       </dialog>
     </>
   );
