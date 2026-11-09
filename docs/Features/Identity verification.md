@@ -1,6 +1,6 @@
 ---
 status: in-progress
-branch: feat/identity-verification
+branch: feat/identity-overrides
 pr: 39
 type: feature
 area: trust
@@ -35,9 +35,19 @@ published or a withdrawal made.
   status on the campaign review page. Decision emails to the creator.
 - API: see [[API#Identity verification]].
 
+## Payout name reviews and ID photo retention
+
+- A creator whose bank shows another name (married, reordered, shortened)
+  explains it from the payouts page; another administrator approves or
+  declines it from "Payout names" in the admin workspace. An approval covers
+  that one account for the current verified name, and withdrawals honour it.
+  See [[Decisions#Payout name overrides are per account and per verified name]].
+- Verified ID photos are deleted `KYC_DOCUMENT_RETENTION_DAYS` (default 365)
+  after the decision, and unsubmitted uploads after a day, by an hourly sweep.
+  See [[Decisions#ID photos are deleted on a schedule, tracked by the database]].
+- Both are recorded in the [[Audit log]]; the sweep as an automatic actor.
+
 ## Still to do
 
 - Part 2: vendor adapters (QoreID, Dojah, Smile ID) with NIN/BVN lookup and
-  selfie match where supported.
-- Admin override for a payout account whose name genuinely differs.
-- A retention policy for verified ID photos.
+  selfie match where supported. Needs sandbox accounts to test against.

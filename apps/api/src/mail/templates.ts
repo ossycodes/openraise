@@ -108,6 +108,45 @@ export function identityDecisionEmail(
   };
 }
 
+/** The outcome of a request to withdraw to an account in a different name. */
+export function payoutNameReviewEmail(
+  name: string,
+  to: string,
+  account: string,
+  reason: string | null,
+  link: string,
+): MailMessage {
+  if (reason === null)
+    return {
+      to,
+      subject: 'Your payout account was approved',
+      text: `Hi ${name},\n\nAn administrator approved ${account} for withdrawals, even though its name differs from your verified name.\n\n${link}`,
+      html: layout(
+        'Your payout account was approved',
+        [
+          `Hi ${escapeHtml(name)},`,
+          `An administrator approved <strong>${escapeHtml(account)}</strong> for withdrawals, even though its name differs from your verified name.`,
+        ],
+        { label: 'View payout accounts', href: link },
+      ),
+    };
+  return {
+    to,
+    subject: 'We couldn’t approve your payout account',
+    text: `Hi ${name},\n\nWe couldn't approve ${account} for withdrawals:\n\n${reason}\n\nYou can ask again with more detail, or add an account in your verified name:\n\n${link}`,
+    html: layout(
+      'We couldn’t approve your payout account',
+      [
+        `Hi ${escapeHtml(name)},`,
+        `We couldn't approve <strong>${escapeHtml(account)}</strong> for withdrawals:`,
+        `<em>${escapeHtml(reason)}</em>`,
+        'You can ask again with more detail, or add an account in your verified name.',
+      ],
+      { label: 'View payout accounts', href: link },
+    ),
+  };
+}
+
 /** Sent whenever a payout account is added, so a hijacked login can't redirect money quietly. */
 export function payoutAccountAddedEmail(
   name: string,

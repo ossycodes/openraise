@@ -17,6 +17,8 @@ export interface VerificationDetail {
   verification: AdminVerification & {
     reviewer: { name: string } | null;
     hasDocument: boolean;
+    /** Set when the retention policy deleted a verified person's photo */
+    documentDeletedAt: string | null;
   };
   user: {
     id: string;

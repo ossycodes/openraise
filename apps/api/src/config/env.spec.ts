@@ -43,6 +43,7 @@ describe('validateEnv', () => {
       PAYMENT_PROVIDER: 'disabled',
       BACHS_BASE_URL: 'https://sandbox-api.bachs.io',
       KYC_PROVIDER: 'manual',
+      KYC_DOCUMENT_RETENTION_DAYS: 365,
       DEFAULT_CURRENCY: 'NGN',
       PLATFORM_FEE_BPS: 350,
       DONOR_FEE_BPS: 150,

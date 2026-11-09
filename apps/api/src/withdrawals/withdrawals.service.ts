@@ -12,7 +12,7 @@ import {
 import { createHash, randomUUID } from 'node:crypto';
 import type { AuthUser } from '../auth/auth.types.js';
 import { FeesService } from '../fees/fees.service.js';
-import { namesMatch } from '../bank-accounts/name-match.js';
+import { accountPayable } from '../bank-accounts/name-review.js';
 import { KycService } from '../kyc/kyc.service.js';
 import type { Prisma, Withdrawal } from '../generated/prisma/client.js';
 import { LedgerService } from '../ledger/ledger.service.js';
@@ -243,11 +243,12 @@ export class WithdrawalsService {
             throw new ConflictException(
               'Payout account is not eligible for this provider and currency',
             );
-          // Money only goes to an account in the verified person's name.
-          if (!namesMatch(verifiedName, bank.accountName))
+          // Money only goes to an account in the verified person's name, or
+          // one an administrator approved for that name.
+          if (!(await accountPayable(tx, bank, verifiedName)))
             throw new ConflictException({
               message:
-                "This payout account's name doesn't match your verified name",
+                "This payout account's name doesn't match your verified name. Ask for a review from your payout accounts.",
               code: 'ACCOUNT_NAME_MISMATCH',
             });
           if (bank.payoutsAvailableAt.getTime() > Date.now())

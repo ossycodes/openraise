@@ -5,6 +5,7 @@ import type { Env } from '../config/env.js';
 import { ManualKycProvider } from './adapters/manual.js';
 import { AdminKycController, KycController } from './kyc.controller.js';
 import { KYC_PROVIDER, type KycProvider } from './kyc-provider.js';
+import { KycRetentionService, KycRetentionWorker } from './kyc-retention.js';
 import { KycService } from './kyc.service.js';
 
 export function createKycProvider(
@@ -23,6 +24,8 @@ export function createKycProvider(
   controllers: [KycController, AdminKycController],
   providers: [
     KycService,
+    KycRetentionService,
+    KycRetentionWorker,
     RolesGuard,
     {
       provide: KYC_PROVIDER,
@@ -30,6 +33,6 @@ export function createKycProvider(
       inject: [ConfigService],
     },
   ],
-  exports: [KycService],
+  exports: [KycService, KycRetentionService],
 })
 export class KycModule {}

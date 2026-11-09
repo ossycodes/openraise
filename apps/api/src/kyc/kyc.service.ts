@@ -143,6 +143,11 @@ export class KycService {
         'Upload a JPEG, PNG or WebP photo of your ID',
       );
     const key = `kyc/${user.id}/${randomToken(16)}.${IMAGE_EXTENSIONS[type]}.enc`;
+    // Tracked before the write, so the retention sweep can delete it if it's
+    // never submitted (a failed write leaves a row for a missing file: harmless).
+    await this.prisma.identityDocumentUpload.create({
+      data: { key, userId: user.id },
+    });
     await this.storage.put(
       key,
       this.cipher.encrypt(body, key),
@@ -202,8 +207,22 @@ export class KycService {
       legalName: input.legalName,
       dateOfBirth: input.dateOfBirth,
     });
+    const uploadAgain = new BadRequestException({
+      message: 'Check your details',
+      errors: [
+        { path: 'documentKey', message: 'Upload the photo of your ID again' },
+      ],
+    });
     try {
-      const row = await this.prisma.identityVerification.create({
+      const row = await this.prisma.$transaction(async (tx) => {
+        // Claim the upload; one the retention sweep already took is gone.
+        if (this.provider.needsDocument) {
+          const claimed = await tx.identityDocumentUpload.deleteMany({
+            where: { key: input.documentKey!, userId: user.id },
+          });
+          if (claimed.count === 0) throw uploadAgain;
+        }
+        return tx.identityVerification.create({
         data: {
           userId: user.id,
           provider: this.provider.name,
@@ -219,6 +238,7 @@ export class KycService {
           documentContentType,
           decidedAt: check.status === 'PENDING' ? null : new Date(),
         },
+        });
       });
       return this.presentOwn(row);
     } catch (error) {
@@ -297,6 +317,7 @@ export class KycService {
         ...this.presentAdmin(row),
         reviewer: row.reviewer,
         hasDocument: !!row.documentKey,
+        documentDeletedAt: row.documentDeletedAt,
       },
       user: {
         id: row.user.id,

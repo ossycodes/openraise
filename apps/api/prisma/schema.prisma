@@ -41,6 +41,59 @@ model User {
   payoutFreezeEvents      PayoutFreezeEvent[]
   identityVerifications   IdentityVerification[]   @relation("IdentitySubject")
   identityDecisions       IdentityVerification[]   @relation("IdentityReviewer")
+  payoutNameReviews       PayoutNameReview[]       @relation("PayoutNameSubject")
+  payoutNameDecisions     PayoutNameReview[]       @relation("PayoutNameReviewer")
+  identityUploads         IdentityDocumentUpload[]
+}
+
+/// An ID photo uploaded but not yet submitted. Submitting claims (deletes) the
+/// row; the retention sweep deletes the photo behind any row left for a day.
+/// Tracked here rather than by listing the bucket, so a bucket shared between
+/// environments never loses another environment's photos.
+model IdentityDocumentUpload {
+  key       String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([createdAt])
+}
+
+enum PayoutNameReviewStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  /// The owner removed the payout account before anyone decided
+  CANCELLED
+}
+
+/// A creator's request to withdraw to an account whose bank name doesn't
+/// match their verified name (a married name, a reordered or shortened name).
+/// An APPROVED review lets withdrawals reach that one account, and only while
+/// the verified name is still the one it was approved against. At most one
+/// PENDING review per account (partial unique index in the migration).
+model PayoutNameReview {
+  id            String                 @id @default(cuid())
+  bankAccountId String
+  bankAccount   BankAccount            @relation(fields: [bankAccountId], references: [id], onDelete: Restrict)
+  userId        String
+  user          User                   @relation("PayoutNameSubject", fields: [userId], references: [id], onDelete: Restrict)
+  status        PayoutNameReviewStatus @default(PENDING)
+  /// The creator's explanation of why the names differ
+  explanation   String
+  /// Snapshots at request time: what the administrator compared
+  accountName   String
+  verifiedName  String
+  reviewerId    String?
+  reviewer      User?                  @relation("PayoutNameReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  /// Why it was declined, shown to the creator
+  reason        String?
+  decidedAt     DateTime?              @db.Timestamptz
+  createdAt     DateTime               @default(now()) @db.Timestamptz
+  updatedAt     DateTime               @updatedAt @db.Timestamptz
+
+  @@index([status, createdAt])
+  @@index([bankAccountId, createdAt])
 }
 
 enum IdentityVerificationStatus {
@@ -79,6 +132,8 @@ model IdentityVerification {
   /// Storage key of the AES-256-GCM encrypted document image; null once deleted
   documentKey         String?
   documentContentType String?
+  /// When the retention policy deleted the photo of a verified ID
+  documentDeletedAt   DateTime?                  @db.Timestamptz
   /// Rejection reason shown to the creator
   reason              String?
   reviewerId          String?
@@ -119,6 +174,7 @@ model BankAccount {
   createdAt          DateTime  @default(now()) @db.Timestamptz
 
   withdrawals Withdrawal[]
+  nameReviews PayoutNameReview[]
 
   @@index([userId, removedAt])
 }
