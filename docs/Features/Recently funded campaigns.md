@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 53
+shipped: 2026-11-09
 branch: feat/recently-funded
 type: feature
 area: web

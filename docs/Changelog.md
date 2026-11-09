@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #53 | Recently funded campaigns: `GET /campaigns/recently-funded` with a `fundedAt` derived from the running total of ledger-confirmed donations, and a homepage strip of campaigns that reached their goal ([[Recently funded campaigns]]) |
 | #51 | Payout name reviews and ID photo retention: creators ask for a payout account in another name to be approved, another admin decides from the Payout names workspace and withdrawals honour it per account and verified name; verified ID photos deleted after `KYC_DOCUMENT_RETENTION_DAYS` and unsubmitted uploads after a day; all audited ([[Identity verification]]) |
 | #48 | Protected admin audit history: atomic redacted before/after events for campaign controls, reports, identity decisions, bank-account changes and roles; actor attribution, ID/action/date filters, and append-only database guards ([[Audit log]]) |
 | #46 | Public campaign money trail: ledger-backed gifts, fees, wallet balance and paginated paid/pending/returned withdrawal history, with exact amounts and private bank/donor details ([[Public money trail]]) |
