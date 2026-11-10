@@ -115,6 +115,42 @@ const ROLE_PHRASE: Record<string, string> = {
   FINANCE: 'a finance member',
 };
 
+/** The outcome of an organisation's verification, for its owners and admins. */
+export function organisationVerificationEmail(
+  organisationName: string,
+  to: string,
+  reason: string | null,
+  link: string,
+): MailMessage {
+  if (reason === null)
+    return {
+      to,
+      subject: `${organisationName} is verified`,
+      text: `Hi,\n\n${organisationName} is now verified on ${siteName()}. Its public profile shows it as verified.\n\n${link}`,
+      html: layout(
+        `${escapeHtml(organisationName)} is verified`,
+        [
+          `<strong>${escapeHtml(organisationName)}</strong> is now verified on ${escapeHtml(siteName())}. Its public profile shows it as verified.`,
+        ],
+        { label: 'Open the organisation', href: link },
+      ),
+    };
+  return {
+    to,
+    subject: `We couldn’t verify ${organisationName}`,
+    text: `Hi,\n\nWe couldn't verify ${organisationName} from what was sent:\n\n${reason}\n\nAn owner or admin can send the details again:\n\n${link}`,
+    html: layout(
+      `We couldn’t verify ${escapeHtml(organisationName)}`,
+      [
+        `We couldn't verify <strong>${escapeHtml(organisationName)}</strong> from what was sent:`,
+        `<em>${escapeHtml(reason)}</em>`,
+        'An owner or admin can send the details again from the dashboard.',
+      ],
+      { label: 'Try again', href: link },
+    ),
+  };
+}
+
 /** An invitation to join an organisation's team. */
 export function organisationInviteEmail(
   inviterName: string,

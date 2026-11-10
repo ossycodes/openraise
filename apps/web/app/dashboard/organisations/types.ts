@@ -1,5 +1,31 @@
 export type OrganisationRole = 'OWNER' | 'ADMIN' | 'EDITOR' | 'FINANCE';
 
+export type RegistrationType = 'BUSINESS_NAME' | 'COMPANY' | 'INCORPORATED_TRUSTEES';
+
+/** CAC registration types, as people know them. */
+export const REGISTRATION_LABEL: Record<RegistrationType, string> = {
+  INCORPORATED_TRUSTEES: 'Incorporated trustees (IT)',
+  COMPANY: 'Limited company (RC)',
+  BUSINESS_NAME: 'Business name (BN)',
+};
+
+export interface OrgVerification {
+  id: string;
+  status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  registrationType: RegistrationType;
+  registrationNumber: string;
+  registeredName: string;
+  verifiedName: string | null;
+  reason: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface OrgVerificationState {
+  status: 'NONE' | OrgVerification['status'];
+  verification: OrgVerification | null;
+}
+
 export const ROLE_LABEL: Record<OrganisationRole, string> = {
   OWNER: 'Owner',
   ADMIN: 'Admin',

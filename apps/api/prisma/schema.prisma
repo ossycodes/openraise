@@ -47,6 +47,55 @@ model User {
   organisationsCreated    Organisation[]           @relation("OrganisationCreator")
   organisationMemberships OrganisationMember[]
   organisationInvitesSent OrganisationInvite[]     @relation("OrganisationInviter")
+  organisationChecksSent  OrganisationVerification[] @relation("OrgVerificationSubmitter")
+  organisationChecksDone  OrganisationVerification[] @relation("OrgVerificationReviewer")
+}
+
+enum OrganisationVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+/// Nigerian Corporate Affairs Commission registration types
+enum OrganisationRegistrationType {
+  /// "BN" business name
+  BUSINESS_NAME
+  /// "RC" limited company
+  COMPANY
+  /// "IT" incorporated trustees: churches, mosques, NGOs, associations
+  INCORPORATED_TRUSTEES
+}
+
+/// One attempt to verify an organisation from its registration certificate.
+/// At most one PENDING per organisation (partial unique index).
+model OrganisationVerification {
+  id                  String                         @id @default(cuid())
+  organisationId      String
+  organisation        Organisation                   @relation(fields: [organisationId], references: [id], onDelete: Restrict)
+  submittedById       String
+  submittedBy         User                           @relation("OrgVerificationSubmitter", fields: [submittedById], references: [id], onDelete: Restrict)
+  status              OrganisationVerificationStatus @default(PENDING)
+  registrationType    OrganisationRegistrationType
+  /// As printed on the certificate, e.g. "RC 1234567"; public record in Nigeria
+  registrationNumber  String
+  /// The name on the certificate, as entered
+  registeredName      String
+  /// The name confirmed by the reviewer; public once VERIFIED
+  verifiedName        String?
+  /// AES-256-GCM encrypted certificate photo; null once deleted
+  documentKey         String?
+  documentContentType String?
+  /// Shown to the organisation when declined
+  reason              String?
+  reviewerId          String?
+  reviewer            User?                          @relation("OrgVerificationReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  decidedAt           DateTime?                      @db.Timestamptz
+  createdAt           DateTime                       @default(now()) @db.Timestamptz
+  updatedAt           DateTime                       @updatedAt @db.Timestamptz
+
+  @@index([organisationId, createdAt])
+  @@index([status, createdAt])
 }
 
 enum OrganisationRole {
@@ -74,8 +123,9 @@ model Organisation {
   createdBy   User                 @relation("OrganisationCreator", fields: [createdById], references: [id], onDelete: Restrict)
   createdAt   DateTime             @default(now()) @db.Timestamptz
   updatedAt   DateTime             @updatedAt @db.Timestamptz
-  members     OrganisationMember[]
-  invites     OrganisationInvite[]
+  members       OrganisationMember[]
+  invites       OrganisationInvite[]
+  verifications OrganisationVerification[]
 }
 
 model OrganisationMember {

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ArrowUpRight, Mail } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, BadgeCheck, Mail } from 'lucide-react';
 import { ApiError, apiAs } from '../../../_lib/api';
 import {
   changeMemberRole,
@@ -9,11 +9,14 @@ import {
   revokeInvite,
   saveOrganisation,
 } from '../../organisation-actions';
+import { OrgVerificationForm } from '../../_components/org-verification-form';
 import {
+  REGISTRATION_LABEL,
   ROLE_HINT,
   ROLE_LABEL,
   type OrganisationManage,
   type OrganisationRole,
+  type OrgVerificationState,
 } from '../types';
 
 export const metadata = { title: 'Organisation' };
@@ -45,11 +48,18 @@ export default async function OrganisationPage({
   const { error, notice, email } = await searchParams;
   const returnTo = `/dashboard/organisations/${id}`;
   let d: OrganisationManage;
+  let check: OrgVerificationState;
   try {
-    d = await apiAs<OrganisationManage>(
-      `/organisations/${encodeURIComponent(id)}/manage`,
-      { returnTo },
-    );
+    [d, check] = await Promise.all([
+      apiAs<OrganisationManage>(
+        `/organisations/${encodeURIComponent(id)}/manage`,
+        { returnTo },
+      ),
+      apiAs<OrgVerificationState>(
+        `/organisations/${encodeURIComponent(id)}/verification`,
+        { returnTo },
+      ),
+    ]);
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
@@ -174,6 +184,49 @@ export default async function OrganisationPage({
                 Leave this organisation
               </button>
             </form>
+          </section>
+
+          <section className="dashboard-panel" aria-labelledby="verify-title">
+            <h2 id="verify-title">Verification</h2>
+            {check.status === 'VERIFIED' && check.verification ? (
+              <p className="org-verified">
+                <BadgeCheck size={20} aria-hidden="true" />
+                <span>
+                  Verified as <strong>{check.verification.verifiedName}</strong>{' '}
+                  ({REGISTRATION_LABEL[check.verification.registrationType]}{' '}
+                  {check.verification.registrationNumber}). The public profile
+                  shows a verified badge.
+                </span>
+              </p>
+            ) : check.status === 'PENDING' ? (
+              <p className="field-hint">
+                The registration details are with our team. Owners and admins
+                will get an email when they’ve been checked.
+              </p>
+            ) : (
+              <>
+                {check.status === 'REJECTED' && check.verification?.reason && (
+                  <p className="dashboard-notice error" role="alert">
+                    Not verified: {check.verification.reason}
+                  </p>
+                )}
+                <p className="field-hint">
+                  Verified organisations show a badge on their profile. Send the
+                  registration certificate from the Corporate Affairs
+                  Commission (CAC).
+                </p>
+                {manager ? (
+                  <OrgVerificationForm
+                    organisationId={org.id}
+                    previous={check.verification}
+                  />
+                ) : (
+                  <p className="field-hint">
+                    An owner or admin can send the details.
+                  </p>
+                )}
+              </>
+            )}
           </section>
 
           {manager && (

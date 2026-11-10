@@ -1,6 +1,6 @@
 ---
 status: in-progress
-branch: feat/organisations
+branch: feat/organisation-verification
 type: feature
 area: accounts
 milestone: 7
@@ -29,9 +29,19 @@ organisation rather than one person.
   [[Decisions#Organisations: owners stay in charge, invitations are bound to an address]]
   and [[API#Organisations]].
 
-## Still to do (part 2)
+## Part 2a: verification
 
-- Organisation verification from registration documents (CAC, trustees).
-- Campaigns owned by an organisation; editors run them, finance withdraws to
-  an account in the organisation's verified name.
-- Campaigns listed on the public profile, with a verified badge.
+- Owners and admins send the CAC registration type, number, name and a
+  certificate photo from the organisation page; an administrator outside the
+  organisation verifies or declines it from "Organisation checks".
+- Verified organisations show a badge and their registered name on the public
+  profile. See
+  [[Decisions#Organisation verification reuses the identity check, with outsiders deciding]]
+  and [[API#Organisation verification]].
+
+## Still to do
+
+- Part 2b: campaigns owned by an organisation, run by its editors, listed on
+  its profile.
+- Part 2c: finance members withdraw to an account in the organisation's
+  verified name.

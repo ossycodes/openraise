@@ -101,10 +101,19 @@ export class OrganisationsService {
         website: true,
         location: true,
         createdAt: true,
+        // The registered name an administrator confirmed, if any.
+        verifications: {
+          where: { status: 'VERIFIED' },
+          orderBy: { decidedAt: 'desc' },
+          take: 1,
+          select: { verifiedName: true },
+        },
       },
     });
     if (!org) throw new NotFoundException(NOT_FOUND);
-    return org;
+    const { verifications, ...profile } = org;
+    const verifiedName = verifications[0]?.verifiedName ?? null;
+    return { ...profile, verified: verifiedName !== null, verifiedName };
   }
 
   /** Everything a member sees; invitations only for owners and admins. */
