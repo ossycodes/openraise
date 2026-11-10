@@ -7364,3 +7364,206 @@ h3 {
     padding: 22px;
   }
 }
+
+/* Organisations */
+.org-form {
+  display: grid;
+  gap: 18px;
+}
+.org-form .form-row {
+  gap: 16px;
+}
+.org-form .form-actions,
+.org-form .org-roles {
+  margin: 0;
+}
+.org-list,
+.org-members,
+.org-invites {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.org-list a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.org-list a > svg:first-child {
+  color: var(--accent);
+}
+.org-list a span {
+  display: grid;
+  flex: 1;
+}
+.org-list small,
+.org-members small,
+.org-invites small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.org-members li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.org-members li > div:first-child {
+  display: grid;
+  min-width: 0;
+}
+.org-members small {
+  overflow-wrap: anywhere;
+}
+.org-you {
+  color: var(--muted);
+  font-weight: 400;
+}
+.org-member-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.org-member-actions form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.org-member-actions select {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+}
+.org-leave {
+  margin-top: 16px;
+}
+.org-roles {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+}
+.org-roles legend {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.org-roles label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.org-roles label:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+.org-roles input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+.org-roles span {
+  display: grid;
+  gap: 2px;
+}
+.org-roles small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.org-subhead {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  margin: 24px 0 8px;
+}
+.org-invites li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.org-invites li > span {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.form-actions .primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.invite-card {
+  max-width: 560px;
+  margin: 64px auto;
+  padding: 36px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.invite-card > svg {
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+.invite-card h1 {
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  line-height: 1.1;
+  margin: 8px 0 14px;
+}
+.invite-card p {
+  line-height: 1.6;
+  color: var(--muted);
+}
+.invite-card .primary-button {
+  margin-top: 8px;
+}
+.invite-card .field-hint {
+  margin-top: 22px;
+}
+.org-profile .org-badge {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
+  border-radius: 16px;
+  background: var(--soft);
+  color: var(--accent);
+}
+.org-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.org-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (max-width: 540px) {
+  .invite-card {
+    margin: 32px 0;
+    padding: 24px;
+  }
+}

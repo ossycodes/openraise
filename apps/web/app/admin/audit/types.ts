@@ -8,6 +8,9 @@ export const ACTIONS: Record<string, string> = {
   BANK_ACCOUNT_ADDED: 'Payout account added',
   BANK_ACCOUNT_CHANGED: 'Payout account changed',
   ROLE_CHANGED: 'Account role changed',
+  ORG_MEMBER_ADDED: 'Organisation member added',
+  ORG_ROLE_CHANGED: 'Organisation role changed',
+  ORG_MEMBER_REMOVED: 'Organisation member removed',
 };
 /** Automatic jobs that act without a person, by their recorded actor id. */
 export const SYSTEM_ACTORS: Record<string, string> = {

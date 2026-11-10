@@ -108,6 +108,37 @@ export function identityDecisionEmail(
   };
 }
 
+const ROLE_PHRASE: Record<string, string> = {
+  OWNER: 'an owner',
+  ADMIN: 'an admin',
+  EDITOR: 'an editor',
+  FINANCE: 'a finance member',
+};
+
+/** An invitation to join an organisation's team. */
+export function organisationInviteEmail(
+  inviterName: string,
+  organisationName: string,
+  role: string,
+  to: string,
+  link: string,
+): MailMessage {
+  const as = ROLE_PHRASE[role] ?? 'a member';
+  return {
+    to,
+    subject: `Join ${organisationName} on ${siteName()}`,
+    text: `Hi,\n\n${inviterName} invited you to join ${organisationName} on ${siteName()} as ${as}.\n\nAccept the invitation (it works for 7 days, with an account using this email address):\n\n${link}\n\nIf you weren't expecting this, ignore this email.`,
+    html: layout(
+      `Join ${escapeHtml(organisationName)}`,
+      [
+        `${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(organisationName)}</strong> on ${escapeHtml(siteName())} as ${as}.`,
+        'The invitation works for 7 days, with an account using this email address. If you weren’t expecting it, ignore this email.',
+      ],
+      { label: 'Accept invitation', href: link },
+    ),
+  };
+}
+
 /** The outcome of a request to withdraw to an account in a different name. */
 export function payoutNameReviewEmail(
   name: string,

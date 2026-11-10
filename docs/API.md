@@ -577,3 +577,27 @@ place; they are not backfilled with invented actors or before-states. Direct
 maintenance writes without transaction-local application actor context have a
 null actor. No names, emails, bank details, identity documents, provider IDs,
 credentials, review notes or report allegations appear in the event snapshots.
+
+## Organisations
+
+Profiles are public by slug; everything else is for members by id, and a
+non-member gets 404. Managers are owners and admins. See [[Organisations]].
+
+| Method | Path | Auth | Input | Returns |
+|---|---|---|---|---|
+| POST | `/organisations` | Verified email | `{ name (2–100), about? (≤2000), website? (http/https), location? (≤100) }` | 201 manage view; you are `OWNER`. 403 unverified email; 409 after owning 5 |
+| GET | `/organisations/mine` | Bearer | — | `[{ id, slug, name, role }]` |
+| GET | `/organisations/:slug` | — | — | `{ slug, name, about, website, location, createdAt }`; no members |
+| GET | `/organisations/:id/manage` | Member | — | `{ organisation, myRole, members: [{ id, userId, name, email, role, joinedAt, you }], invites }`; `invites` (open only) for managers, else `null` |
+| PATCH | `/organisations/:id` | Manager | Any create field; `null` clears website/location | Manage view |
+| POST | `/organisations/:id/invites` | Manager | `{ email, role }` | 201 `{ id, email, role, expiresAt, emailSent }`; replaces an open invite to the same email. 403 admin inviting an owner; 409 already a member. Rate limited with recovery emails |
+| DELETE | `/organisations/:id/invites/:inviteId` | Manager | — | 204; 404 if not open |
+| PATCH | `/organisations/:id/members/:memberId` | Manager | `{ role }` | Manage view. 403 admin changing or creating an owner; 409 would leave no owner |
+| DELETE | `/organisations/:id/members/:memberId` | Manager, or yourself (leave) | — | 204. 403 admin removing an owner; 409 last owner |
+| POST | `/organisation-invites/preview` | — | `{ token }` | `{ organisation: { name, slug }, role, email, status: OPEN\|ACCEPTED\|REVOKED\|EXPIRED }` |
+| POST | `/organisation-invites/accept` | Verified email | `{ token }` | `{ id, slug }`. 400 not open; 403 signed in with another email |
+
+Invitation links are `WEB_URL/organisations/invite?token=…`, valid for 7 days;
+only the token's SHA-256 is stored. Accepting never lowers an existing member's
+role. Team changes take a row lock on the organisation, so concurrent changes
+can't remove the last owner.

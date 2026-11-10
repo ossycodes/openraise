@@ -383,7 +383,10 @@ action/time. Source triggers cover Campaign status/restrictions, CampaignReport
 status, IdentityVerification status updates and ID photo deletions
 (`IDENTITY_DOCUMENT_DELETED`), BankAccount insertion/default/soft removal,
 PayoutNameReview requests and decisions (`PAYOUT_NAME_REVIEW_REQUESTED`,
-`PAYOUT_NAME_REVIEWED`) and User role updates. Automatic jobs record a
+`PAYOUT_NAME_REVIEWED`), OrganisationMember additions, role changes and
+removals (`ORG_MEMBER_ADDED`, `ORG_ROLE_CHANGED`, `ORG_MEMBER_REMOVED`, from
+their own trigger function because removals only have the old row) and User
+role updates. Automatic jobs record a
 `system:` actor (the retention sweep is `system:id-photo-retention`). Initial KYC submissions, ordinary profile edits,
 unchanged control fields and rejected transactions do not add events. Existing
 campaign-review, moderation and payout-freeze records remain authoritative for
@@ -392,3 +395,19 @@ their reasons and operational detail.
 Statement triggers reject event UPDATE, DELETE and TRUNCATE. A database owner can
 still disable triggers or change schema; this is not an external tamper-proof
 archive. No automatic retention deletion is performed.
+
+## Organisations
+
+`Organisation`: `slug` (unique, `name-k7m2q` like campaign slugs, fixed),
+`name` (2–100), `about` (≤2000), optional `website` (http/https) and
+`location`, `createdById`, timestamps.
+
+`OrganisationMember`: one row per person per organisation (`organisationId` +
+`userId` unique), `role` `OWNER`/`ADMIN`/`EDITOR`/`FINANCE`. Every
+organisation keeps at least one `OWNER`: team changes lock the organisation row
+and check before demoting or removing an owner.
+
+`OrganisationInvite`: `email` (lower-cased), `role`, `tokenHash` (SHA-256,
+unique), `invitedById`, `expiresAt` (7 days), `acceptedAt` or `revokedAt` (never
+both). A partial unique index allows one open invite per email per
+organisation; a new one revokes the old.
