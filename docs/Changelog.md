@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #57 | Cause landing pages and fundraising guides: `/raise-money-for/<category>` with original copy, live campaigns, tips and a fee FAQ from the deployment's settings; three guides under `/guides`; breadcrumb, FAQ and article structured data; `sitemap.xml`, `robots.txt` and footer links ([[SEO pages and guides]]) |
 | #55 | Short links, QR codes and printable posters: stored unique `Campaign.shortCode` (the slug's suffix, backfilled), `/c/<code>` via `GET /short-links/:code`, PNG/SVG QR codes of the short link, an A4 poster page with print styles, and a "Share it offline" row in the share dialog ([[QR codes and posters]]) |
 | #53 | Recently funded campaigns: `GET /campaigns/recently-funded` with a `fundedAt` derived from the running total of ledger-confirmed donations, and a homepage strip of campaigns that reached their goal ([[Recently funded campaigns]]) |
 | #51 | Payout name reviews and ID photo retention: creators ask for a payout account in another name to be approved, another admin decides from the Payout names workspace and withdrawals honour it per account and verified name; verified ID photos deleted after `KYC_DOCUMENT_RETENTION_DAYS` and unsubmitted uploads after a day; all audited ([[Identity verification]]) |

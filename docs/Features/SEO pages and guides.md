@@ -1,5 +1,7 @@
 ---
-status: in-progress
+status: shipped
+pr: 57
+shipped: 2026-11-09
 branch: feat/seo-guides
 type: feature
 area: growth
