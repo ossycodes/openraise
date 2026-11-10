@@ -587,7 +587,7 @@ non-member gets 404. Managers are owners and admins. See [[Organisations]].
 |---|---|---|---|---|
 | POST | `/organisations` | Verified email | `{ name (2–100), about? (≤2000), website? (http/https), location? (≤100) }` | 201 manage view; you are `OWNER`. 403 unverified email; 409 after owning 5 |
 | GET | `/organisations/mine` | Bearer | — | `[{ id, slug, name, role }]` |
-| GET | `/organisations/:slug` | — | — | `{ slug, name, about, website, location, createdAt }`; no members |
+| GET | `/organisations/:slug` | — | — | `{ slug, name, about, website, location, createdAt, verified, verifiedName }`; no members |
 | GET | `/organisations/:id/manage` | Member | — | `{ organisation, myRole, members: [{ id, userId, name, email, role, joinedAt, you }], invites }`; `invites` (open only) for managers, else `null` |
 | PATCH | `/organisations/:id` | Manager | Any create field; `null` clears website/location | Manage view |
 | POST | `/organisations/:id/invites` | Manager | `{ email, role }` | 201 `{ id, email, role, expiresAt, emailSent }`; replaces an open invite to the same email. 403 admin inviting an owner; 409 already a member. Rate limited with recovery emails |
@@ -601,3 +601,19 @@ Invitation links are `WEB_URL/organisations/invite?token=…`, valid for 7 days;
 only the token's SHA-256 is stored. Accepting never lowers an existing member's
 role. Team changes take a row lock on the organisation, so concurrent changes
 can't remove the last owner.
+
+### Organisation verification
+
+| Method | Path | Auth | Input | Returns |
+|---|---|---|---|---|
+| GET | `/organisations/:id/verification` | Member | — | `{ status: NONE\|PENDING\|VERIFIED\|REJECTED, verification }` |
+| POST | `/organisations/:id/verification/document` | Manager | Raw image body (`image/jpeg\|png\|webp`), ≤5 MB | 201 `{ documentKey, contentType, size }`; 400 not an image, 413, 415, 409 pending/verified |
+| POST | `/organisations/:id/verification` | Manager | `{ registrationType: BUSINESS_NAME\|COMPANY\|INCORPORATED_TRUSTEES, registrationNumber, registeredName, documentKey }` | 201 the check (`PENDING`); 400 field `errors` (the key must be this organisation's own unclaimed upload); 409 pending/verified |
+| GET | `/admin/organisation-checks` | Admin | `status`, `page` | `{ items, total, pending, page, limit: 20 }` |
+| GET | `/admin/organisation-checks/:id` | Admin | — | `{ verification, organisation, submittedBy, history }`; `hasDocument`, never the key |
+| GET | `/admin/organisation-checks/:id/document` | Admin | — | The decrypted certificate photo; `private, no-store`, `nosniff`, `default-src 'none'` |
+| POST | `/admin/organisation-checks/:id/decision` | Admin | `{ decision: APPROVE\|REJECT, reason?, verifiedName?, expectedUpdatedAt }` | 200 detail; 400 reject without a reason; 403 a member of the organisation; 409 stale or decided |
+
+Registration numbers are upper-cased and spaced as printed (`IT 123456`).
+Declining deletes the photo. Both outcomes email the organisation's owners and
+admins. Upload and submit share the identity upload rate limit.

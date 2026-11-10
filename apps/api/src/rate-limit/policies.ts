@@ -28,6 +28,8 @@ export function policyFor(
     return { name: 'invite', limit: 'RATE_LIMIT_RECOVERY_MAX' };
   if (/^\/kyc(?:\/document)?$/.test(path))
     return { name: 'identity', limit: 'RATE_LIMIT_UPLOAD_MAX' };
+  if (/^\/organisations\/[^/]+\/verification(?:\/document)?$/.test(path))
+    return { name: 'identity', limit: 'RATE_LIMIT_UPLOAD_MAX' };
   if (
     /^\/campaigns\/[^/]+\/(?:images(?:\/.*)?|updates\/images(?:\/.*)?)$/.test(
       path,

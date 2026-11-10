@@ -7567,3 +7567,38 @@ h3 {
     padding: 24px;
   }
 }
+.org-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.org-verified {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0;
+  line-height: 1.6;
+}
+.org-verified > svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--accent);
+}
+.org-verified-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 18px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--soft);
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.org-verified-badge span {
+  color: var(--muted);
+  font-weight: 400;
+}

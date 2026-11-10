@@ -8,6 +8,7 @@ import {
   BookOpenCheck,
   History,
   Landmark,
+  Building2,
 } from 'lucide-react';
 export function WorkspaceNav() {
   const path = usePathname();
@@ -44,6 +45,15 @@ export function WorkspaceNav() {
       >
         <Landmark size={16} aria-hidden="true" />
         Payout names
+      </Link>
+      <Link
+        href="/admin/organisation-checks"
+        aria-current={
+          path.startsWith('/admin/organisation-checks') ? 'page' : undefined
+        }
+      >
+        <Building2 size={16} aria-hidden="true" />
+        Organisation checks
       </Link>
       <Link
         href="/admin/money"

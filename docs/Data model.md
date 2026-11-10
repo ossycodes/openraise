@@ -385,7 +385,8 @@ status, IdentityVerification status updates and ID photo deletions
 PayoutNameReview requests and decisions (`PAYOUT_NAME_REVIEW_REQUESTED`,
 `PAYOUT_NAME_REVIEWED`), OrganisationMember additions, role changes and
 removals (`ORG_MEMBER_ADDED`, `ORG_ROLE_CHANGED`, `ORG_MEMBER_REMOVED`, from
-their own trigger function because removals only have the old row) and User
+their own trigger function because removals only have the old row),
+OrganisationVerification decisions (`ORG_VERIFICATION_DECIDED`) and User
 role updates. Automatic jobs record a
 `system:` actor (the retention sweep is `system:id-photo-retention`). Initial KYC submissions, ordinary profile edits,
 unchanged control fields and rejected transactions do not add events. Existing
@@ -411,3 +412,17 @@ and check before demoting or removing an owner.
 unique), `invitedById`, `expiresAt` (7 days), `acceptedAt` or `revokedAt` (never
 both). A partial unique index allows one open invite per email per
 organisation; a new one revokes the old.
+
+`OrganisationVerification`: one attempt to verify an organisation from its
+registration certificate. `submittedById`, `status`
+(`PENDING`/`VERIFIED`/`REJECTED`), `registrationType`
+(`BUSINESS_NAME`/`COMPANY`/`INCORPORATED_TRUSTEES`), `registrationNumber`
+(upper-case letters, digits, spaces, `/` and `-`; public record in Nigeria, so
+stored in full), `registeredName`, `verifiedName` once verified, the encrypted
+certificate's `documentKey` and `documentContentType` (cleared when declined),
+`reason`, `reviewerId`, `decidedAt`. One `PENDING` row per organisation
+(partial unique index); a decided row has `decidedAt`, a verified one a
+`verifiedName`, a declined one a `reason`. Certificate photos live at
+`org-docs/<organisationId>/<random>.<ext>.enc`, encrypted like ID photos, and
+unsubmitted uploads are tracked in `IdentityDocumentUpload` and swept after a
+day.
