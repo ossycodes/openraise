@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Building2, ExternalLink, MapPin } from 'lucide-react';
+import { BadgeCheck, Building2, ExternalLink, MapPin } from 'lucide-react';
 import { SiteFooter, SiteHeader } from '../../_components/site-header';
 import { previewEnabled, webOrigin } from '../../_lib/campaign-server';
 import { jsonLd, readPublic } from '../../_lib/public-content';
@@ -12,6 +12,9 @@ interface Profile {
   website: string | null;
   location: string | null;
   createdAt: string;
+  verified: boolean;
+  /** The registered name an administrator confirmed */
+  verifiedName: string | null;
 }
 
 const load = (slug: string) =>
@@ -67,6 +70,15 @@ export default async function OrganisationProfile({
           </div>
           <div className="section-eyebrow">Organisation</div>
           <h1>{org.name}</h1>
+          {org.verified && (
+            <p className="org-verified-badge">
+              <BadgeCheck size={18} aria-hidden="true" />
+              Verified organisation
+              {org.verifiedName && org.verifiedName !== org.name && (
+                <span>· registered as {org.verifiedName}</span>
+              )}
+            </p>
+          )}
           <ul className="org-facts">
             {org.location && (
               <li>

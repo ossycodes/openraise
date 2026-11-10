@@ -11,6 +11,7 @@ export const ACTIONS: Record<string, string> = {
   ORG_MEMBER_ADDED: 'Organisation member added',
   ORG_ROLE_CHANGED: 'Organisation role changed',
   ORG_MEMBER_REMOVED: 'Organisation member removed',
+  ORG_VERIFICATION_DECIDED: 'Organisation check decided',
 };
 /** Automatic jobs that act without a person, by their recorded actor id. */
 export const SYSTEM_ACTORS: Record<string, string> = {

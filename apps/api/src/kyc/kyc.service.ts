@@ -27,7 +27,7 @@ import { MailService } from '../mail/mail.service.js';
 import { identityDecisionEmail } from '../mail/templates.js';
 import { isUniqueViolation, PrismaService } from '../prisma/prisma.service.js';
 import { StorageService } from '../storage/storage.service.js';
-import { DocumentCipher } from './document-cipher.js';
+import { documentCipher, type DocumentCipher } from './document-cipher.js';
 import { KYC_PROVIDER, type KycProvider } from './kyc-provider.js';
 import type {
   DecisionInput,
@@ -74,13 +74,7 @@ export class KycService {
     private readonly config: ConfigService<Env, true>,
     @Inject(KYC_PROVIDER) private readonly provider: KycProvider,
   ) {
-    const own = config.get('KYC_ENCRYPTION_KEY', { infer: true });
-    this.cipher = own
-      ? new DocumentCipher(own, 'openraise-kyc-document-v1')
-      : new DocumentCipher(
-          config.get('JWT_SECRET', { infer: true }),
-          'openraise-kyc-document-from-jwt-secret-v1',
-        );
+    this.cipher = documentCipher(config);
   }
 
   /** The confirmed legal name, or null when the person isn't verified. */

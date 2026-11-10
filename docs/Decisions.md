@@ -588,3 +588,20 @@ role. Invitations are rate limited like other emails a person can trigger.
 Part 1 is the team only. Editor and finance roles do nothing yet; they gain
 meaning when organisations own campaigns and withdraw (part 2, with document
 verification), which is why the public profile shows no verified badge.
+
+## Organisation verification reuses the identity check, with outsiders deciding
+
+An organisation is verified the way a person is: an owner or admin sends the
+CAC registration type, number and name with a photo of the certificate, and an
+administrator compares it with the public register. The photo is encrypted
+with the same document cipher (the storage key in the AAD keeps each file to
+its path), unsubmitted uploads go through the same tracked sweep, and a decline
+deletes the photo. Registration numbers are public record in Nigeria, so unlike
+ID numbers they are stored in full.
+
+An administrator who belongs to the organisation can't decide its check, for
+the same reason admins can't decide their own identity. The decision records
+the registered name as confirmed; that name is shown on the profile now and is
+what an organisation's payout account must match when organisations can
+withdraw. Verified certificate photos are kept (they are company records, not
+personal ID); a retention period can be added if deployments ask for one.

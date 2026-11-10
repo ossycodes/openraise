@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #61 | Organisations, part 2a: verification from CAC registration certificates, encrypted like ID photos, decided by an administrator outside the organisation, emailed to its managers and audited; verified organisations show a badge and their registered name on the public profile ([[Organisations]]) |
 | #59 | Organisations, part 1: create an organisation with a public profile, a team of owners, admins, editors and finance members, emailed invitations only the invited address can accept, a last-owner guard under a row lock, and team changes in the audit log ([[Organisations]]) |
 | #57 | Cause landing pages and fundraising guides: `/raise-money-for/<category>` with original copy, live campaigns, tips and a fee FAQ from the deployment's settings; three guides under `/guides`; breadcrumb, FAQ and article structured data; `sitemap.xml`, `robots.txt` and footer links ([[SEO pages and guides]]) |
 | #55 | Short links, QR codes and printable posters: stored unique `Campaign.shortCode` (the slug's suffix, backfilled), `/c/<code>` via `GET /short-links/:code`, PNG/SVG QR codes of the short link, an A4 poster page with print styles, and a "Share it offline" row in the share dialog ([[QR codes and posters]]) |

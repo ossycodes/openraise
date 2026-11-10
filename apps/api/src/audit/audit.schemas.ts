@@ -12,6 +12,7 @@ export const auditActions = [
   'ORG_MEMBER_ADDED',
   'ORG_ROLE_CHANGED',
   'ORG_MEMBER_REMOVED',
+  'ORG_VERIFICATION_DECIDED',
 ] as const;
 const day = z
   .string()
