@@ -570,3 +570,21 @@ from the API (campaigns capped at 1,000) because the API isn't reachable at
 build time; `robots.txt` keeps the dashboard, admin, API proxies and
 per-campaign poster/QR utilities out of search, and blocks everything on
 preview builds.
+
+## Organisations: owners stay in charge, invitations are bound to an address
+
+An organisation always has an owner: the last one can't leave, be removed or be
+demoted, and team changes lock the organisation row so two owners demoting each
+other at once can't both succeed. Admins run the team below owner but can't
+create, change or remove owners. A non-member asking for an organisation by id
+gets 404, the same as one that doesn't exist.
+
+Invitations are emailed links whose token is stored only as a hash. Only a
+signed-in account with the invited, verified email can accept, once, within
+7 days; sending again revokes the previous link. That keeps a forwarded email
+from letting someone else join. Accepting never lowers an existing member's
+role. Invitations are rate limited like other emails a person can trigger.
+
+Part 1 is the team only. Editor and finance roles do nothing yet; they gain
+meaning when organisations own campaigns and withdraw (part 2, with document
+verification), which is why the public profile shows no verified badge.

@@ -7,6 +7,7 @@ const LINKS = [
   { href: '/dashboard', label: 'Campaigns' },
   { href: '/dashboard/payouts', label: 'Payout accounts' },
   { href: '/dashboard/verification', label: 'Verification' },
+  { href: '/dashboard/organisations', label: 'Organisations' },
 ];
 
 /** Top-level dashboard sections. */

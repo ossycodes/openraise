@@ -44,6 +44,73 @@ model User {
   payoutNameReviews       PayoutNameReview[]       @relation("PayoutNameSubject")
   payoutNameDecisions     PayoutNameReview[]       @relation("PayoutNameReviewer")
   identityUploads         IdentityDocumentUpload[]
+  organisationsCreated    Organisation[]           @relation("OrganisationCreator")
+  organisationMemberships OrganisationMember[]
+  organisationInvitesSent OrganisationInvite[]     @relation("OrganisationInviter")
+}
+
+enum OrganisationRole {
+  /// Everything, including managing other owners
+  OWNER
+  /// Profile and team, except owners
+  ADMIN
+  /// Campaigns (with organisation-owned campaigns)
+  EDITOR
+  /// Money (with organisation-owned campaigns)
+  FINANCE
+}
+
+/// An NGO, charity, church or company that raises money as a group. Always
+/// has at least one OWNER (enforced in the service under a row lock).
+model Organisation {
+  id          String               @id @default(cuid())
+  /// Public URL segment, fixed at creation, like campaign slugs
+  slug        String               @unique
+  name        String
+  about       String               @default("")
+  website     String?
+  location    String?
+  createdById String
+  createdBy   User                 @relation("OrganisationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime             @default(now()) @db.Timestamptz
+  updatedAt   DateTime             @updatedAt @db.Timestamptz
+  members     OrganisationMember[]
+  invites     OrganisationInvite[]
+}
+
+model OrganisationMember {
+  id             String           @id @default(cuid())
+  organisationId String
+  organisation   Organisation     @relation(fields: [organisationId], references: [id], onDelete: Restrict)
+  userId         String
+  user           User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  role           OrganisationRole
+  createdAt      DateTime         @default(now()) @db.Timestamptz
+  updatedAt      DateTime         @updatedAt @db.Timestamptz
+
+  @@unique([organisationId, userId])
+  @@index([userId])
+}
+
+/// An emailed invitation to join an organisation. Only the token's hash is
+/// stored; at most one open invite per email per organisation (partial unique
+/// index in the migration).
+model OrganisationInvite {
+  id             String           @id @default(cuid())
+  organisationId String
+  organisation   Organisation     @relation(fields: [organisationId], references: [id], onDelete: Restrict)
+  /// Lower-cased; only an account with this verified email can accept
+  email          String
+  role           OrganisationRole
+  tokenHash      String           @unique
+  invitedById    String
+  invitedBy      User             @relation("OrganisationInviter", fields: [invitedById], references: [id], onDelete: Restrict)
+  expiresAt      DateTime         @db.Timestamptz
+  acceptedAt     DateTime?        @db.Timestamptz
+  revokedAt      DateTime?        @db.Timestamptz
+  createdAt      DateTime         @default(now()) @db.Timestamptz
+
+  @@index([organisationId, createdAt])
 }
 
 /// An ID photo uploaded but not yet submitted. Submitting claims (deletes) the

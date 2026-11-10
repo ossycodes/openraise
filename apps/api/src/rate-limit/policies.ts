@@ -23,6 +23,9 @@ export function policyFor(
     };
   if (/^\/campaigns\/[^/]+\/reports$/.test(path))
     return { name: 'report', limit: 'RATE_LIMIT_REPORT_MAX' };
+  // Each invitation sends an email to an address the sender chose.
+  if (/^\/organisations\/[^/]+\/invites$/.test(path))
+    return { name: 'invite', limit: 'RATE_LIMIT_RECOVERY_MAX' };
   if (/^\/kyc(?:\/document)?$/.test(path))
     return { name: 'identity', limit: 'RATE_LIMIT_UPLOAD_MAX' };
   if (

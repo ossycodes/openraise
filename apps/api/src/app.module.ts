@@ -25,6 +25,7 @@ import { StorageModule } from './storage/storage.module.js';
 import { WebhooksModule } from './webhooks/webhooks.module.js';
 import { UsersModule } from './users/users.module.js';
 import { KycModule } from './kyc/kyc.module.js';
+import { OrganisationsModule } from './organisations/organisations.module.js';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { KycModule } from './kyc/kyc.module.js';
     WithdrawalsModule,
     CreatorMoneyModule,
     KycModule,
+    OrganisationsModule,
   ],
   controllers: [HealthController, SiteController],
 })

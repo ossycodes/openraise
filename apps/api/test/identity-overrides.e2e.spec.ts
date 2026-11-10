@@ -112,8 +112,15 @@ describe('payout name reviews', () => {
 
     await t.http().get('/admin/payout-names').set(auth(owner)).expect(403);
     const queue = await t.http().get('/admin/payout-names').set(auth(admin)).expect(200);
-    expect(queue.body.items.some((r: { id: string }) => r.id === id)).toBe(true);
     expect(queue.headers['cache-control']).toBe('no-store');
+    // Oldest first, and earlier runs leave reviews waiting in the shared e2e
+    // database, so look through the pages rather than only the first.
+    let listed = false;
+    for (let page = 1; !listed && page <= Math.ceil(queue.body.total / 20); page++) {
+      const res = await t.http().get(`/admin/payout-names?page=${page}`).set(auth(admin)).expect(200);
+      listed = res.body.items.some((r: { id: string }) => r.id === id);
+    }
+    expect(listed).toBe(true);
     const detail = await t.http().get(`/admin/payout-names/${id}`).set(auth(admin)).expect(200);
     expect(detail.body).toMatchObject({
       review: { status: 'PENDING', accountName: 'ADAEZE OKAFOR', verifiedName: 'Test User' },
