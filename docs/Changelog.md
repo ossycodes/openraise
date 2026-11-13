@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #64 | Admin operations: searchable users, audited role/session management and campaign controls, category editors, shared editable branding/fees, provider-backed reconciliation and one linked retry for confirmed returned payouts; desktop/mobile browser verification and all CI checks passed ([[Admin console]], [[Admin operations]]) |
 | #62 | Vendor identity verification: QoreID and Dojah NIN/BVN checks with selfie match, Smile ID v3 Enhanced KYC with authenticated callbacks, explicit consent, pending reservations before paid calls and audited decisions; 196 unit and 241 end-to-end tests passed, plus CI. Credentialed sandbox validation remains before enabling vendors ([[Identity verification]], [[KYC vendors]]) |
 | #61 | Organisations, part 2a: verification from CAC registration certificates, encrypted like ID photos, decided by an administrator outside the organisation, emailed to its managers and audited; verified organisations show a badge and their registered name on the public profile ([[Organisations]]) |
 | #59 | Organisations, part 1: create an organisation with a public profile, a team of owners, admins, editors and finance members, emailed invitations only the invited address can accept, a last-owner guard under a row lock, and team changes in the audit log ([[Organisations]]) |

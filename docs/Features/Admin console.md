@@ -1,6 +1,8 @@
 ---
-status: in-progress
+status: shipped
 branch: feat/admin-operations
+pr: 64
+shipped: 2026-11-13
 type: feature
 area: web
 milestone: 5
@@ -21,7 +23,7 @@ settings, audit log.
 - Campaign review queue (#32): see [[Campaign review queue]].
 - Reports & moderation (#34): see [[Reports and flags]].
 
-## Admin operations (local implementation)
+## Admin operations (#64)
 
 - Searchable user list/detail, role changes and session revocation. Self access
   changes are refused; concurrent demotions preserve an administrator.
@@ -37,8 +39,8 @@ settings, audit log.
 - Admin browser forms, API documentation, migration and integration coverage.
 
 See [[Admin operations]] for setup, permissions, money safeguards, limitations
-and evidence. The implementation is on `feat/admin-operations`; review/merge
-remains. Credentialed payment-provider sandbox validation is still outstanding.
+and evidence. Merged in #64 on 2026-11-13 with all CI checks passing.
+Credentialed payment-provider sandbox validation is still outstanding.
 
 ## Money workspace
 
