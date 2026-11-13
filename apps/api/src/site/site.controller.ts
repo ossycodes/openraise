@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { SettingsService } from '../settings/settings.service.js';
+import { Controller, Get, Header } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Env } from '../config/env.js';
 
@@ -15,15 +16,20 @@ export interface SiteConfig {
 /** The deployment's branding, public so the web app and others can render it. */
 @Controller('config/site')
 export class SiteController {
-  constructor(private readonly config: ConfigService<Env, true>) {}
+  constructor(
+    private readonly config: ConfigService<Env, true>,
+    private readonly settings: SettingsService,
+  ) {}
 
   @Get()
-  get(): SiteConfig {
+  @Header('Cache-Control', 'no-store')
+  async get(): Promise<SiteConfig> {
+    const { values } = await this.settings.get();
     return {
-      name: this.config.get('SITE_NAME'),
-      logoUrl: this.config.get('SITE_LOGO_URL') ?? null,
-      primaryColor: this.config.get('SITE_PRIMARY_COLOR') ?? null,
-      supportEmail: this.config.get('SITE_SUPPORT_EMAIL') ?? null,
+      name: values.name,
+      logoUrl: values.logoUrl,
+      primaryColor: values.primaryColor,
+      supportEmail: values.supportEmail,
       googleClientId: this.config.get('GOOGLE_CLIENT_ID') ?? null,
     };
   }

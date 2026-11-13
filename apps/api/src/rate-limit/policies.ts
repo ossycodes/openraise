@@ -4,6 +4,7 @@ export function policyFor(
   path: string,
 ): { name: string; limit: keyof Env; email?: boolean } | null {
   if (method !== 'POST') return null;
+  if (/^\/admin\/money\/reconciliation\/(WITHDRAWAL|DONATION|EVENT)\/[^/]+\/actions$/.test(path)) return { name: 'admin-money', limit: 'RATE_LIMIT_CHECKOUT_MAX' };
   if (['/auth/signin', '/auth/google'].includes(path))
     return { name: 'signin', limit: 'RATE_LIMIT_AUTH_MAX', email: true };
   if (path === '/auth/signup')

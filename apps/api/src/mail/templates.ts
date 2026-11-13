@@ -32,16 +32,17 @@ export function verifyEmailEmail(
   name: string,
   to: string,
   link: string,
+  brand = siteName(),
 ): MailMessage {
   return {
     to,
     subject: 'Confirm your email',
-    text: `Hi ${name},\n\nConfirm your email address to finish setting up your ${siteName()} account:\n\n${link}\n\nThe link works for 24 hours. If you didn't sign up, ignore this email.`,
+    text: `Hi ${name},\n\nConfirm your email address to finish setting up your ${brand} account:\n\n${link}\n\nThe link works for 24 hours. If you didn't sign up, ignore this email.`,
     html: layout(
       'Confirm your email',
       [
         `Hi ${escapeHtml(name)},`,
-        `Confirm your email address to finish setting up your ${escapeHtml(siteName())} account. The link works for 24 hours.`,
+        `Confirm your email address to finish setting up your ${escapeHtml(brand)} account. The link works for 24 hours.`,
         "If you didn't sign up, ignore this email.",
       ],
       { label: 'Confirm email', href: link },
@@ -76,17 +77,18 @@ export function identityDecisionEmail(
   to: string,
   reason: string | null,
   link: string,
+  brand = siteName(),
 ): MailMessage {
   if (reason === null)
     return {
       to,
       subject: 'Your identity is verified',
-      text: `Hi ${name},\n\nYour identity is verified on ${siteName()}. You can now submit campaigns for review and withdraw to a payout account in your name.\n\n${link}`,
+      text: `Hi ${name},\n\nYour identity is verified on ${brand}. You can now submit campaigns for review and withdraw to a payout account in your name.\n\n${link}`,
       html: layout(
         'Your identity is verified',
         [
           `Hi ${escapeHtml(name)},`,
-          `Your identity is verified on ${escapeHtml(siteName())}. You can now submit campaigns for review and withdraw to a payout account in your name.`,
+          `Your identity is verified on ${escapeHtml(brand)}. You can now submit campaigns for review and withdraw to a payout account in your name.`,
         ],
         { label: 'Open your dashboard', href: link },
       ),
@@ -121,16 +123,17 @@ export function organisationVerificationEmail(
   to: string,
   reason: string | null,
   link: string,
+  brand = siteName(),
 ): MailMessage {
   if (reason === null)
     return {
       to,
       subject: `${organisationName} is verified`,
-      text: `Hi,\n\n${organisationName} is now verified on ${siteName()}. Its public profile shows it as verified.\n\n${link}`,
+      text: `Hi,\n\n${organisationName} is now verified on ${brand}. Its public profile shows it as verified.\n\n${link}`,
       html: layout(
         `${escapeHtml(organisationName)} is verified`,
         [
-          `<strong>${escapeHtml(organisationName)}</strong> is now verified on ${escapeHtml(siteName())}. Its public profile shows it as verified.`,
+          `<strong>${escapeHtml(organisationName)}</strong> is now verified on ${escapeHtml(brand)}. Its public profile shows it as verified.`,
         ],
         { label: 'Open the organisation', href: link },
       ),
@@ -158,16 +161,17 @@ export function organisationInviteEmail(
   role: string,
   to: string,
   link: string,
+  brand = siteName(),
 ): MailMessage {
   const as = ROLE_PHRASE[role] ?? 'a member';
   return {
     to,
-    subject: `Join ${organisationName} on ${siteName()}`,
-    text: `Hi,\n\n${inviterName} invited you to join ${organisationName} on ${siteName()} as ${as}.\n\nAccept the invitation (it works for 7 days, with an account using this email address):\n\n${link}\n\nIf you weren't expecting this, ignore this email.`,
+    subject: `Join ${organisationName} on ${brand}`,
+    text: `Hi,\n\n${inviterName} invited you to join ${organisationName} on ${brand} as ${as}.\n\nAccept the invitation (it works for 7 days, with an account using this email address):\n\n${link}\n\nIf you weren't expecting this, ignore this email.`,
     html: layout(
       `Join ${escapeHtml(organisationName)}`,
       [
-        `${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(organisationName)}</strong> on ${escapeHtml(siteName())} as ${as}.`,
+        `${escapeHtml(inviterName)} invited you to join <strong>${escapeHtml(organisationName)}</strong> on ${escapeHtml(brand)} as ${as}.`,
         'The invitation works for 7 days, with an account using this email address. If you weren’t expecting it, ignore this email.',
       ],
       { label: 'Accept invitation', href: link },
@@ -220,16 +224,17 @@ export function payoutAccountAddedEmail(
   to: string,
   account: string,
   link: string,
+  brand = siteName(),
 ): MailMessage {
   return {
     to,
     subject: 'A payout account was added',
-    text: `Hi ${name},\n\n${account} was added as a payout account on your ${siteName()} profile. Withdrawals to it start in 24 hours.\n\nIf this wasn't you, change your password now and remove the account:\n\n${link}`,
+    text: `Hi ${name},\n\n${account} was added as a payout account on your ${brand} profile. Withdrawals to it start in 24 hours.\n\nIf this wasn't you, change your password now and remove the account:\n\n${link}`,
     html: layout(
       'A payout account was added',
       [
         `Hi ${escapeHtml(name)},`,
-        `<strong>${escapeHtml(account)}</strong> was added as a payout account on your ${escapeHtml(siteName())} profile. Withdrawals to it start in 24 hours.`,
+        `<strong>${escapeHtml(account)}</strong> was added as a payout account on your ${escapeHtml(brand)} profile. Withdrawals to it start in 24 hours.`,
         "If this wasn't you, change your password now and remove the account.",
       ],
       { label: 'Review payout accounts', href: link },

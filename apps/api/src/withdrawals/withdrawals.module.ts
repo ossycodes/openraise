@@ -12,6 +12,6 @@ import { WithdrawalsService } from './withdrawals.service.js';
   imports: [PaymentsModule, KycModule],
   controllers: [WithdrawalsController, PublicWithdrawalsController],
   providers: [WithdrawalsService, WithdrawalSettlement, WithdrawalEvents],
-  exports: [WithdrawalEvents],
+  exports: [WithdrawalEvents, WithdrawalSettlement, WithdrawalsService],
 })
 export class WithdrawalsModule {}

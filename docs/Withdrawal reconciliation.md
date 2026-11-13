@@ -52,3 +52,12 @@ expenses, which must be reconciled against the provider balance separately.
 
 These contracts were reviewed on 2026-11-05. The initial implementation rejects
 cross-currency Bachs payout events; no FX booking is performed.
+
+
+## Admin workspace actions
+
+The record detail page now supports provider-backed verification and one linked
+retry after a confirmed return. Use the failed/returned withdrawal filter to
+find retry candidates. Never reset an uncertain attempt's dispatch marker or
+edit its amounts. See [[Admin operations]] for eligibility, version checks,
+provider evidence requirements and the retry relation.

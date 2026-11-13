@@ -21,6 +21,11 @@ export const reconciliationQuerySchema = moneyQuerySchema
   .omit({ kind: true })
   .extend({
     kind: z.enum(['WITHDRAWAL', 'DONATION', 'EVENT']).default('WITHDRAWAL'),
+    scope: z.enum(['review', 'returned']).default('review'),
+  })
+  .refine((v) => v.scope !== 'returned' || v.kind === 'WITHDRAWAL', {
+    path: ['scope'],
+    message: 'Returned records are withdrawals only',
   })
   .refine((v) => v.kind !== 'EVENT' || !v.campaignId, {
     path: ['campaignId'],

@@ -639,3 +639,50 @@ can't remove the last owner.
 Registration numbers are upper-cased and spaced as printed (`IT 123456`).
 Declining deletes the photo. Both outcomes email the organisation's owners and
 admins. Upload and submit share the identity upload rate limit.
+
+
+## Admin operations
+
+All routes require a current ADMIN role and return no-store responses. Reasons
+are 5–500 trimmed characters. `expectedUpdatedAt` is the exact timestamp from
+the inspected record; stale changes return 409. The browser forwards mutations
+through `/api/admin/operations/...` with same-origin checks and httpOnly cookies.
+
+| Method | Path | Input / returns |
+|---|---|---|
+| GET | `/admin/users?q=&page=1` | Name/email search (100 characters), page 1–1000; `{ items, total, page, limit: 20 }`, selected account fields only |
+| GET | `/admin/users/:id` | Selected user fields, campaign/donation counts and `canManageAccess`; no hashes, subjects, tokens or token versions |
+| POST | `/admin/users/:id/actions` | `{ action: SET_ROLE\|REVOKE_SESSIONS, role?: USER\|ADMIN, expectedUpdatedAt, reason }`; role change/revocation ends sessions; self access changes 403; unverified email cannot receive ADMIN |
+| POST | `/admin/campaigns/:id/actions` | `{ action: FEATURE\|UNFEATURE\|PAUSE\|RESUME\|END\|FREEZE_PAYOUTS\|UNFREEZE_PAYOUTS, expectedUpdatedAt, reason }`; rejects self-management and invalid transitions |
+| GET | `/admin/categories` | Category fields plus `updatedAt`, ordered by sort position/name |
+| GET | `/admin/settings` | `{ values, version, updatedAt, currency }`; shared public branding/fees only |
+| POST | `/admin/settings` | `{ values, expectedVersion, reason }`; optimistic revision, returns saved settings |
+| POST | `/admin/money/reconciliation/:kind/:id/actions` | `{ action: VERIFY\|RETRY\|REPROCESS, expectedUpdatedAt, reason }`; kind determines allowed action; rate limited |
+
+Settings `values`: `name`, nullable `logoUrl` (HTTP/S), nullable `primaryColor`
+(`#rrggbb`), nullable `supportEmail`, integer `platformFeeBps`/`donorFeeBps`
+(0–10000), and nonnegative minor-unit string `donorFlatFee`,
+`donorFlatFeeThreshold`, `withdrawalFee` (signed-BIGINT maximum). Unknown fields
+are refused. Revision zero means no saved settings; environment defaults apply.
+New quotes read the shared snapshot; existing money records keep their amounts.
+
+Category POST/PATCH additionally accept an optional `reason`; PATCH also accepts
+`expectedUpdatedAt`. The dashboard always sends both. Old clients remain
+compatible; all category mutations record the authenticated actor in audit.
+The campaign review queue accepts PAUSED and ENDED as well as existing statuses;
+privileged detail now includes `payoutsFrozen` and the existing `featured` flag.
+
+Reconciliation: DONATION allows VERIFY; WITHDRAWAL allows VERIFY and RETRY;
+EVENT allows REPROCESS. Withdrawal/donation actions use the detail's `updatedAt`;
+event actions use `processedAt ?? receivedAt`. Provider evidence must match
+reference, currency, amount and known IDs, plus the payout destination. A retry
+requires both confirmed provider failure/return and a local return posting;
+returns `{ retryId, status? }`, reusing a previously reserved successor. Pending,
+unknown, inactive-provider, unavailable or mismatched evidence cannot resend.
+A provider failure to answer returns 503 without starting a new payout.
+Successful stored events cannot be reprocessed. See [[Admin operations]].
+
+The withdrawal reconciliation list accepts `scope=review` (default) or
+`scope=returned` (FAILED/REVERSED records); returned scope is withdrawals only.
+Audit filters include new user/category/settings/campaign/reconciliation action
+names, and before/after snapshots may include public numeric or null settings.

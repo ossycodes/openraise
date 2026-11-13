@@ -624,3 +624,33 @@ URL token derived from its random reference and the API key. Both checks are
 required. Callback query strings must be redacted at ingress. API-key rotation
 must account for pending jobs. Unknown reservations return retryable 503 and
 already-decided checks acknowledge duplicates without sending another email.
+
+
+## Admin settings are shared snapshots; payment history is immutable
+
+Branding and fees can be changed from the admin workspace without restarting
+servers. A single versioned database row overrides environment defaults across
+instances. New money computations read it; created donations and withdrawals
+retain their exact fee snapshots. API keys, transport settings and default
+currency stay outside this public settings record. Email templates receive the
+saved name when generated; already-queued emails retain their copy.
+
+## Reconciliation requires provider evidence; a retry is a new linked attempt
+
+Operators cannot type a payment outcome or edit ledger balances. Lookup results
+must match the stored reference, IDs, currency, exact amount and payout destination.
+Only a confirmed failed/returned payout with a committed return posting can be
+retried. That creates one uniquely linked successor through ordinary withdrawal
+eligibility, balance, fee and dispatch checks. It never resets an uncertain
+attempt for another send. HTTP lookup failures and missing provider IDs are
+uncertainty, not proof of non-payment. Reasoned actions are audited and reject
+stale inspected records. Stored event replay uses the existing settlement path.
+
+## Administrator access changes serialize with role decisions and refresh
+
+Self access changes are refused. All role decisions use one advisory lock and
+recheck the acting administrator before a change. Combined with retaining an
+administrator, this prevents simultaneous cross-demotions removing all access.
+Role changes and explicit sign-out-all increment access token versions and
+revoke refresh tokens together. Refresh rotation locks the same user row so it
+cannot leave a newly issued session behind the revocation transaction.

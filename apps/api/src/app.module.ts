@@ -1,3 +1,5 @@
+import { SettingsModule } from './settings/settings.module.js';
+import { AdminOperationsModule } from './admin-operations/admin-operations.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { MoneyTrailModule } from './money-trail/money-trail.module.js';
 import { AdminMoneyModule } from './admin-money/admin-money.module.js';
@@ -31,6 +33,8 @@ import { OrganisationsModule } from './organisations/organisations.module.js';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     PrismaModule,
+    SettingsModule,
+    AdminOperationsModule,
     AuditModule,
     MailModule,
     StorageModule,

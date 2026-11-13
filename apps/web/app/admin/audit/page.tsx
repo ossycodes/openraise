@@ -11,14 +11,18 @@ const fieldLabel: Record<string, string> = {
   isDefault: 'Default account',
   removed: 'Removed',
 };
-function value(v: string | boolean | undefined) {
+function value(v: string | number | boolean | null | undefined) {
   return v === undefined
     ? 'Not present'
-    : typeof v === 'boolean'
-      ? v
-        ? 'Yes'
-        : 'No'
-      : v.replaceAll('_', ' ');
+    : v === null
+      ? 'Not set'
+      : typeof v === 'number'
+        ? String(v)
+        : typeof v === 'boolean'
+          ? v
+            ? 'Yes'
+            : 'No'
+          : v.replaceAll('_', ' ');
 }
 export default async function AuditLog({
   searchParams,

@@ -1,4 +1,21 @@
 export const ACTIONS: Record<string, string> = {
+  USER_ACCESS_CHANGED: 'User access changed',
+  USER_SESSIONS_REVOKED: 'User sessions ended',
+  CATEGORY_CREATED: 'Category created',
+  CATEGORY_CHANGED: 'Category changed',
+  SETTINGS_CHANGED: 'Branding and fees changed',
+  WITHDRAWAL_RECONCILED: 'Payout reconciled',
+  WITHDRAWAL_RETRIED: 'Returned payout retried',
+  DONATION_VERIFICATION_REQUESTED: 'Payment verification requested',
+  PAYMENT_EVENT_REPROCESS_REQUESTED: 'Provider event reprocessing requested',
+  ADMIN_CAMPAIGN_FEATURE: 'Campaign featured',
+  ADMIN_CAMPAIGN_UNFEATURE: 'Campaign removed from featured',
+  ADMIN_CAMPAIGN_PAUSE: 'Campaign paused by administrator',
+  ADMIN_CAMPAIGN_RESUME: 'Campaign resumed by administrator',
+  ADMIN_CAMPAIGN_END: 'Campaign ended by administrator',
+  ADMIN_CAMPAIGN_FREEZE_PAYOUTS: 'Campaign payouts frozen',
+  ADMIN_CAMPAIGN_UNFREEZE_PAYOUTS: 'Campaign payout freeze lifted',
+
   CAMPAIGN_CHANGED: 'Campaign controls changed',
   REPORT_CHANGED: 'Report outcome changed',
   IDENTITY_DECIDED: 'Identity decision recorded',
@@ -25,8 +42,8 @@ export interface AuditEvent {
   targetType: string;
   targetId: string;
   subjectId: string | null;
-  before: Record<string, string | boolean> | null;
-  after: Record<string, string | boolean> | null;
+  before: Record<string, string | number | boolean | null> | null;
+  after: Record<string, string | number | boolean | null> | null;
 }
 export interface AuditPage {
   items: AuditEvent[];

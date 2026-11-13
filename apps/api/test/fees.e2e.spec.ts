@@ -23,9 +23,9 @@ describe('fees', () => {
     });
   });
 
-  it('FeesService computes with the deployment config', () => {
+  it('FeesService computes with the deployment config', async () => {
     const fees = t.app.get(FeesService);
-    expect(fees.donation(5_000_000n).netToCampaign).toBe(4_825_000n);
-    expect(fees.withdrawal(2_000_000n).netPaidOut).toBe(1_995_000n);
+    expect((await fees.donation(5_000_000n)).netToCampaign).toBe(4_825_000n);
+    expect((await fees.withdrawal(2_000_000n)).netPaidOut).toBe(1_995_000n);
   });
 });

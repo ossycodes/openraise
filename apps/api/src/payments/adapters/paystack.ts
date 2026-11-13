@@ -281,6 +281,30 @@ export class PaystackProvider implements PaymentProvider {
       status: operationStatus(result.status),
     };
   }
+  async verifyPayout(reference: string) {
+    const r = read(
+      z.object({
+        transfer_code: text,
+        reference: text,
+        amount: minorAmount,
+        currency,
+        status: text,
+        recipient: z.object({ recipient_code: text }),
+      }),
+      await this.request(`/transfer/verify/${encodeURIComponent(reference)}`),
+    );
+    return {
+      id: r.transfer_code,
+      reference: r.reference,
+      amount: r.amount,
+      currency: r.currency,
+      recipientId: r.recipient.recipient_code,
+      status:
+        r.status === 'reversed'
+          ? ('reversed' as const)
+          : operationStatus(r.status),
+    };
+  }
   async refund(value: RefundInput) {
     const data = input(refundInput, value);
     const result = read(

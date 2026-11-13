@@ -22,7 +22,7 @@ export interface ReviewQueue {
   limit: number;
 }
 export interface ReviewDetail {
-  campaign: OwnerCampaign & { updatedAt: string; owner: { name: string } };
+  campaign: OwnerCampaign & { updatedAt: string; featured: boolean; payoutsFrozen: boolean; owner: { name: string } };
   organiser: {
     name: string;
     emailVerified: boolean;

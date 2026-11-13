@@ -647,6 +647,10 @@ enum WithdrawalStatus {
 }
 
 model Withdrawal {
+  /// One successor per failed payout; prevents duplicate administrator retries.
+  retryOfId String? @unique
+  retryOf Withdrawal? @relation("WithdrawalRetry", fields: [retryOfId], references: [id], onDelete: Restrict)
+  retry Withdrawal? @relation("WithdrawalRetry")
   id                      String             @id @default(cuid())
   campaignId              String
   campaign                Campaign           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
@@ -814,4 +818,12 @@ model AuditEvent {
   @@index([subjectId, createdAt])
   @@index([targetType, targetId, createdAt])
   @@index([action, createdAt])
+}
+
+/// Public branding and prospective fees; credentials always stay in env.
+model DeploymentSettings {
+  id String @id
+  values Json
+  version Int @default(1)
+  updatedAt DateTime @updatedAt @db.Timestamptz
 }

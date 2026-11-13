@@ -369,6 +369,28 @@ export class BachsProvider implements PaymentProvider {
       status: operationStatus(result.status),
     };
   }
+  async verifyPayout(_reference: string, payoutId: string | null) {
+    if (!payoutId) throw new PaymentProviderError('unsupported');
+    const r = read(
+      z.object({
+        id: text,
+        reference: text,
+        amount: text,
+        currency,
+        destination: text,
+        status: text,
+      }),
+      await this.http.request(`/v1/payouts/${encodeURIComponent(payoutId)}`),
+    );
+    return {
+      id: r.id,
+      reference: r.reference,
+      amount: decimalAmount(r.amount, r.currency),
+      currency: r.currency,
+      recipientId: r.destination,
+      status: operationStatus(r.status),
+    };
+  }
   async refund(value: RefundInput) {
     const data = input(refundInput, value);
     // Currency is the original settlement currency, supplied from the caller's

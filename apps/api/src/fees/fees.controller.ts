@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header } from '@nestjs/common';
 import { FeesService } from './fees.service.js';
 
 export interface PublicFeeConfig {
@@ -20,8 +20,9 @@ export class FeesController {
   constructor(private readonly fees: FeesService) {}
 
   @Get()
-  get(): PublicFeeConfig {
-    const c = this.fees.config;
+  @Header('Cache-Control', 'no-store')
+  async get(): Promise<PublicFeeConfig> {
+    const c = await this.fees.snapshot();
     return {
       currency: this.fees.currency,
       platformFeeBps: c.platformFeeBps,

@@ -9,7 +9,7 @@ export default async function QueuePage({
   searchParams: Promise<{ status?: string; q?: string; page?: string }>;
 }) {
   const params = await searchParams;
-  const status = ['PENDING_REVIEW', 'ACTIVE', 'REJECTED'].includes(
+  const status = ['PENDING_REVIEW', 'ACTIVE', 'REJECTED', 'PAUSED', 'ENDED'].includes(
     params.status ?? '',
   )
     ? params.status!
@@ -61,6 +61,8 @@ export default async function QueuePage({
             ['PENDING_REVIEW', 'Awaiting review'],
             ['ACTIVE', 'Live'],
             ['REJECTED', 'Returned'],
+            ['PAUSED', 'Paused'],
+            ['ENDED', 'Ended'],
           ].map(([value, label]) => (
             <Link
               key={value}

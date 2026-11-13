@@ -7617,3 +7617,24 @@ h3 {
   color: var(--muted);
   font-weight: 400;
 }
+
+.admin-operation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; margin: 24px 0; }
+.admin-operation-form { border: 1px solid var(--line); border-radius: 14px; padding: 24px; background: var(--surface); margin: 20px 0; }
+.admin-operation-grid .admin-operation-form { margin: 0; }
+.admin-operation-form h2 { margin-bottom: 12px; font-size: 1.2rem; }
+.admin-operation-form > p { color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+.admin-operation-form fieldset { display: grid; gap: 18px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.admin-operation-form .primary-button { justify-self: start; }
+.admin-operation-confirm { display: flex; align-items: flex-start; gap: 10px; font-size: .9rem; line-height: 1.5; }
+.admin-operation-confirm input { flex-shrink: 0; margin-top: 4px; accent-color: var(--accent); }
+.admin-record-list { display: grid; margin-top: 20px; }
+.admin-record-list > a { display: grid; gap: 7px; color: inherit; text-decoration: none; padding: 20px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.admin-record-list > a:hover strong { text-decoration: underline; }
+.admin-record-list span { color: var(--muted); font-size: .9rem; }
+
+@media (min-width: 720px) {
+  .admin-settings-form fieldset { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-settings-form .admin-operation-reason,
+  .admin-settings-form .admin-operation-confirm,
+  .admin-settings-form .primary-button { grid-column: 1 / -1; }
+}

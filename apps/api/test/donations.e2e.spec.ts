@@ -133,9 +133,11 @@ describe('donation checkout', () => {
       .send(input)
       .expect(201);
     const calls = hosted.mock.calls.length;
-    const feeConfig = t.app.get(FeesService).config;
-    const originalBps = feeConfig.platformFeeBps;
-    feeConfig.platformFeeBps = 500;
+    const fees = t.app.get(FeesService);
+    const original = await fees.snapshot();
+    const snapshot = vi
+      .spyOn(fees, 'snapshot')
+      .mockResolvedValue({ ...original, platformFeeBps: 500 });
     await t.prisma.campaign.update({
       where: { id: campaignId },
       data: { status: 'PAUSED' },
@@ -156,7 +158,7 @@ describe('donation checkout', () => {
         .send({ ...input, amount: '200000' })
         .expect(409);
     } finally {
-      feeConfig.platformFeeBps = originalBps;
+      snapshot.mockRestore();
       await t.prisma.campaign.update({
         where: { id: campaignId },
         data: { status: 'ACTIVE' },

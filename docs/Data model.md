@@ -430,3 +430,17 @@ certificate's `documentKey` and `documentContentType` (cleared when declined),
 `org-docs/<organisationId>/<random>.<ext>.enc`, encrypted like ID photos, and
 unsubmitted uploads are tracked in `IdentityDocumentUpload` and swept after a
 day.
+
+
+## Deployment settings and payout retries
+
+`DeploymentSettings` has singleton id `site`, a validated public branding/fee
+JSON `values` snapshot, integer `version`, and `updatedAt`. No credentials live
+here. Absence means environment defaults. Changes serialize under an advisory
+lock and compare the submitted revision, with explicit audit before/after.
+
+`Withdrawal.retryOfId` is a nullable unique self-reference. It links one new
+attempt to a confirmed returned payout. The original hold/return and fee
+snapshot stay intact; the successor gets its own reservation, merchant reference
+and one claimed dispatch. The unique constraint plus campaign locking prevents
+concurrent operators creating two successors for the same original attempt.

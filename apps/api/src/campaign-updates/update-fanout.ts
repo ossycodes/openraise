@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Env } from '../config/env.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { escapeHtml } from '../mail/templates.js';
-import { siteName } from '../site/site-name.js';
+import { SettingsService } from '../settings/settings.service.js';
 import { UpdateSubscriptions } from './update-subscriptions.js';
 @Injectable()
 export class UpdateFanout {
@@ -11,6 +11,7 @@ export class UpdateFanout {
     private readonly prisma: PrismaService,
     private readonly config: ConfigService<Env, true>,
     private readonly subscriptions: UpdateSubscriptions,
+    private readonly settings: SettingsService,
   ) {}
   async nextBatch() {
     return this.prisma.$transaction(async (tx) => {
@@ -65,7 +66,7 @@ export class UpdateFanout {
             currency: update.campaign.currency,
             campaignUpdateId: update.id,
             updateSubscriptionId: sub.id,
-            subject: `${siteName()}: ${update.title}`,
+            subject: `${(await this.settings.get(tx)).values.name}: ${update.title}`,
             text: `${update.campaign.title}\n\n${update.title}\n\n${excerpt}\n\nRead the update: ${campaignUrl}\n\nYou opted in when donating. Stop update emails: ${unsubscribe}`,
             html: `<h1>${escapeHtml(update.title)}</h1><p>From ${escapeHtml(update.campaign.title)}</p><p style="white-space:pre-wrap">${escapeHtml(excerpt)}</p><p><a href="${escapeHtml(campaignUrl)}">Read the update</a></p><p>You opted in when donating. <a href="${escapeHtml(unsubscribe)}">Stop update emails</a></p>`,
           },

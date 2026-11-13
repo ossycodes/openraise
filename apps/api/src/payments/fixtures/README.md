@@ -25,3 +25,11 @@ Sources checked 2026-11-05:
 - [Bachs account resolution](https://docs.bachs.io/api-reference/misc/resolve-a-bank-account)
 - [Bachs webhooks](https://docs.bachs.io/guides/webhooks/overview)
 - [Bachs collection event](https://docs.bachs.io/guides/webhooks/events/collection-succeeded)
+
+
+Payout lookup contracts added 2026-11-13 use synthetic examples from the
+Paystack transfer verification and Bachs payout retrieval references above
+([Bachs get payout](https://docs.bachs.io/api-reference/payouts/get-payout)).
+Tests cover exact amount/destination matching, preserved reversal state, missing
+payout identifiers, malformed evidence and lookup errors. No live recordings
+were captured.

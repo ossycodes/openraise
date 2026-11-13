@@ -29,6 +29,12 @@ export interface VerifiedPayment extends Money {
   reference: string | null;
   status: PaymentStatus;
 }
+export interface VerifiedPayout extends Money {
+  id: string;
+  reference: string;
+  recipientId: string;
+  status: OperationStatus | 'reversed';
+}
 export interface Bank {
   code: string;
   name: string;
@@ -101,5 +107,7 @@ export interface PaymentProvider {
   resolveAccount(input: AccountInput): Promise<ResolvedAccount>;
   createRecipient(input: RecipientInput): Promise<Recipient>;
   createPayout(input: PayoutInput): Promise<Operation>;
+  /** Authoritative read; never infers failure from a missing record or HTTP error. */
+  verifyPayout?(reference: string, payoutId: string | null): Promise<VerifiedPayout>;
   refund(input: RefundInput): Promise<Operation>;
 }

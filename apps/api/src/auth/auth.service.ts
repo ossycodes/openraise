@@ -1,3 +1,4 @@
+import { SettingsService } from '../settings/settings.service.js';
 import {
   BadRequestException,
   ConflictException,
@@ -44,6 +45,7 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly mail: MailService,
     private readonly config: ConfigService<Env, true>,
+    private readonly settings: SettingsService,
   ) {}
 
   async signUp(input: SignUpInput): Promise<AuthResult> {
@@ -55,7 +57,9 @@ export class AuthService {
       });
     } catch (error) {
       if (isUniqueViolation(error)) {
-        throw new ConflictException('An account with this email already exists');
+        throw new ConflictException(
+          'An account with this email already exists',
+        );
       }
       throw error;
     }
@@ -103,13 +107,18 @@ export class AuthService {
     // the sign-in, the winner's new one exists; otherwise it would mistake an
     // ordinary race for theft and revoke the sign-in.
     const issued = await this.prisma.$transaction(async (tx) => {
+      // Serialize against administrative session revocation and role changes.
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${existing.userId} FOR UPDATE`;
+      const currentUser = await tx.user.findUniqueOrThrow({
+        where: { id: existing.userId },
+      });
       const claimed = await tx.refreshToken.updateMany({
         where: { id: existing.id, revokedAt: null },
         data: { revokedAt: now },
       });
       return claimed.count === 0
         ? null
-        : this.issueTokens(existing.user, existing.familyId, tx);
+        : this.issueTokens(currentUser, existing.familyId, tx);
     });
     if (!issued) return this.rejectReuse(existing.familyId, now, now);
     return issued;
@@ -178,7 +187,13 @@ export class AuthService {
     );
     // Not awaited: a slow SMTP server must not make known emails measurably slower.
     this.mail
-      .send(resetPasswordEmail(user.name, user.email, this.link('/reset-password', token)))
+      .send(
+        resetPasswordEmail(
+          user.name,
+          user.email,
+          this.link('/reset-password', token),
+        ),
+      )
       .catch((error: unknown) =>
         this.logger.error(`Password reset email failed: ${String(error)}`),
       );
@@ -252,7 +267,12 @@ export class AuthService {
       VERIFY_EMAIL_TTL_MS,
     );
     await this.mail.send(
-      verifyEmailEmail(user.name, user.email, this.link('/verify-email', token)),
+      verifyEmailEmail(
+        user.name,
+        user.email,
+        this.link('/verify-email', token),
+        (await this.settings.get()).values.name,
+      ),
     );
   }
 

@@ -81,6 +81,7 @@ export interface PublicCampaign {
   moderationPaused?: boolean;
   moderationPauseReason?: string | null;
   featured: boolean;
+  payoutsFrozen?: boolean;
   submittedAt: Date | null;
   publishedAt: Date | null;
   endedAt: Date | null;
@@ -130,6 +131,7 @@ function toPublic(
     status: c.status,
     ...(privileged
       ? {
+          payoutsFrozen: c.payoutsFrozen,
           rejectionReason: c.rejectionReason,
           moderationPaused: c.moderationPaused,
           moderationPauseReason: c.moderationPauseReason,

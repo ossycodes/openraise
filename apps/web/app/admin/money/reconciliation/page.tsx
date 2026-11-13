@@ -15,9 +15,12 @@ export default async function Queue({
     currency = ['NGN', 'USD', 'GHS', 'KES'].includes(p.currency ?? '')
       ? p.currency!
       : '',
-    page = pageNumber(p.page);
+    page = pageNumber(p.page),
+    scope =
+      kind === 'WITHDRAWAL' && p.scope === 'returned' ? 'returned' : 'review';
   const query = new URLSearchParams({
     kind,
+    scope,
     page: String(page),
     ...(q ? { q } : {}),
     ...(currency ? { currency } : {}),
@@ -98,13 +101,24 @@ export default async function Queue({
             ))}
           </select>
         </div>
+        {kind === 'WITHDRAWAL' && (
+          <div>
+            <label htmlFor="reconciliation-scope">Payouts to show</label>
+            <select id="reconciliation-scope" name="scope" defaultValue={scope}>
+              <option value="review">Needs review</option>
+              <option value="returned">Failed or returned</option>
+            </select>
+          </div>
+        )}
         <button className="primary-button" type="submit">
           Filter records
         </button>
       </form>
       <div className="money-queue-note">
         {kind === 'WITHDRAWAL'
-          ? 'Flagged or uncertain payouts, initialization over one minute, and pending payouts unchanged for over 24 hours.'
+          ? scope === 'returned'
+            ? 'Failed or returned payouts. Verify provider evidence before retrying.'
+            : 'Flagged or uncertain payouts, initialization over one minute, and pending payouts unchanged for over 24 hours.'
           : kind === 'DONATION'
             ? 'Uncertain or stalled checkout creation, plus settled records missing a ledger link. Ordinary abandoned checkouts are excluded.'
             : 'Rejected or unmatched payment events, and events still unprocessed after one minute. Raw webhook payloads are never shown.'}

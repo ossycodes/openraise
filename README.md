@@ -395,6 +395,9 @@ Expand a feature below to see the remaining screenshots.
 - **API**: NestJS, PostgreSQL (Prisma), Redis
 - **Web**: Next.js (App Router)
 - **Shared**: TypeScript package with types and money maths used by both
+- **Admin operations**: searchable users, role/session management, campaign controls,
+  categories, editable branding/fees, and provider-backed reconciliation. See
+  [the admin runbook](docs/Runbooks/Admin%20operations.md).
 - **Providers**: pluggable payments (Paystack, Bachs), identity checks, AI,
   storage and email
 
