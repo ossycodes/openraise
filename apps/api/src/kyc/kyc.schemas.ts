@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const DOCUMENT_TYPES = [
   'NIN_SLIP',
+  'BVN',
   'PASSPORT',
   'DRIVERS_LICENCE',
   'VOTERS_CARD',
@@ -26,21 +27,25 @@ export const submissionSchema = z
     legalName,
     dateOfBirth: z.iso.date(),
     documentKey: z.string().max(200).optional(),
+    selfieKey: z.string().max(200).optional(),
+    consent: z.boolean().default(false),
   })
   .strict()
   .superRefine((v, ctx) => {
-    const ok =
-      v.documentType === 'NIN_SLIP'
-        ? /^\d{11}$/.test(v.idNumber)
-        : /^[A-Z0-9]{5,20}$/.test(v.idNumber);
+    const elevenDigits =
+      v.documentType === 'NIN_SLIP' || v.documentType === 'BVN';
+    const ok = elevenDigits
+      ? /^\d{11}$/.test(v.idNumber)
+      : /^[A-Z0-9]{5,20}$/.test(v.idNumber);
     if (!ok)
       ctx.addIssue({
         code: 'custom',
         path: ['idNumber'],
-        message:
-          v.documentType === 'NIN_SLIP'
-            ? 'A NIN is 11 digits'
-            : 'Enter the number exactly as it appears on your ID',
+        message: elevenDigits
+          ? v.documentType === 'BVN'
+            ? 'A BVN is 11 digits'
+            : 'A NIN is 11 digits'
+          : 'Enter the number exactly as it appears on your ID',
       });
   });
 export type SubmissionInput = z.infer<typeof submissionSchema>;

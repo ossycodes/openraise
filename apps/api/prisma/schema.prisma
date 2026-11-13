@@ -221,6 +221,7 @@ enum IdentityVerificationStatus {
 
 enum IdentityDocumentType {
   NIN_SLIP
+  BVN
   PASSPORT
   DRIVERS_LICENCE
   VOTERS_CARD
@@ -233,7 +234,7 @@ model IdentityVerification {
   id                  String                     @id @default(cuid())
   userId              String
   user                User                       @relation("IdentitySubject", fields: [userId], references: [id], onDelete: Restrict)
-  /// KYC_PROVIDER that handled it: "manual", later vendor adapters
+  /// KYC_PROVIDER that handled it: manual, qoreid, dojah or smile
   provider            String
   providerReference   String?
   status              IdentityVerificationStatus @default(PENDING)

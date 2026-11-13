@@ -140,8 +140,39 @@ export const envSchema = z
       .default('https://sandbox-api.bachs.io'),
 
     // Identity verification. "manual" (an admin reviews an uploaded ID) needs
-    // no vendor contract, so it's the default; vendor adapters come later.
-    KYC_PROVIDER: z.enum(['manual']).default('manual'),
+    // no vendor contract, so it's the default. Vendor adapters check a NIN or
+    // BVN against the issuing authority; only credentials for the selected
+    // provider are required.
+    KYC_PROVIDER: z
+      .enum(['manual', 'qoreid', 'dojah', 'smile'])
+      .default('manual'),
+    QOREID_CLIENT_ID: z.string().optional(),
+    QOREID_SECRET: z.string().optional(),
+    QOREID_BASE_URL: z
+      .enum(['https://api.qoreid.com'])
+      .default('https://api.qoreid.com'),
+    DOJAH_APP_ID: z.string().optional(),
+    DOJAH_SECRET_KEY: z.string().optional(),
+    DOJAH_BASE_URL: z
+      .enum(['https://sandbox.dojah.io', 'https://api.dojah.io'])
+      .default('https://sandbox.dojah.io'),
+    SMILE_PARTNER_ID: z.string().optional(),
+    SMILE_API_KEY: z.string().optional(),
+    SMILE_BASE_URL: z
+      .enum([
+        'https://testapi.smileidentity.com',
+        'https://api.smileidentity.com',
+      ])
+      .default('https://testapi.smileidentity.com'),
+    /** Explicit callback required so every job carries its own authentication token. */
+    SMILE_CALLBACK_URL: z
+      .url()
+      .refine((v) => new URL(v).protocol === 'https:', 'Use HTTPS')
+      .optional(),
+    SMILE_PRIVACY_POLICY_URL: z
+      .url()
+      .refine((v) => new URL(v).protocol === 'https:', 'Use HTTPS')
+      .optional(),
     // Encrypts ID document images before they reach storage. Falls back to a
     // key derived from JWT_SECRET; set it so rotating JWT_SECRET can't make
     // stored documents unreadable.
@@ -152,7 +183,12 @@ export const envSchema = z
     // Days a verified person's ID photo is kept after the decision, for
     // follow-up fraud checks; then it's deleted (the verification stands).
     // Set it to what your data protection and AML rules require.
-    KYC_DOCUMENT_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(365),
+    KYC_DOCUMENT_RETENTION_DAYS: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(3650)
+      .default(365),
 
     // Fees (see docs/Features/Fee engine.md). Amounts are minor units.
     DEFAULT_CURRENCY: z.enum(SUPPORTED_CURRENCIES).default('NGN'),
@@ -177,6 +213,27 @@ export const envSchema = z
           code: 'custom',
           path: [key],
           message: 'Required for selected payment provider',
+        });
+    }
+    const kycRequired =
+      env.KYC_PROVIDER === 'qoreid'
+        ? (['QOREID_CLIENT_ID', 'QOREID_SECRET'] as const)
+        : env.KYC_PROVIDER === 'dojah'
+          ? (['DOJAH_APP_ID', 'DOJAH_SECRET_KEY'] as const)
+          : env.KYC_PROVIDER === 'smile'
+            ? ([
+                'SMILE_PARTNER_ID',
+                'SMILE_API_KEY',
+                'SMILE_CALLBACK_URL',
+                'SMILE_PRIVACY_POLICY_URL',
+              ] as const)
+            : [];
+    for (const key of kycRequired) {
+      if (!env[key]?.trim())
+        ctx.addIssue({
+          code: 'custom',
+          path: [key],
+          message: 'Required for selected KYC provider',
         });
     }
     if (

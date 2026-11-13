@@ -47,7 +47,24 @@ published or a withdrawal made.
   See [[Decisions#ID photos are deleted on a schedule, tracked by the database]].
 - Both are recorded in the [[Audit log]]; the sweep as an automatic actor.
 
+## Part 2: vendor adapters (local implementation, not merged)
+
+- QoreID and Dojah: NIN/BVN lookup, required selfie match, authority name and
+  date-of-birth matching. Missing evidence never verifies a creator.
+- Smile ID v3 Enhanced KYC: explicit consent and configured privacy notice,
+  async submission, custom correlation reference, vendor signature plus a
+  private per-check callback token. This product does not perform face match.
+- Pending checks are reserved before vendor dispatch to prevent concurrent
+  paid checks and callbacks arriving before their local row. Ambiguous failures
+  stay pending for administrator reconciliation; automatic retry is disabled.
+- Creator form shows supported identity types and required selfie/consent.
+  Existing manual review and encrypted-photo retention remain available.
+- Contract tests use synthetic documentation-shaped responses, not sandbox
+  recordings. Integration tests exercise consent, encrypted selfie delivery,
+  concurrency, uncertain outcomes, early/duplicate callbacks and mismatches.
+
 ## Still to do
 
-- Part 2: vendor adapters (QoreID, Dojah, Smile ID) with NIN/BVN lookup and
-  selfie match where supported. Needs sandbox accounts to test against.
+- Run the credentialed sandbox checklist for each provider in [[KYC vendors]].
+- Review and merge the local implementation. Keep this feature in progress
+  until sandbox contracts are confirmed.

@@ -39,6 +39,7 @@ startup.
 - [[Rate limiting deployment]]: Redis limits and trusted ingress configuration
 - [[Receipt delivery]]: notification retries and uncertain-send reconciliation
 - [[Writing an adapter]]: payment and KYC provider contribution expectations
+- [[KYC vendors]]: vendor setup, callback authentication and sandbox checklist
 
 ## Research
 

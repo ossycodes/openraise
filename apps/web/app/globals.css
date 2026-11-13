@@ -5491,6 +5491,21 @@ h3 {
 .verification-form .dashboard-notice {
   margin: 18px 0 0;
 }
+.verification-form .verification-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.verification-form input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
 .verification-form input[type='file'] {
   padding: 10px;
 }

@@ -425,19 +425,41 @@ history. Owners receive only the relevant pause/freeze restriction reason.
 
 | Method | Path | Auth | Input | Returns |
 |---|---|---|---|---|
-| GET | `/kyc` | Signed in | — | `{ status: NONE\|PENDING\|VERIFIED\|REJECTED, provider, documentRequired, verification }` |
+| GET | `/kyc` | Signed in | — | `{ status: NONE\|PENDING\|VERIFIED\|REJECTED, provider, documentRequired, selfieRequired, privacyPolicyUrl, verification }` |
 | POST | `/kyc/document` | Verified email | Raw image body (`Content-Type: image/jpeg\|png\|webp`), ≤5 MB | 201 `{ documentKey, contentType, size }`; 400 not an image, 413 too large, 415 not `image/*`, 409 already pending/verified |
-| POST | `/kyc` | Verified email | `{ documentType, idNumber, legalName, dateOfBirth, documentKey }` | 201 own verification (status `PENDING` with `manual`); 400 field `errors`, 409 already pending/verified |
+| POST | `/kyc` | Verified email | `{ documentType, idNumber, legalName, dateOfBirth, documentKey?, selfieKey?, consent? }` | 201 own verification (status `PENDING` with `manual`); 400 field `errors`, 409 already pending/verified |
 | GET | `/admin/kyc` | Admin | `status=PENDING\|VERIFIED\|REJECTED`, `q` name/email ≤100, `page` 1–1000 | `{ items, total, pending, page, limit: 20 }`; waiting oldest first, decided newest first |
 | GET | `/admin/kyc/:id` | Admin | — | `{ verification, user, history }`; `hasDocument`, never the storage key |
 | GET | `/admin/kyc/:id/document` | Admin | — | The decrypted ID photo; `private, no-store`, `nosniff`, `default-src 'none'` |
 | POST | `/admin/kyc/:id/decision` | Admin | `{ decision: APPROVE\|REJECT, reason?, verifiedName?, expectedUpdatedAt }` | 200 detail; 400 reject without a reason, 403 own check, 409 stale or already decided |
 
-`documentType`: `NIN_SLIP` (11-digit NIN), `PASSPORT`, `DRIVERS_LICENCE`,
+`documentType`: `NIN_SLIP` (11-digit NIN), `BVN` (11 digits), `PASSPORT`, `DRIVERS_LICENCE`,
 `VOTERS_CARD` (5–20 letters and digits). Spaces and dashes are removed. Only the
 last four characters are stored; the full number goes to the provider adapter
 and nowhere else. `legalName` needs at least two names; people under 18 are
 refused. The document key must be one this user uploaded.
+
+Vendor providers accept NIN/BVN only. QoreID and Dojah require `selfieKey`
+(from `/kyc/document`); manual requires `documentKey`; Smile Enhanced KYC
+requires neither photo and does not perform a face match. All vendor checks
+require `consent: true`. Smile also displays the configured HTTPS privacy
+notice before the creator agrees. ID/selfie bytes are encrypted at rest.
+
+The service reserves a pending check before calling a vendor. Synchronous
+results return VERIFIED or REJECTED; ambiguous transport/upstream errors return
+503 `IDENTITY_CHECK_UNAVAILABLE` and keep the check pending for reconciliation.
+Reload `GET /kyc` before trying again; another submission returns 409 until an
+administrator decides the pending check. No automatic paid-call retries occur.
+
+`POST /webhooks/kyc/smile?token=<private-per-check-token>` accepts Enhanced KYC
+callbacks only with the vendor signature headers AND the callback token.
+`partner_params.customer_ref_id` correlates with the locally reserved check;
+Smile's own `job_id` is not our reference. Clear results require matching
+name and authority date of birth; block rejects, attention/error remain pending.
+Duplicate terminal callbacks return 200 without another decision or email.
+A callback whose reservation cannot be found returns 503 for retry.
+Never log callback query strings, tokens, result bodies or full ID numbers.
+See [[KYC vendors]] for setup, sources and sandbox checks.
 
 Approving sets `verifiedName` (defaults to the entered name, corrected by the
 reviewer if the ID differs). Declining needs a 5–500 character reason, which

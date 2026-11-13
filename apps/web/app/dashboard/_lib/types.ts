@@ -146,13 +146,11 @@ export interface Bank {
 
 export type IdentityStatus = 'NONE' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type DocumentType =
-  | 'NIN_SLIP'
-  | 'PASSPORT'
-  | 'DRIVERS_LICENCE'
-  | 'VOTERS_CARD';
+  'NIN_SLIP' | 'BVN' | 'PASSPORT' | 'DRIVERS_LICENCE' | 'VOTERS_CARD';
 
 export const DOCUMENT_LABEL: Record<DocumentType, string> = {
   NIN_SLIP: 'NIN slip or card',
+  BVN: 'Bank Verification Number (BVN)',
   PASSPORT: 'International passport',
   DRIVERS_LICENCE: 'Driver’s licence',
   VOTERS_CARD: 'Voter’s card',
@@ -176,6 +174,8 @@ export interface IdentityState {
   status: IdentityStatus;
   provider: string;
   documentRequired: boolean;
+  selfieRequired: boolean;
+  privacyPolicyUrl: string | null;
   verification: IdentityVerification | null;
 }
 
