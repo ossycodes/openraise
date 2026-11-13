@@ -1,3 +1,4 @@
+import { OperationForm } from '../../_components/operation-form';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { formatMoney } from '@openraise/shared';
@@ -173,6 +174,12 @@ export default async function CampaignReviewPage({
               </Link>
             </section>
           )}
+          {['ACTIVE', 'PAUSED', 'ENDED'].includes(c.status) && <OperationForm key={`controls-${c.updatedAt}`} title="Campaign controls" description={`Featured: ${c.featured ? 'yes' : 'no'}. Payouts: ${c.payoutsFrozen ? 'frozen' : 'available'}. Every change records your reason in the audit history.`} path={`campaigns/${c.id}/actions`} fixed={{ expectedUpdatedAt: c.updatedAt }} fields={[{ name: 'action', label: 'Action', options: [
+            ...(c.status === 'ACTIVE' ? [{ value: c.featured ? 'UNFEATURE' : 'FEATURE', label: c.featured ? 'Remove from featured' : 'Feature campaign' }, { value: 'PAUSE', label: 'Pause campaign' }] : []),
+            ...(c.status === 'PAUSED' ? [{ value: 'RESUME', label: 'Resume campaign' }] : []),
+            ...(['ACTIVE', 'PAUSED'].includes(c.status) ? [{ value: 'END', label: 'End campaign permanently' }] : []),
+            { value: c.payoutsFrozen ? 'UNFREEZE_PAYOUTS' : 'FREEZE_PAYOUTS', label: c.payoutsFrozen ? 'Lift payout freeze' : 'Freeze payouts' },
+          ] }]} confirmation="I have reviewed this campaign and the effect of this action." submitLabel="Apply action" />}
         </aside>
       </div>
     </>

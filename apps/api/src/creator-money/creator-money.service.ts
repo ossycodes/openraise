@@ -65,7 +65,7 @@ export class CreatorMoneyService {
       withdrawalsInProgress: sum(IN_PROGRESS, 'amount').toString(),
       paidOut: sum(['SUCCEEDED'], 'netPaidOut').toString(),
       withdrawalFeesPaid: sum(['SUCCEEDED'], 'fee').toString(),
-      withdrawalFee: this.fees.config.withdrawalFee.toString(),
+      withdrawalFee: (await this.fees.snapshot()).withdrawalFee.toString(),
       payoutsSupported: !!this.provider && c.currency === 'NGN',
       payoutsFrozen: c.payoutsFrozen,
       payoutFreezeReason: c.payoutFreezeReason,

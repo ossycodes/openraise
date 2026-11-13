@@ -19,7 +19,10 @@ export interface ReceiptMail extends CampaignMail {
   donorCoversPlatformFee: boolean;
   confirmedAt: Date;
 }
-export function donationReceiptEmail(data: ReceiptMail): MailMessage {
+export function donationReceiptEmail(
+  data: ReceiptMail,
+  brand = siteName(),
+): MailMessage {
   const money = (amount: bigint) =>
     `${formatMoney(amount, data.currency)} (${data.currency})`;
   const lines = [
@@ -34,7 +37,7 @@ export function donationReceiptEmail(data: ReceiptMail): MailMessage {
   ];
   return {
     to: data.to,
-    subject: `Your ${siteName()} donation receipt`,
+    subject: `Your ${brand} donation receipt`,
     text: `Thank you for your donation. Your payment has been confirmed.\n\n${lines.join('\n')}\n\nView the campaign: ${data.campaignUrl}`,
     html: layout(
       'Thank you for your donation',

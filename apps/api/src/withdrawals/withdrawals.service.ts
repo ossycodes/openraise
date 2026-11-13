@@ -1,3 +1,4 @@
+import { requireAdministrator } from '../auth/admin-authorization.js';
 import { auditActor } from '../audit/actor.js';
 import { withdrawalReviewWhere } from './withdrawal-review.js';
 import {
@@ -60,12 +61,12 @@ export class WithdrawalsService {
       updatedAt: w.updatedAt,
     };
   }
-  private breakdown(amount: string) {
+  private async breakdown(amount: string) {
     const value = BigInt(amount);
     if (value > 9223372036854775807n || value <= 0n)
       throw new BadRequestException('Invalid amount');
     try {
-      return this.fees.withdrawal(value);
+      return await this.fees.withdrawal(value);
     } catch {
       throw new BadRequestException(
         'Withdrawal must exceed the withdrawal fee',
@@ -85,7 +86,7 @@ export class WithdrawalsService {
   }
   async quote(user: AuthUser, campaignId: string, amount: string) {
     const c = await this.owned(user, campaignId);
-    const fees = this.breakdown(amount);
+    const fees = await this.breakdown(amount);
     const balances = await this.ledger.campaignBalances(c.id);
     return {
       amount: fees.amount.toString(),
@@ -159,6 +160,12 @@ export class WithdrawalsService {
     campaignId: string,
     input: WithdrawalInput,
     key: string | undefined,
+    retry?: {
+      originalId: string;
+      actorId: string;
+      reason: string;
+      expectedUpdatedAt: string;
+    },
   ) {
     const parsed = idempotencyKeySchema.safeParse(key);
     if (!parsed.success)
@@ -191,7 +198,7 @@ export class WithdrawalsService {
     const provider = this.provider;
     if (!provider)
       throw new ServiceUnavailableException('Payouts are not configured');
-    const fees = this.breakdown(input.amount);
+    const fees = await this.breakdown(input.amount);
     if (fees.fee !== BigInt(input.expectedFee))
       throw new ConflictException(
         'Withdrawal fee changed; request a new quote',
@@ -214,6 +221,43 @@ export class WithdrawalsService {
           if (duplicate) {
             replay(duplicate);
             return duplicate;
+          }
+          if (retry) {
+            const previous = await tx.withdrawal.findUnique({
+              where: { id: retry.originalId },
+            });
+            const successor = await tx.withdrawal.findUnique({
+              where: { retryOfId: retry.originalId },
+            });
+            if (successor) return successor;
+            await requireAdministrator(tx, retry.actorId);
+            if (
+              previous &&
+              previous.updatedAt.toISOString() !== retry.expectedUpdatedAt
+            )
+              throw new ConflictException(
+                'Original payout changed. Reload before retrying.',
+              );
+            if (
+              !previous ||
+              previous.campaignId !== campaignId ||
+              previous.userId !== user.id ||
+              !['FAILED', 'REVERSED'].includes(previous.status) ||
+              previous.reconciliationRequired ||
+              !previous.reversalTransactionId
+            )
+              throw new ConflictException(
+                'Only a confirmed returned payout can be retried',
+              );
+            if (
+              previous.bankAccountId !== input.bankAccountId ||
+              previous.amount !== BigInt(input.amount) ||
+              previous.fee !== fees.fee
+            )
+              throw new ConflictException(
+                'Payout details or fees changed. Ask the creator to request a new withdrawal.',
+              );
+            await auditActor(tx, retry.actorId);
           }
           if (c.payoutsFrozen)
             throw new ForbiddenException('Campaign payouts are frozen');
@@ -275,9 +319,10 @@ export class WithdrawalsService {
             description: 'Reserve campaign withdrawal',
             entries: withdrawalHold(campaignId, 'NGN', fees.amount),
           });
-          return tx.withdrawal.create({
+          const created = await tx.withdrawal.create({
             data: {
               id,
+              retryOfId: retry?.originalId,
               campaignId,
               userId: user.id,
               bankAccountId: bank.id,
@@ -293,6 +338,18 @@ export class WithdrawalsService {
               holdTransactionId: hold.transactionId,
             },
           });
+          if (retry)
+            await tx.auditEvent.create({
+              data: {
+                actorId: retry.actorId,
+                action: 'WITHDRAWAL_RETRIED',
+                targetType: 'Withdrawal',
+                targetId: retry.originalId,
+                subjectId: user.id,
+                after: { retryId: id, reason: retry.reason },
+              },
+            });
+          return created;
         });
         break;
       } catch (error) {

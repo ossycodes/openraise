@@ -9,10 +9,10 @@ export default function MoneyLayout({ children }: { children: ReactNode }) {
     <>
       <div className="money-readonly">
         <LockKeyhole size={15} aria-hidden="true" />
-        <strong>Read-only workspace</strong>
+        <strong>Money operations</strong>
         <span>
-          Inspect records and postings. No transfers or adjustments are made
-          here.
+          Inspect postings and reconcile against provider evidence. Payout retries
+          require a confirmed return and a recorded reason.
         </span>
       </div>
       <MoneyNav />

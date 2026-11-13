@@ -1,3 +1,4 @@
+import { OperationForm } from '../../../../_components/operation-form';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { apiAs, ApiError } from '../../../../../_lib/api';
@@ -170,14 +171,7 @@ export default async function Detail({
           )}
         </section>
       )}
-      <div className="money-investigation-note">
-        <strong>Reconcile against provider evidence.</strong>
-        <p>
-          This page does not resend, settle, reverse or adjust funds. Match the
-          reference, provider IDs, currency and amounts before using the
-          deployment’s operational reconciliation process.
-        </p>
-      </div>
+      <OperationForm key={`${kind}-${d.updatedAt ?? d.processedAt ?? d.receivedAt}`} title={kind === 'EVENT' ? 'Reprocess stored event' : kind === 'DONATION' ? 'Verify payment with provider' : 'Payout reconciliation'} path={`money/reconciliation/${kind}/${id}/actions`} fixed={{ expectedUpdatedAt: d.updatedAt ?? d.processedAt ?? d.receivedAt }} fields={[{ name: 'action', label: 'Action', options: kind === 'EVENT' ? [{ value: 'REPROCESS', label: 'Reprocess this stored event' }] : kind === 'DONATION' ? [{ value: 'VERIFY', label: 'Verify payment and reconcile' }] : [{ value: 'VERIFY', label: 'Verify payout and reconcile' }, ...(['FAILED', 'REVERSED'].includes(d.status ?? '') ? [{ value: 'RETRY', label: 'Retry the returned payout' }] : [])] }]} description={kind === 'WITHDRAWAL' ? 'Verification checks the provider reference, destination, currency and exact amount. A retry creates one new payout attempt only after a confirmed return of funds, and honours the campaign freeze and bank-account checks.' : kind === 'DONATION' ? 'Only provider-confirmed successful payments can settle. The original fee snapshot is preserved.' : 'Run the original verified event through the settlement checks again. Successful postings cannot be duplicated.'} confirmation="I have checked this record and understand the action selected." submitLabel="Run action" />
     </>
   );
 }

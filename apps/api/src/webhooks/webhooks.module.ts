@@ -16,5 +16,6 @@ import { WebhooksService } from './webhooks.service.js';
   ],
   controllers: [WebhooksController],
   providers: [WebhooksService, PaymentEventProcessor, PaymentEventQueue],
+  exports: [PaymentEventProcessor],
 })
 export class WebhooksModule {}

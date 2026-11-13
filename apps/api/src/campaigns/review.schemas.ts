@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export const reviewQueueSchema = z.object({
   status: z
-    .enum(['PENDING_REVIEW', 'ACTIVE', 'REJECTED'])
+    .enum(['PENDING_REVIEW', 'ACTIVE', 'REJECTED', 'PAUSED', 'ENDED'])
     .default('PENDING_REVIEW'),
   q: z.string().trim().max(100).default(''),
   page: z.coerce.number().int().min(1).max(1000).default(1),

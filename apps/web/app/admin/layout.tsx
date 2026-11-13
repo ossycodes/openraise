@@ -24,7 +24,7 @@ export default async function AdminLayout({
       <header className="review-header">
         <Brand />
         <span>
-          <ShieldCheck size={17} aria-hidden="true" /> Review workspace
+          <ShieldCheck size={17} aria-hidden="true" /> Admin workspace
         </span>
         <Link href="/dashboard">
           <ArrowLeft size={15} aria-hidden="true" /> Dashboard
@@ -40,7 +40,7 @@ export default async function AdminLayout({
           <ShieldCheck size={38} aria-hidden="true" />
           <h1>Administrator access needed</h1>
           <p>
-            This workspace is for campaign reviewers. Your creator dashboard is
+            This workspace is for administrators. Your creator dashboard is
             still available.
           </p>
           <Link className="primary-button" href="/dashboard">

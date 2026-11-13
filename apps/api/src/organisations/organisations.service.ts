@@ -1,3 +1,4 @@
+import { SettingsService } from '../settings/settings.service.js';
 import {
   BadRequestException,
   ConflictException,
@@ -12,10 +13,7 @@ import type { AuthUser } from '../auth/auth.types.js';
 import { campaignSlug } from '../campaigns/slug.js';
 import { randomToken, sha256 } from '../common/tokens.js';
 import type { Env } from '../config/env.js';
-import type {
-  OrganisationRole,
-  Prisma,
-} from '../generated/prisma/client.js';
+import type { OrganisationRole, Prisma } from '../generated/prisma/client.js';
 import { MailService } from '../mail/mail.service.js';
 import { organisationInviteEmail } from '../mail/templates.js';
 import { isUniqueViolation, PrismaService } from '../prisma/prisma.service.js';
@@ -41,6 +39,7 @@ export class OrganisationsService {
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
     private readonly config: ConfigService<Env, true>,
+    private readonly settings: SettingsService,
   ) {}
 
   async create(user: AuthUser, input: CreateOrganisationInput) {
@@ -69,7 +68,11 @@ export class OrganisationsService {
             },
           });
           await tx.organisationMember.create({
-            data: { organisationId: created.id, userId: user.id, role: 'OWNER' },
+            data: {
+              organisationId: created.id,
+              userId: user.id,
+              role: 'OWNER',
+            },
           });
           return created;
         });
@@ -85,7 +88,9 @@ export class OrganisationsService {
     const rows = await this.prisma.organisationMember.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'asc' },
-      include: { organisation: { select: { id: true, slug: true, name: true } } },
+      include: {
+        organisation: { select: { id: true, slug: true, name: true } },
+      },
     });
     return rows.map((m) => ({ ...m.organisation, role: m.role }));
   }
@@ -198,7 +203,9 @@ export class OrganisationsService {
       select: { id: true },
     });
     if (existing)
-      throw new ConflictException('That person is already in this organisation');
+      throw new ConflictException(
+        'That person is already in this organisation',
+      );
 
     const token = randomToken();
     const now = new Date();
@@ -242,6 +249,7 @@ export class OrganisationsService {
           invite.role,
           invite.email,
           link.toString(),
+          (await this.settings.get()).values.name,
         ),
       );
     } catch (error) {
@@ -363,7 +371,9 @@ export class OrganisationsService {
       const leaving = target.userId === user.id;
       if (!leaving) {
         if (!MANAGERS.includes(me.role))
-          throw new ForbiddenException('Only owners and admins can remove people');
+          throw new ForbiddenException(
+            'Only owners and admins can remove people',
+          );
         if (target.role === 'OWNER' && me.role !== 'OWNER')
           throw new ForbiddenException('Only an owner can remove an owner');
       }
@@ -407,7 +417,11 @@ export class OrganisationsService {
     return me;
   }
 
-  private async requireManager(userId: string, id: string, db: Db = this.prisma) {
+  private async requireManager(
+    userId: string,
+    id: string,
+    db: Db = this.prisma,
+  ) {
     const me = await this.membership(userId, id, db);
     if (!MANAGERS.includes(me.role))
       throw new ForbiddenException('Only owners and admins can do that');

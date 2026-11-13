@@ -1,3 +1,5 @@
+import { CurrentUser } from '../auth/current-user.decorator.js';
+import type { AuthUser } from '../auth/auth.types.js';
 import {
   Body,
   Controller,
@@ -40,18 +42,22 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   create(
-    @Body(new ZodValidationPipe(createCategorySchema)) body: CreateCategoryInput,
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodValidationPipe(createCategorySchema))
+    body: CreateCategoryInput,
   ): Promise<PublicCategory> {
-    return this.categories.create(body);
+    return this.categories.create(body, user.id);
   }
 
   @Patch(':slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   update(
+    @CurrentUser() user: AuthUser,
     @Param('slug') slug: string,
-    @Body(new ZodValidationPipe(updateCategorySchema)) body: UpdateCategoryInput,
+    @Body(new ZodValidationPipe(updateCategorySchema))
+    body: UpdateCategoryInput,
   ): Promise<PublicCategory> {
-    return this.categories.update(slug, body);
+    return this.categories.update(slug, body, user.id);
   }
 }

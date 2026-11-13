@@ -10,7 +10,11 @@ export const createCategorySchema = z.object({
     .trim()
     .toLowerCase()
     .max(50)
-    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Use lower-case letters, numbers and hyphens'),
+    .regex(
+      /^[a-z0-9]+(-[a-z0-9]+)*$/,
+      'Use lower-case letters, numbers and hyphens',
+    ),
+  reason: z.string().trim().min(5).max(500).optional(),
   name,
   description: description.default(''),
   sortOrder: sortOrder.default(0),
@@ -19,7 +23,16 @@ export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 
 /** The slug is part of public URLs, so it can't be changed. */
 export const updateCategorySchema = z
-  .object({ name, description, sortOrder })
+  .object({
+    name,
+    description,
+    sortOrder,
+    expectedUpdatedAt: z.iso.datetime(),
+    reason: z.string().trim().min(5).max(500),
+  })
   .partial()
-  .refine((v) => Object.keys(v).length > 0, 'Change at least one field');
+  .refine(
+    (v) => ['name', 'description', 'sortOrder'].some((key) => key in v),
+    'Change at least one field',
+  );
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;

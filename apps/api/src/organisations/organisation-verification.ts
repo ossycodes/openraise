@@ -1,3 +1,4 @@
+import { SettingsService } from '../settings/settings.service.js';
 import {
   BadRequestException,
   ConflictException,
@@ -100,6 +101,7 @@ export class OrganisationVerificationService {
     private readonly storage: StorageService,
     private readonly mail: MailService,
     private readonly config: ConfigService<Env, true>,
+    private readonly settings: SettingsService,
   ) {
     this.cipher = documentCipher(config);
   }
@@ -196,7 +198,9 @@ export class OrganisationVerificationService {
       return this.present(row);
     } catch (error) {
       if (isUniqueViolation(error))
-        throw new ConflictException('This organisation is already being reviewed');
+        throw new ConflictException(
+          'This organisation is already being reviewed',
+        );
       throw error;
     }
   }
@@ -215,7 +219,9 @@ export class OrganisationVerificationService {
         include: { organisation: { select: { name: true, slug: true } } },
       }),
       this.prisma.organisationVerification.count({ where }),
-      this.prisma.organisationVerification.count({ where: { status: 'PENDING' } }),
+      this.prisma.organisationVerification.count({
+        where: { status: 'PENDING' },
+      }),
     ]);
     return {
       items: items.map((r) => ({
@@ -264,7 +270,10 @@ export class OrganisationVerificationService {
       },
       organisation: { ...organisation, members: _count.members },
       submittedBy: row.submittedBy,
-      history: history.map((h) => ({ ...this.presentAdmin(h), reviewer: h.reviewer })),
+      history: history.map((h) => ({
+        ...this.presentAdmin(h),
+        reviewer: h.reviewer,
+      })),
     };
   }
 
@@ -314,7 +323,9 @@ export class OrganisationVerificationService {
         },
         data: {
           status: approve ? 'VERIFIED' : 'REJECTED',
-          verifiedName: approve ? (input.verifiedName ?? row.registeredName) : null,
+          verifiedName: approve
+            ? (input.verifiedName ?? row.registeredName)
+            : null,
           reason: approve ? null : input.reason!,
           reviewerId: admin.id,
           decidedAt: new Date(),
@@ -352,11 +363,19 @@ export class OrganisationVerificationService {
     for (const m of managers) {
       try {
         await this.mail.send(
-          organisationVerificationEmail(name, m.user.email, reason, link),
+          organisationVerificationEmail(
+            name,
+            m.user.email,
+            reason,
+            link,
+            (await this.settings.get()).values.name,
+          ),
         );
       } catch (error) {
         // The decision stands; the dashboard shows it either way.
-        this.logger.warn(`Organisation decision email not sent: ${String(error)}`);
+        this.logger.warn(
+          `Organisation decision email not sent: ${String(error)}`,
+        );
       }
     }
   }
@@ -369,7 +388,9 @@ export class OrganisationVerificationService {
     if (open?.status === 'VERIFIED')
       throw new ConflictException('This organisation is already verified');
     if (open?.status === 'PENDING')
-      throw new ConflictException('This organisation is already being reviewed');
+      throw new ConflictException(
+        'This organisation is already being reviewed',
+      );
   }
 
   private async member(userId: string, organisationId: string) {
@@ -383,7 +404,9 @@ export class OrganisationVerificationService {
   private async manager(userId: string, organisationId: string) {
     const me = await this.member(userId, organisationId);
     if (me.role !== 'OWNER' && me.role !== 'ADMIN')
-      throw new ForbiddenException('Only owners and admins can verify the organisation');
+      throw new ForbiddenException(
+        'Only owners and admins can verify the organisation',
+      );
     return me;
   }
 

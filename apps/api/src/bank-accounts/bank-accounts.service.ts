@@ -1,3 +1,4 @@
+import { SettingsService } from '../settings/settings.service.js';
 import { withAuditActor } from '../audit/actor.js';
 import {
   BadGatewayException,
@@ -89,6 +90,7 @@ export class BankAccountsService {
     private readonly config: ConfigService<Env, true>,
     private readonly kyc: KycService,
     private readonly nameReviews: NameReviewService,
+    private readonly settings: SettingsService,
   ) {}
 
   private async present(userId: string, rows: BankAccount[]) {
@@ -200,6 +202,7 @@ export class BankAccountsService {
           profile.email,
           `${account.bankName} ******${account.accountNumber.slice(-4)}`,
           new URL('/dashboard/payouts', this.config.get('WEB_URL')).toString(),
+          (await this.settings.get()).values.name,
         ),
       )
       .catch((error: unknown) =>

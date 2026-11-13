@@ -45,9 +45,33 @@ export class CategoriesService {
     return toPublic(row);
   }
 
-  async create(input: CreateCategoryInput): Promise<PublicCategory> {
+  async create(
+    input: CreateCategoryInput,
+    actorId?: string,
+  ): Promise<PublicCategory> {
     try {
-      return toPublic(await this.prisma.category.create({ data: input }));
+      const { reason, ...data } = input;
+      return toPublic(
+        await this.prisma.$transaction(async (tx) => {
+          const row = await tx.category.create({ data });
+          await tx.auditEvent.create({
+            data: {
+              actorId,
+              action: 'CATEGORY_CREATED',
+              targetType: 'Category',
+              targetId: row.id,
+              after: {
+                slug: row.slug,
+                name: row.name,
+                description: row.description,
+                sortOrder: row.sortOrder,
+                reason: reason ?? 'Category created',
+              },
+            },
+          });
+          return row;
+        }),
+      );
     } catch (error) {
       if (isUniqueViolation(error)) {
         throw new ConflictException('A category with this slug already exists');
@@ -56,12 +80,42 @@ export class CategoriesService {
     }
   }
 
-  async update(slug: string, input: UpdateCategoryInput): Promise<PublicCategory> {
-    const result = await this.prisma.category.updateMany({
-      where: { slug },
-      data: input,
+  async update(
+    slug: string,
+    input: UpdateCategoryInput,
+    actorId?: string,
+  ): Promise<PublicCategory> {
+    const { expectedUpdatedAt, reason, ...data } = input;
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Category" WHERE "slug" = ${slug} FOR UPDATE`;
+      const old = await tx.category.findUnique({ where: { slug } });
+      if (!old) throw new NotFoundException('Category not found');
+      if (
+        expectedUpdatedAt &&
+        old.updatedAt.toISOString() !== expectedUpdatedAt
+      )
+        throw new ConflictException('Category changed. Reload before saving.');
+      const row = await tx.category.update({ where: { slug }, data });
+      await tx.auditEvent.create({
+        data: {
+          actorId,
+          action: 'CATEGORY_CHANGED',
+          targetType: 'Category',
+          targetId: row.id,
+          before: {
+            name: old.name,
+            description: old.description,
+            sortOrder: old.sortOrder,
+          },
+          after: {
+            name: row.name,
+            description: row.description,
+            sortOrder: row.sortOrder,
+            reason: reason ?? 'Category updated',
+          },
+        },
+      });
+      return toPublic(row);
     });
-    if (result.count === 0) throw new NotFoundException('Category not found');
-    return this.get(slug);
   }
 }

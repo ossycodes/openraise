@@ -133,12 +133,12 @@ export class DonationsService {
     if (!donation) throw new NotFoundException('Donation not found');
     return { ...donation, amount: donation.amount.toString() };
   }
-  private breakdown(body: DonationInput, code: string) {
+  private async breakdown(body: DonationInput, code: string) {
     if (!this.provider)
       throw new ServiceUnavailableException('Payments are disabled');
     if (!isCurrency(code) || (body.currency && body.currency !== code))
       throw new BadRequestException('Use the campaign currency');
-    const fees = this.fees.donation(BigInt(body.amount), {
+    const fees = await this.fees.donation(BigInt(body.amount), {
       donorCoversPlatformFee: body.donorCoversPlatformFee,
     });
     if (fees.amount < this.provider.minimumCheckout[code])
@@ -183,7 +183,7 @@ export class DonationsService {
       },
     });
     if (!campaign) throw new NotFoundException();
-    const fees = this.breakdown(body, campaign.currency);
+    const fees = await this.breakdown(body, campaign.currency);
     return {
       ...this.serialize(fees),
       provider: this.provider!.name,
@@ -289,7 +289,7 @@ export class DonationsService {
           AND "status" = 'ACTIVE' AND ("endsAt" IS NULL OR "endsAt" > CURRENT_TIMESTAMP) FOR SHARE`;
         const campaign = campaigns[0];
         if (!campaign) throw new NotFoundException();
-        const fees = this.breakdown(body, campaign.currency);
+        const fees = await this.breakdown(body, campaign.currency);
         return tx.donation.create({
           data: {
             campaignId: campaign.id,

@@ -678,3 +678,104 @@ describe('webhook and response edge cases', () => {
     ).rejects.toThrow('Payment provider invalid-response');
   });
 });
+
+describe('authoritative payout lookup', () => {
+  it('verifies the Paystack reference, exact amount and recipient, preserving reversals', async () => {
+    const fetcher = transport({
+      status: true,
+      data: {
+        transfer_code: 'TRF_example',
+        reference: 'payout_0001',
+        amount: 12345,
+        currency: 'NGN',
+        status: 'reversed',
+        recipient: { recipient_code: 'RCP_example' },
+      },
+    });
+    const p = new PaystackProvider(secret, fetcher);
+    await expect(p.verifyPayout('payout_0001')).resolves.toEqual({
+      id: 'TRF_example',
+      reference: 'payout_0001',
+      amount: 12345n,
+      currency: 'NGN',
+      status: 'reversed',
+      recipientId: 'RCP_example',
+    });
+    expect(String(fetcher.mock.calls[0]?.[0])).toBe(
+      'https://api.paystack.co/transfer/verify/payout_0001',
+    );
+    expect(fetcher.mock.calls[0]?.[1]?.method).toBe('GET');
+  });
+  it('does not treat a lookup outage as proof a payout failed', async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response('{}', { status: 404 }));
+    await expect(
+      new PaystackProvider(secret, fetcher).verifyPayout('payout_0001'),
+    ).rejects.toMatchObject({ code: 'http-error' });
+  });
+  it('checks Bachs by its persisted payout id and converts its net decimal amount exactly', async () => {
+    const fetcher = transport({
+      id: 'pay_example',
+      reference: 'payout_0001',
+      amount: '123.45',
+      currency: 'NGN',
+      destination: 'pd_example',
+      status: 'completed',
+    });
+    const p = new BachsProvider(
+      secret,
+      signingSecret,
+      'https://sandbox-api.bachs.io',
+      fetcher,
+    );
+    await expect(p.verifyPayout('payout_0001', 'pay_example')).resolves.toEqual(
+      {
+        id: 'pay_example',
+        reference: 'payout_0001',
+        amount: 12345n,
+        currency: 'NGN',
+        recipientId: 'pd_example',
+        status: 'succeeded',
+      },
+    );
+    expect(String(fetcher.mock.calls[0]?.[0])).toBe(
+      'https://sandbox-api.bachs.io/v1/payouts/pay_example',
+    );
+    await expect(p.verifyPayout('payout_0001', null)).rejects.toMatchObject({
+      code: 'unsupported',
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+  it('refuses missing destination evidence and unsafe numeric amounts', async () => {
+    const invalid = transport({
+      status: true,
+      data: {
+        transfer_code: 'TRF_example',
+        reference: 'payout_0001',
+        amount: Number.MAX_SAFE_INTEGER + 1,
+        currency: 'NGN',
+        status: 'success',
+        recipient: { recipient_code: 'RCP_example' },
+      },
+    });
+    await expect(
+      new PaystackProvider(secret, invalid).verifyPayout('payout_0001'),
+    ).rejects.toBeInstanceOf(PaymentProviderError);
+    const missing = transport({
+      id: 'pay_example',
+      reference: 'payout_0001',
+      amount: '123.45',
+      currency: 'NGN',
+      status: 'completed',
+    });
+    await expect(
+      new BachsProvider(
+        secret,
+        signingSecret,
+        'https://sandbox-api.bachs.io',
+        missing,
+      ).verifyPayout('payout_0001', 'pay_example'),
+    ).rejects.toBeInstanceOf(PaymentProviderError);
+  });
+});

@@ -1,3 +1,4 @@
+import { SettingsService } from '../settings/settings.service.js';
 import { UpdateSubscriptions } from '../campaign-updates/update-subscriptions.js';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -11,6 +12,7 @@ export class NotificationScheduler {
   constructor(
     private readonly config: ConfigService<Env, true>,
     private readonly subscriptions: UpdateSubscriptions,
+    private readonly settings: SettingsService,
   ) {}
 
   /** Called in the same transaction as payment settlement; never performs email I/O. */
@@ -39,13 +41,16 @@ export class NotificationScheduler {
       ).toString(),
       currency: donation.currency,
     };
-    const receipt = donationReceiptEmail({
-      ...snapshot,
-      ...donation,
-      currency: snapshot.currency,
-      to: donation.donorEmail,
-      confirmedAt: donation.succeededAt,
-    });
+    const receipt = donationReceiptEmail(
+      {
+        ...snapshot,
+        ...donation,
+        currency: snapshot.currency,
+        to: donation.donorEmail,
+        confirmedAt: donation.succeededAt,
+      },
+      (await this.settings.get(tx)).values.name,
+    );
     await tx.notificationDelivery.upsert({
       where: { dedupeKey: `receipt:${donation.id}` },
       update: {},

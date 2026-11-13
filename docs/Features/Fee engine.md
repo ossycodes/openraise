@@ -30,6 +30,8 @@ edge cases at the threshold and on tiny amounts.
   `percentOf`, `validateFeeConfig`, `DEFAULT_FEE_CONFIG`.
 - `packages/shared/src/money.ts`: `formatMoney` (exact, via decimal strings)
   and `toMinorUnits` (parses what donors type).
-- API: `FeesService` (global) reads the env; `GET /config/fees` publishes the
-  config. See [[API#Config]].
+- API: `FeesService` (global) reads a shared saved settings snapshot for each
+  new calculation, falling back to env defaults; `GET /config/fees` publishes
+  the current values. Branding & fees in [[Admin operations]] edits the
+  prospective settings; existing donations and withdrawals keep their snapshot. See [[API#Config]].
 - Rounding and the "donor covers the fee" rule: [[Decisions#Fee rounding]].

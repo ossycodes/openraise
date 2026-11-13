@@ -351,7 +351,9 @@ export class AdminMoneyService {
     if (query.kind === 'WITHDRAWAL') {
       const where: Prisma.WithdrawalWhereInput = {
         AND: [
-          withdrawalReviewWhere(now),
+          query.scope === 'returned'
+            ? { status: { in: ['FAILED', 'REVERSED'] } }
+            : withdrawalReviewWhere(now),
           {
             ...(query.currency ? { currency: query.currency } : {}),
             ...(query.campaignId ? { campaignId: query.campaignId } : {}),

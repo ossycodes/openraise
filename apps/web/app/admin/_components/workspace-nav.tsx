@@ -9,6 +9,9 @@ import {
   History,
   Landmark,
   Building2,
+  Users,
+  Tags,
+  Settings,
 } from 'lucide-react';
 export function WorkspaceNav() {
   const path = usePathname();
@@ -69,6 +72,9 @@ export function WorkspaceNav() {
         <History size={16} aria-hidden="true" />
         Audit log
       </Link>
+      <Link href="/admin/users" aria-current={path.startsWith('/admin/users') ? 'page' : undefined}><Users size={16} aria-hidden="true" />Users</Link>
+      <Link href="/admin/categories" aria-current={path.startsWith('/admin/categories') ? 'page' : undefined}><Tags size={16} aria-hidden="true" />Categories</Link>
+      <Link href="/admin/settings" aria-current={path.startsWith('/admin/settings') ? 'page' : undefined}><Settings size={16} aria-hidden="true" />Branding & fees</Link>
     </nav>
   );
 }

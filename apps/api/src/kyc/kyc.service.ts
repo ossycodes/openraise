@@ -1,3 +1,4 @@
+import { SettingsService } from '../settings/settings.service.js';
 import { auditActor } from '../audit/actor.js';
 import {
   BadRequestException,
@@ -80,6 +81,7 @@ export class KycService {
     private readonly mail: MailService,
     private readonly config: ConfigService<Env, true>,
     @Inject(KYC_PROVIDER) private readonly provider: KycProvider,
+    private readonly settings: SettingsService,
   ) {
     this.cipher = documentCipher(config);
   }
@@ -416,6 +418,7 @@ export class KycService {
             '/dashboard/verification',
             this.config.get('WEB_URL', { infer: true }),
           ).toString(),
+          (await this.settings.get()).values.name,
         ),
       );
     } catch (error) {
@@ -576,6 +579,7 @@ export class KycService {
             '/dashboard/verification',
             this.config.get('WEB_URL', { infer: true }),
           ).toString(),
+          (await this.settings.get()).values.name,
         ),
       );
     } catch (error) {
