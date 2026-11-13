@@ -8,14 +8,26 @@ import {
   type IdentityVerification,
 } from '../_lib/types';
 
-const FIELDS = ['documentType', 'idNumber', 'legalName', 'dateOfBirth', 'file'];
+const FIELDS = [
+  'documentType',
+  'idNumber',
+  'legalName',
+  'dateOfBirth',
+  'file',
+  'selfie',
+  'consent',
+];
 
-/** Sends ID details and a photo of the ID for review. */
+/** Sends ID details, plus a photo of the ID or a selfie, for checking. */
 export function VerificationForm({
   documentRequired,
+  selfieRequired,
+  privacyPolicyUrl,
   previous,
 }: {
   documentRequired: boolean;
+  selfieRequired: boolean;
+  privacyPolicyUrl: string | null;
   previous: IdentityVerification | null;
 }) {
   const router = useRouter();
@@ -23,7 +35,10 @@ export function VerificationForm({
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [type, setType] = useState<DocumentType>(
-    previous?.documentType ?? 'NIN_SLIP',
+    previous &&
+      (documentRequired || ['NIN_SLIP', 'BVN'].includes(previous.documentType))
+      ? previous.documentType
+      : 'NIN_SLIP',
   );
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -41,7 +56,12 @@ export function VerificationForm({
       if (!response.ok) {
         const found: Record<string, string> = {};
         for (const e of Array.isArray(data.errors) ? data.errors : []) {
-          const key = e.path === 'documentKey' ? 'file' : e.path;
+          const key =
+            e.path === 'documentKey'
+              ? 'file'
+              : e.path === 'selfieKey'
+                ? 'selfie'
+                : e.path;
           if (FIELDS.includes(key)) found[key] ??= e.message;
         }
         setErrors(found);
@@ -91,22 +111,33 @@ export function VerificationForm({
               onChange={(e) => setType(e.target.value as DocumentType)}
               {...invalid('documentType')}
             >
-              {Object.entries(DOCUMENT_LABEL).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              {Object.entries(DOCUMENT_LABEL)
+                .filter(
+                  ([value]) =>
+                    documentRequired || ['NIN_SLIP', 'BVN'].includes(value),
+                )
+                .map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
             </select>
             {error('documentType')}
           </div>
           <div className="form-field">
             <label htmlFor="idNumber">
-              {type === 'NIN_SLIP' ? 'NIN' : 'Document number'}
+              {type === 'NIN_SLIP'
+                ? 'NIN'
+                : type === 'BVN'
+                  ? 'BVN'
+                  : 'Document number'}
             </label>
             <input
               id="idNumber"
               name="idNumber"
-              inputMode={type === 'NIN_SLIP' ? 'numeric' : 'text'}
+              inputMode={
+                type === 'NIN_SLIP' || type === 'BVN' ? 'numeric' : 'text'
+              }
               autoComplete="off"
               maxLength={24}
               required
@@ -115,7 +146,7 @@ export function VerificationForm({
             />
             {error('idNumber') ?? (
               <p className="field-hint" id="idNumber-hint">
-                {type === 'NIN_SLIP'
+                {type === 'NIN_SLIP' || type === 'BVN'
                   ? '11 digits.'
                   : 'As printed on the document.'}
               </p>
@@ -170,6 +201,53 @@ export function VerificationForm({
             )}
           </div>
         )}
+        {selfieRequired && (
+          <div className="form-field">
+            <label htmlFor="selfie">Selfie</label>
+            <input
+              id="selfie"
+              name="selfie"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture="user"
+              required
+              aria-describedby="selfie-hint"
+              {...invalid('selfie')}
+            />
+            {error('selfie') ?? (
+              <p className="field-hint" id="selfie-hint">
+                A clear photo of your face, in good light, so we can match it to
+                your ID. JPEG, PNG or WebP, up to 5 MB.
+              </p>
+            )}
+          </div>
+        )}
+        {!documentRequired && (
+          <div className="form-field">
+            <label htmlFor="consent" className="verification-consent">
+              <input
+                id="consent"
+                name="consent"
+                type="checkbox"
+                value="yes"
+                required
+                {...invalid('consent')}
+              />
+              I agree to share my identity details
+              {selfieRequired ? ' and selfie' : ''} with the identity
+              verification provider to check my identity.
+            </label>
+            {privacyPolicyUrl && (
+              <p className="field-hint">
+                <a href={privacyPolicyUrl} target="_blank" rel="noreferrer">
+                  Read the privacy notice
+                </a>{' '}
+                before agreeing.
+              </p>
+            )}
+            {error('consent')}
+          </div>
+        )}
       </fieldset>
       {message && (
         <p className="dashboard-notice error" role="alert">
@@ -177,7 +255,11 @@ export function VerificationForm({
         </p>
       )}
       <button className="primary-button" type="submit" disabled={busy}>
-        {busy ? 'Sending…' : 'Send for review'}
+        {busy
+          ? 'Sending…'
+          : documentRequired
+            ? 'Send for review'
+            : 'Verify my identity'}
       </button>
     </form>
   );

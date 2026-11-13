@@ -331,13 +331,17 @@ changes. There are no new ledger movements or changes to held payouts.
 ## Identity verification
 
 `IdentityVerification` is one attempt to verify a person: `userId`, `provider`
-(`manual` for now) and optional `providerReference`, `status`
+(`manual`, `qoreid`, `dojah`, `smile`) and optional `providerReference`, `status`
 (`PENDING`/`VERIFIED`/`REJECTED`), `documentType`, `idNumberLast4`, the
 entered `legalName` and `dateOfBirth` (a date), `verifiedName` once verified,
 the encrypted document's `documentKey` and `documentContentType`, the
 creator-facing `reason`, `reviewerId` and `decidedAt`.
 
-- A partial unique index allows one `PENDING` row per user.
+- A partial unique index allows one `PENDING` row per user. Reservation locks
+  the subject user and rechecks pending/verified state before a vendor call.
+- `documentType` additionally supports `BVN`. Vendor selfie uploads use the
+  encrypted document fields and the same deletion/retention rules. Smile checks
+  store a random local reference before dispatch, echoed as `customer_ref_id`.
 - Checks: `idNumberLast4` is 1–4 characters; a decided row has `decidedAt`
   and a pending one doesn't; a `VERIFIED` row has `verifiedName`.
 - The full ID number is never stored. Documents live in storage at

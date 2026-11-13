@@ -43,6 +43,9 @@ describe('validateEnv', () => {
       PAYMENT_PROVIDER: 'disabled',
       BACHS_BASE_URL: 'https://sandbox-api.bachs.io',
       KYC_PROVIDER: 'manual',
+      QOREID_BASE_URL: 'https://api.qoreid.com',
+      DOJAH_BASE_URL: 'https://sandbox.dojah.io',
+      SMILE_BASE_URL: 'https://testapi.smileidentity.com',
       KYC_DOCUMENT_RETENTION_DAYS: 365,
       DEFAULT_CURRENCY: 'NGN',
       PLATFORM_FEE_BPS: 350,
@@ -125,6 +128,66 @@ describe('payment provider configuration', () => {
         PAYSTACK_SECRET_KEY: '  ',
       }),
     ).toThrow(/PAYSTACK_SECRET_KEY/);
+  });
+  it('only requires KYC credentials for the selected provider', () => {
+    expect(validateEnv(required).KYC_PROVIDER).toBe('manual');
+    expect(() => validateEnv({ ...required, KYC_PROVIDER: 'dojah' })).toThrow(
+      /DOJAH_APP_ID/,
+    );
+    expect(() =>
+      validateEnv({
+        ...required,
+        KYC_PROVIDER: 'qoreid',
+        QOREID_CLIENT_ID: 'c',
+      }),
+    ).toThrow(/QOREID_SECRET/);
+    expect(() =>
+      validateEnv({
+        ...required,
+        KYC_PROVIDER: 'smile',
+        SMILE_PARTNER_ID: 'p',
+      }),
+    ).toThrow(/SMILE_API_KEY/);
+    expect(
+      validateEnv({
+        ...required,
+        KYC_PROVIDER: 'dojah',
+        DOJAH_APP_ID: 'a',
+        DOJAH_SECRET_KEY: 's',
+      }).KYC_PROVIDER,
+    ).toBe('dojah');
+    expect(() =>
+      validateEnv({ ...required, DOJAH_BASE_URL: 'https://example.com' }),
+    ).toThrow(/DOJAH_BASE_URL/);
+  });
+  it('requires secure callback and privacy notice URLs for Smile', () => {
+    const smile = {
+      ...required,
+      KYC_PROVIDER: 'smile',
+      SMILE_PARTNER_ID: '1234',
+      SMILE_API_KEY: 'key',
+    };
+    expect(() => validateEnv(smile)).toThrow(/SMILE_CALLBACK_URL/);
+    expect(() =>
+      validateEnv({
+        ...smile,
+        SMILE_CALLBACK_URL: 'https://example.com/webhooks/kyc/smile',
+      }),
+    ).toThrow(/SMILE_PRIVACY_POLICY_URL/);
+    expect(() =>
+      validateEnv({
+        ...smile,
+        SMILE_CALLBACK_URL: 'http://example.com/webhooks/kyc/smile',
+        SMILE_PRIVACY_POLICY_URL: 'https://example.com/privacy',
+      }),
+    ).toThrow(/SMILE_CALLBACK_URL/);
+    expect(
+      validateEnv({
+        ...smile,
+        SMILE_CALLBACK_URL: 'https://example.com/webhooks/kyc/smile',
+        SMILE_PRIVACY_POLICY_URL: 'https://example.com/privacy',
+      }).KYC_PROVIDER,
+    ).toBe('smile');
   });
   it('rejects unknown providers, untrusted Bachs origins and key/environment mismatches', () => {
     expect(() =>

@@ -121,3 +121,13 @@ webhook (or a server-side verify call) does.
 
 Each feature is a note in `Features/` with a `milestone` property; see
 [[Tracker.base|the tracker]].
+
+
+### Vendor identity checks
+
+Manual document review remains the default. QoreID and Dojah verify Nigerian
+NIN/BVN records with selfie match. Smile ID v3 Enhanced KYC verifies records
+asynchronously without biometrics. Vendor checks require explicit consent;
+Smile also needs the deployment's HTTPS privacy notice and callback URLs.
+The service reserves the pending row before dispatch and retains uncertain
+outcomes for reconciliation. See [[KYC vendors]] for provider setup and limits.

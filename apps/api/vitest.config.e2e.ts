@@ -16,6 +16,8 @@ export default defineConfig({
       GOOGLE_CLIENT_ID: 'test-client.apps.googleusercontent.com',
       // Tests that need payments inject a fake provider; never real keys.
       PAYMENT_PROVIDER: 'disabled',
+      // Vendor flows override the provider explicitly; never call real KYC accounts.
+      KYC_PROVIDER: 'manual',
     },
     globalSetup: './test/global-setup.ts',
     fileParallelism: false,

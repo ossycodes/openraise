@@ -605,3 +605,22 @@ the registered name as confirmed; that name is shown on the profile now and is
 what an organisation's payout account must match when organisations can
 withdraw. Verified certificate photos are kept (they are company records, not
 personal ID); a retention period can be added if deployments ask for one.
+
+
+## Vendor KYC reserves before dispatch and treats uncertainty as pending
+
+A vendor call can cost money or queue a job before its response is lost. A
+pending check is created under the subject user's row lock before dispatch,
+claiming its encrypted upload atomically. Another request cannot start another
+check while one is pending or verified. Ambiguous errors keep the reservation
+for callback or administrator reconciliation; there is no automatic paid retry.
+Synchronous decisions update the reservation, generating the existing audit
+trigger rather than bypassing it with an already-decided insert.
+
+Smile ID overwrites `partner_params.job_id`; our reference therefore travels
+as `customer_ref_id`. Its documented response signature covers timestamp and
+partner ID, not body bytes. Each submission also receives a private callback
+URL token derived from its random reference and the API key. Both checks are
+required. Callback query strings must be redacted at ingress. API-key rotation
+must account for pending jobs. Unknown reservations return retryable 503 and
+already-decided checks acknowledge duplicates without sending another email.

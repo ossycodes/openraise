@@ -70,8 +70,9 @@ export default async function VerificationPage() {
                 <div>
                   <strong id="id-status">We’re checking your details</strong>
                   <p>
-                    Someone on the team compares your photo with what you
-                    entered. We’ll email you when it’s done.
+                    {state.provider === 'manual'
+                      ? 'Someone on the team compares your photo with what you entered. We’ll email you when it’s done.'
+                      : 'Our identity provider is checking what you sent. We’ll email you when it’s done.'}
                   </p>
                 </div>
               </div>
@@ -93,6 +94,8 @@ export default async function VerificationPage() {
               )}
               <VerificationForm
                 documentRequired={state.documentRequired}
+                selfieRequired={state.selfieRequired}
+                privacyPolicyUrl={state.privacyPolicyUrl}
                 previous={state.status === 'REJECTED' ? v : null}
               />
             </section>
@@ -109,8 +112,8 @@ export default async function VerificationPage() {
               </li>
               <li>
                 <LockKeyhole size={16} aria-hidden="true" />
-                Your ID photo is encrypted. Only the administrator reviewing it
-                can open it.
+                Your ID photo or selfie is encrypted. Only the administrator
+                reviewing it can open it.
               </li>
               <li>
                 <Trash2 size={16} aria-hidden="true" />

@@ -7,6 +7,7 @@ import type { IdentityCheck, KycProvider } from '../kyc-provider.js';
 export class ManualKycProvider implements KycProvider {
   readonly name = 'manual' as const;
   readonly needsDocument = true;
+  readonly needsSelfie = false;
 
   check(): Promise<IdentityCheck> {
     return Promise.resolve({ status: 'PENDING', reference: null });

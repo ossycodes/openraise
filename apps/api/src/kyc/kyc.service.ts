@@ -8,6 +8,7 @@ import {
   Logger,
   NotFoundException,
   PayloadTooLargeException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AuthUser } from '../auth/auth.types.js';
@@ -27,8 +28,14 @@ import { MailService } from '../mail/mail.service.js';
 import { identityDecisionEmail } from '../mail/templates.js';
 import { isUniqueViolation, PrismaService } from '../prisma/prisma.service.js';
 import { StorageService } from '../storage/storage.service.js';
+import { namesMatch } from '../bank-accounts/name-match.js';
 import { documentCipher, type DocumentCipher } from './document-cipher.js';
-import { KYC_PROVIDER, type KycProvider } from './kyc-provider.js';
+import {
+  KYC_PROVIDER,
+  KycProviderError,
+  type IdentityResultEvent,
+  type KycProvider,
+} from './kyc-provider.js';
 import type {
   DecisionInput,
   QueueQuery,
@@ -117,6 +124,8 @@ export class KycService {
       status: (current?.status ?? 'NONE') as IdentityStatus,
       provider: this.provider.name,
       documentRequired: this.provider.needsDocument,
+      selfieRequired: this.provider.needsSelfie,
+      privacyPolicyUrl: this.provider.privacyPolicyUrl ?? null,
       verification: current ? this.presentOwn(current) : null,
     };
   }
@@ -153,6 +162,16 @@ export class KycService {
   /** Step 2: the details. The full ID number goes to the provider only. */
   async submit(user: AuthUser, input: SubmissionInput) {
     await this.assertCanSubmit(user);
+    if (this.provider.name !== 'manual' && !input.consent)
+      throw new BadRequestException({
+        message: 'Check your details',
+        errors: [
+          {
+            path: 'consent',
+            message: 'Allow us to send your details to our identity provider.',
+          },
+        ],
+      });
     const age = ageOn(input.dateOfBirth, new Date());
     if (age < MIN_AGE || age > 120)
       throw new BadRequestException({
@@ -168,73 +187,117 @@ export class KycService {
         ],
       });
 
+    // The stored photo this submission relies on: the ID photo for the
+    // manual provider, the selfie for vendor face match. Either way it is
+    // kept encrypted as the row's document for evidence and retention.
+    const keyPath = this.provider.needsDocument
+      ? 'documentKey'
+      : this.provider.needsSelfie
+        ? 'selfieKey'
+        : null;
+    const storedKey = this.provider.needsDocument
+      ? input.documentKey
+      : this.provider.needsSelfie
+        ? input.selfieKey
+        : undefined;
     let documentContentType: ImageType | null = null;
-    if (this.provider.needsDocument) {
-      const key = input.documentKey;
-      const ext = key?.match(
+    let selfie: { bytes: Uint8Array; contentType: string } | undefined;
+    if (keyPath) {
+      const ext = storedKey?.match(
         /^kyc\/[^/]+\/[A-Za-z0-9_-]+\.(jpg|png|webp)\.enc$/,
       )?.[1];
-      if (!key || !ext || !key.startsWith(`kyc/${user.id}/`))
-        throw new BadRequestException({
-          message: 'Check your details',
-          errors: [
-            { path: 'documentKey', message: 'Attach a photo of your ID' },
-          ],
-        });
-      if (!(await this.storage.head(key)))
+      if (!storedKey || !ext || !storedKey.startsWith(`kyc/${user.id}/`))
         throw new BadRequestException({
           message: 'Check your details',
           errors: [
             {
-              path: 'documentKey',
-              message: 'Upload the photo of your ID again',
+              path: keyPath,
+              message: this.provider.needsDocument
+                ? 'Attach a photo of your ID'
+                : 'Take a selfie',
+            },
+          ],
+        });
+      const sealed = await this.storage.read(storedKey);
+      if (!sealed)
+        throw new BadRequestException({
+          message: 'Check your details',
+          errors: [
+            {
+              path: keyPath,
+              message: this.provider.needsDocument
+                ? 'Upload the photo of your ID again'
+                : 'Take the selfie again',
             },
           ],
         });
       documentContentType = EXTENSION_TYPES[ext]!;
+      if (this.provider.needsSelfie)
+        selfie = {
+          bytes: this.cipher.decrypt(sealed, storedKey),
+          contentType: documentContentType,
+        };
     }
 
-    const check = await this.provider.check({
-      userId: user.id,
-      documentType: input.documentType,
-      idNumber: input.idNumber,
-      legalName: input.legalName,
-      dateOfBirth: input.dateOfBirth,
-    });
-    const uploadAgain = new BadRequestException({
-      message: 'Check your details',
-      errors: [
-        { path: 'documentKey', message: 'Upload the photo of your ID again' },
-      ],
-    });
+    if (
+      this.provider.name !== 'manual' &&
+      !['NIN_SLIP', 'BVN'].includes(input.documentType)
+    )
+      throw new BadRequestException({
+        message: 'Check your details',
+        errors: [{ path: 'documentType', message: 'Choose a NIN or a BVN.' }],
+      });
+
+    // Reserve the open check and claim its upload before calling a paid vendor.
+    // The unique pending-user index serializes concurrent submissions, and a
+    // fast callback can already find its correlation reference.
+    const reference =
+      this.provider.name === 'manual' ? null : `or-${randomToken(24)}`;
+    let row: IdentityVerification;
     try {
-      const row = await this.prisma.$transaction(async (tx) => {
-        // Claim the upload; one the retention sweep already took is gone.
-        if (this.provider.needsDocument) {
+      row = await this.prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${user.id} FOR UPDATE`;
+        const existing = await tx.identityVerification.findFirst({
+          where: { userId: user.id, status: { in: ['PENDING', 'VERIFIED'] } },
+        });
+        if (existing)
+          throw new ConflictException(
+            existing.status === 'VERIFIED'
+              ? 'Your identity is already verified'
+              : 'Your identity check is already being reviewed',
+          );
+        if (storedKey) {
           const claimed = await tx.identityDocumentUpload.deleteMany({
-            where: { key: input.documentKey!, userId: user.id },
+            where: { key: storedKey, userId: user.id },
           });
-          if (claimed.count === 0) throw uploadAgain;
+          if (claimed.count === 0)
+            throw new BadRequestException({
+              message: 'Check your details',
+              errors: [
+                {
+                  path: keyPath!,
+                  message: this.provider.needsSelfie
+                    ? 'Take the selfie again'
+                    : 'Upload the photo of your ID again',
+                },
+              ],
+            });
         }
         return tx.identityVerification.create({
-        data: {
-          userId: user.id,
-          provider: this.provider.name,
-          providerReference: check.reference,
-          status: check.status,
-          documentType: input.documentType,
-          idNumberLast4: input.idNumber.slice(-4),
-          legalName: input.legalName,
-          dateOfBirth: new Date(`${input.dateOfBirth}T00:00:00Z`),
-          verifiedName: check.status === 'VERIFIED' ? check.verifiedName : null,
-          reason: check.status === 'REJECTED' ? check.reason : null,
-          documentKey: this.provider.needsDocument ? input.documentKey! : null,
-          documentContentType,
-          decidedAt: check.status === 'PENDING' ? null : new Date(),
-        },
+          data: {
+            userId: user.id,
+            provider: this.provider.name,
+            providerReference: reference,
+            status: 'PENDING',
+            documentType: input.documentType,
+            idNumberLast4: input.idNumber.slice(-4),
+            legalName: input.legalName,
+            dateOfBirth: new Date(`${input.dateOfBirth}T00:00:00Z`),
+            documentKey: storedKey ?? null,
+            documentContentType,
+          },
         });
       });
-      return this.presentOwn(row);
     } catch (error) {
       if (isUniqueViolation(error))
         throw new ConflictException(
@@ -242,6 +305,123 @@ export class KycService {
         );
       throw error;
     }
+
+    let check;
+    try {
+      check = await this.provider.check({
+        userId: user.id,
+        ...(reference ? { reference } : {}),
+        documentType: input.documentType,
+        idNumber: input.idNumber,
+        legalName: input.legalName,
+        dateOfBirth: input.dateOfBirth,
+        email: user.email,
+        consent: input.consent,
+        ...(selfie ? { selfie } : {}),
+      });
+    } catch (error) {
+      // A timeout or malformed acknowledgement can follow a successful paid
+      // submission. Keep the reservation for callback/admin reconciliation;
+      // allowing another submission here could create duplicate vendor jobs.
+      if (error instanceof KycProviderError)
+        throw new ServiceUnavailableException({
+          message:
+            'We could not confirm the result yet. Reload to check your verification status before trying again.',
+          code: 'IDENTITY_CHECK_UNAVAILABLE',
+        });
+      throw error;
+    }
+
+    const completed = await this.prisma.identityVerification.updateMany({
+      where: { id: row.id, status: 'PENDING' },
+      data: {
+        providerReference: check.reference,
+        status: check.status,
+        verifiedName: check.status === 'VERIFIED' ? check.verifiedName : null,
+        reason: check.status === 'REJECTED' ? check.reason : null,
+        decidedAt: check.status === 'PENDING' ? null : new Date(),
+        ...(check.status === 'REJECTED'
+          ? { documentKey: null, documentContentType: null }
+          : {}),
+      },
+    });
+    if (completed.count > 0 && check.status === 'REJECTED' && storedKey)
+      await this.storage.deleteQuietly(storedKey);
+    // A callback or administrator may have decided it while the request ran.
+    return this.presentOwn(
+      await this.prisma.identityVerification.findUniqueOrThrow({
+        where: { id: row.id },
+      }),
+    );
+  }
+
+  /**
+   * A vendor result delivered later (Smile's webhook). The signature has
+   * already been verified by the controller. `attention`/`error` outcomes
+   * arrive as PENDING and change nothing: an administrator decides those
+   * from the queue. A VERIFIED result is still cross-checked against the
+   * submitted name and date of birth before it verifies anyone.
+   */
+  async applyResult(event: IdentityResultEvent) {
+    const row = await this.prisma.identityVerification.findFirst({
+      where: {
+        provider: this.provider.name,
+        providerReference: event.reference,
+      },
+      include: { user: { select: { name: true, email: true } } },
+    });
+    // A fast callback can beat the submission transaction. Ask the vendor to retry.
+    if (!row)
+      throw new ServiceUnavailableException('Identity submission is not ready');
+    if (row.status !== 'PENDING' || event.check.status === 'PENDING')
+      return { applied: false };
+
+    let check = event.check;
+    if (
+      check.status === 'VERIFIED' &&
+      (!namesMatch(row.legalName, check.verifiedName) ||
+        !check.verifiedDateOfBirth ||
+        check.verifiedDateOfBirth !== isoDate(row.dateOfBirth))
+    )
+      check = {
+        status: 'REJECTED',
+        reference: event.reference,
+        reason:
+          'The details on that ID do not match the details you entered. Check them and try again.',
+      };
+    const approve = check.status === 'VERIFIED';
+    const verifiedName =
+      check.status === 'VERIFIED' ? check.verifiedName : null;
+    const reason = check.status === 'REJECTED' ? check.reason : null;
+    const claimed = await this.prisma.identityVerification.updateMany({
+      where: { id: row.id, status: 'PENDING' },
+      data: {
+        status: approve ? 'VERIFIED' : 'REJECTED',
+        verifiedName,
+        reason,
+        decidedAt: new Date(),
+        ...(approve ? {} : { documentKey: null, documentContentType: null }),
+      },
+    });
+    if (claimed.count === 0) return { applied: false };
+    if (!approve && row.documentKey)
+      await this.storage.deleteQuietly(row.documentKey);
+    try {
+      await this.mail.send(
+        identityDecisionEmail(
+          row.user.name,
+          row.user.email,
+          reason,
+          new URL(
+            '/dashboard/verification',
+            this.config.get('WEB_URL', { infer: true }),
+          ).toString(),
+        ),
+      );
+    } catch (error) {
+      this.logger.warn(`Identity decision email not sent: ${String(error)}`);
+    }
+    return { applied: true };
   }
 
   async queue(query: QueueQuery) {

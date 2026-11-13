@@ -10,9 +10,8 @@ tags:
 The payment boundary lives in `apps/api/src/payments/payment-provider.ts`.
 Import its `PAYMENT_PROVIDER` token and `PaymentProvider` type; `PaymentsModule`
 exports the configured adapter (or `null` when disabled). See
-[[Payment providers]] for configuration and current limits. Identity verification
-and its provider interface are still planned; coordinate the first KYC adapter
-with [[Identity verification]].
+[[Payment providers]] for configuration and current limits. Identity verification uses `KycProvider` in
+`apps/api/src/kyc/kyc-provider.ts`; see [[Identity verification]] and [[KYC vendors]].
 
 ## Define the boundary
 
