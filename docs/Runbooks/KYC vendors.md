@@ -7,7 +7,7 @@ tags:
 
 # KYC vendors
 
-Local implementation supports Nigerian NIN and BVN only. Normal tests use
+The implementation merged in #62 supports Nigerian NIN and BVN only. Normal tests use
 synthetic documentation-shaped responses and fake transports; no live vendor
 contracts have been confirmed. Keep `KYC_PROVIDER=manual` until the selected
 provider passes its sandbox checks. This does not require enabling payments.

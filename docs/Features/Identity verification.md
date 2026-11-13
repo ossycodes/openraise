@@ -1,7 +1,8 @@
 ---
-status: in-progress
-branch: feat/identity-overrides
-pr: 51
+status: shipped
+branch: feat/kyc-vendor-adapters
+pr: 62
+shipped: 2026-11-13
 type: feature
 area: trust
 milestone: 4
@@ -47,7 +48,7 @@ published or a withdrawal made.
   See [[Decisions#ID photos are deleted on a schedule, tracked by the database]].
 - Both are recorded in the [[Audit log]]; the sweep as an automatic actor.
 
-## Part 2: vendor adapters (local implementation, not merged)
+## Part 2: vendor adapters (#62)
 
 - QoreID and Dojah: NIN/BVN lookup, required selfie match, authority name and
   date-of-birth matching. Missing evidence never verifies a creator.
@@ -66,5 +67,5 @@ published or a withdrawal made.
 ## Still to do
 
 - Run the credentialed sandbox checklist for each provider in [[KYC vendors]].
-- Review and merge the local implementation. Keep this feature in progress
-  until sandbox contracts are confirmed.
+- The code shipped in #62; provider enablement remains conditional on the
+  deployment completing its credentialed sandbox checks.
