@@ -10,6 +10,7 @@ Merged to `main` on [GitHub](https://github.com/ossycodes/openraise). Newest fir
 
 | PR | Change |
 |---|---|
+| #62 | Vendor identity verification: QoreID and Dojah NIN/BVN checks with selfie match, Smile ID v3 Enhanced KYC with authenticated callbacks, explicit consent, pending reservations before paid calls and audited decisions; 196 unit and 241 end-to-end tests passed, plus CI. Credentialed sandbox validation remains before enabling vendors ([[Identity verification]], [[KYC vendors]]) |
 | #61 | Organisations, part 2a: verification from CAC registration certificates, encrypted like ID photos, decided by an administrator outside the organisation, emailed to its managers and audited; verified organisations show a badge and their registered name on the public profile ([[Organisations]]) |
 | #59 | Organisations, part 1: create an organisation with a public profile, a team of owners, admins, editors and finance members, emailed invitations only the invited address can accept, a last-owner guard under a row lock, and team changes in the audit log ([[Organisations]]) |
 | #57 | Cause landing pages and fundraising guides: `/raise-money-for/<category>` with original copy, live campaigns, tips and a fee FAQ from the deployment's settings; three guides under `/guides`; breadcrumb, FAQ and article structured data; `sitemap.xml`, `robots.txt` and footer links ([[SEO pages and guides]]) |
